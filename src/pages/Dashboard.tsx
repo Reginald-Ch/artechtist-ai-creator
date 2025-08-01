@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Brain, Bot, Star, Users, Zap, Plus } from "lucide-react";
+import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
+import TemplateGallery from "@/components/TemplateGallery";
 
 const Dashboard = () => {
   const myBots = [
@@ -69,15 +70,41 @@ const Dashboard = () => {
               <CardTitle className="text-blue-600">Browse Templates</CardTitle>
               <CardDescription>Get inspired by sample bots and templates</CardDescription>
             </CardHeader>
+            <CardContent className="pt-0">
+              <TemplateGallery onUseTemplate={(template) => {
+                // Handle template selection - could navigate to builder with template data
+                console.log('Selected template:', template);
+              }} />
+            </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300">
             <CardHeader className="text-center">
               <div className="mx-auto mb-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                <Zap className="h-6 w-6 text-white" />
+                <Mic className="h-6 w-6 text-white" />
               </div>
-              <CardTitle className="text-green-600">AI Playground</CardTitle>
-              <CardDescription>Test and experiment with AI concepts</CardDescription>
+              <CardTitle className="text-green-600">Voice Training</CardTitle>
+              <CardDescription>Train your AI with voice in African languages</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                <Globe className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
+              <CardDescription>Explore African stories, languages & traditions</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-yellow-200 hover:border-yellow-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-yellow-600">AI Playground</CardTitle>
+              <CardDescription>Experiment with AI concepts and models</CardDescription>
             </CardHeader>
           </Card>
         </div>

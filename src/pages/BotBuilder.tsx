@@ -22,10 +22,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2 } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
+import AvatarSelector from "@/components/AvatarSelector";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -63,6 +64,8 @@ const BotBuilder = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [botName, setBotName] = useState("My AI Assistant");
+  const [botAvatar, setBotAvatar] = useState("🤖");
+  const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [showTestPanel, setShowTestPanel] = useState(false);
   
   const onConnect = useCallback(
@@ -129,13 +132,25 @@ const BotBuilder = () => {
             <Link to="/dashboard">
               <Button variant="ghost" size="sm">← Back</Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-orange-500" />
-              <Input 
-                value={botName} 
-                onChange={(e) => setBotName(e.target.value)}
-                className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0"
+            <div className="flex items-center gap-3">
+              <AvatarSelector 
+                selectedAvatar={botAvatar} 
+                onAvatarChange={(avatar, personality) => {
+                  setBotAvatar(avatar);
+                  setBotPersonality(personality);
+                }} 
               />
+              <div className="flex items-center gap-2">
+                <Brain className="h-6 w-6 text-orange-500" />
+                <Input 
+                  value={botName} 
+                  onChange={(e) => setBotName(e.target.value)}
+                  className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0"
+                />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Personality: {botPersonality}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
