@@ -43,8 +43,33 @@ const CulturalHub = () => {
     difficulty: 'adaptive',
     adaptationLevel: 50
   });
-  const [showLearning, setShowLearning] = useState(false);
+  const [showLearning, setShowLearning] = useState(true);
   const [currentStory, setCurrentStory] = useState(0);
+  const [currentLearningPanel, setCurrentLearningPanel] = useState(0);
+
+  const learningPanels = [
+    {
+      title: "How AI Learns",
+      avatar: "🤖",
+      explanation: "Watch this! Every time we play tic-tac-toe together, I get a little bit smarter. I learn from each move you make and try to get better at the game.",
+      concept: "This is called 'machine learning' - AI learns patterns from examples and experiences.",
+      aiStrength: Math.min(5, Math.floor(gameStats.adaptationLevel / 20) + 1)
+    },
+    {
+      title: "Pattern Recognition",
+      avatar: "🧠",
+      explanation: "Just like Anansi the Spider weaves complex webs, I weave patterns from your moves. Each game teaches me something new about strategy.",
+      concept: "AI uses pattern recognition to understand and predict behaviors, just like recognizing familiar web patterns.",
+      aiStrength: Math.min(5, Math.floor(gameStats.adaptationLevel / 20) + 1)
+    },
+    {
+      title: "Adaptive Learning",
+      avatar: "🌱",
+      explanation: "Like the wise tortoise, I don't rush. I slowly adjust my difficulty based on how well you play, making games more fun and balanced.",
+      concept: "Adaptive algorithms change their behavior based on feedback to provide better experiences.",
+      aiStrength: Math.min(5, Math.floor(gameStats.adaptationLevel / 20) + 1)
+    }
+  ];
 
   const africanStories = [
     {
@@ -278,8 +303,69 @@ const CulturalHub = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Progressive Learning Panel */}
+          <div>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="text-3xl">{learningPanels[currentLearningPanel].avatar}</div>
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-600">{learningPanels[currentLearningPanel].title}</h3>
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-sm text-muted-foreground">AI Strength:</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star 
+                            key={i} 
+                            className={`h-4 w-4 ${i < learningPanels[currentLearningPanel].aiStrength ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-lg border-l-4 border-blue-500">
+                    <p className="text-sm leading-relaxed">{learningPanels[currentLearningPanel].explanation}</p>
+                  </div>
+                  
+                  <div className="bg-orange-100 dark:bg-orange-900/30 p-4 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="text-orange-500 mt-0.5">💡</div>
+                      <div>
+                        <h4 className="font-medium text-orange-700 dark:text-orange-300 mb-1">Learning Moment:</h4>
+                        <p className="text-sm text-orange-600 dark:text-orange-400">{learningPanels[currentLearningPanel].concept}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={() => setCurrentLearningPanel((prev) => (prev + 1) % learningPanels.length)}
+                    className="w-full bg-blue-500 hover:bg-blue-600"
+                  >
+                    📚 Keep playing to train me!
+                  </Button>
+
+                  <div className="flex justify-center gap-2 mt-4">
+                    {learningPanels.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentLearningPanel(index)}
+                        className={`h-2 w-8 rounded-full transition-colors ${
+                          index === currentLearningPanel ? 'bg-blue-500' : 'bg-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* AI Tic-Tac-Toe Game */}
-          <div className="lg:col-span-2">
+          <div>
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -456,6 +542,31 @@ const CulturalHub = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* AI Training Progress Panel */}
+        <div className="mt-8">
+          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+            <CardHeader>
+              <CardTitle className="text-center text-2xl">Your AI Training Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-8 text-center">
+                <div className="space-y-2">
+                  <div className="text-4xl font-bold text-blue-600">{gameStats.wins + gameStats.losses + gameStats.draws}</div>
+                  <div className="text-sm text-muted-foreground">Games Played</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-4xl font-bold text-orange-600">{gameStats.wins}</div>
+                  <div className="text-sm text-muted-foreground">Your Wins</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-4xl font-bold text-purple-600">{gameStats.adaptationLevel}%</div>
+                  <div className="text-sm text-muted-foreground">AI Difficulty</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Quick Links */}
