@@ -33,37 +33,37 @@ export const AIMascot = ({
       case 'thinking':
         return {
           face: '🤔',
-          body: '🟦',
-          accent: 'border-blue-400 bg-blue-50 dark:bg-blue-950/20',
-          glow: 'shadow-blue-400/30'
+          body: '🛡️',
+          accent: 'border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20',
+          glow: 'shadow-lg shadow-blue-400/30'
         };
       case 'excited':
         return {
-          face: '🤩',
-          body: '🟨',
-          accent: 'border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20',
-          glow: 'shadow-yellow-400/30'
+          face: '🌟',
+          body: '⚡',
+          accent: 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20',
+          glow: 'shadow-lg shadow-yellow-400/30'
         };
       case 'explaining':
         return {
-          face: '🧠',
-          body: '🟪',
-          accent: 'border-purple-400 bg-purple-50 dark:bg-purple-950/20',
-          glow: 'shadow-purple-400/30'
+          face: '🎭',
+          body: '📚',
+          accent: 'border-purple-400 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20',
+          glow: 'shadow-lg shadow-purple-400/30'
         };
       case 'surprised':
         return {
-          face: '😮',
-          body: '🟧',
-          accent: 'border-orange-400 bg-orange-50 dark:bg-orange-950/20',
-          glow: 'shadow-orange-400/30'
+          face: '🚀',
+          body: '💫',
+          accent: 'border-orange-400 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20',
+          glow: 'shadow-lg shadow-orange-400/30'
         };
       default: // happy
         return {
-          face: '😊',
-          body: '🟩',
-          accent: 'border-green-400 bg-green-50 dark:bg-green-950/20',
-          glow: 'shadow-green-400/30'
+          face: '🦸',
+          body: '🌍',
+          accent: 'border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20',
+          glow: 'shadow-lg shadow-green-400/30'
         };
     }
   };

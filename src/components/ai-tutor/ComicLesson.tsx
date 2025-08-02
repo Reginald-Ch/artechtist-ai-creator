@@ -1,161 +1,134 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { comicLessons } from '@/data/comicLessons';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  BookOpen, 
+  Brain, 
   Lightbulb, 
+  MessageSquare, 
+  Heart,
   Star,
-  Brain,
   Zap,
-  Target
+  BookOpen,
+  Users,
+  Sparkles,
+  CheckCircle
 } from 'lucide-react';
 
 interface ComicPanel {
-  id: number;
+  id: string;
   title: string;
   character: string;
   dialogue: string;
   concept: string;
   visual: string;
-  tip: string;
+  learningTip: string;
   interactiveElement?: {
-    type: 'quiz' | 'demo' | 'challenge';
-    content: string;
-    action: string;
+    type: 'quiz' | 'demo' | 'challenge' | 'question' | 'click';
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    action?: string;
+    description?: string;
+    content?: string;
   };
 }
 
 interface ComicLessonProps {
   topic: string;
   currentGameState?: any;
-  onInteraction?: (action: string) => void;
+  onInteraction?: () => void;
 }
 
-export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLessonProps) => {
+export const ComicLesson = ({ 
+  topic, 
+  currentGameState, 
+  onInteraction 
+}: ComicLessonProps) => {
   const [currentPanel, setCurrentPanel] = useState(0);
   const [completedPanels, setCompletedPanels] = useState<number[]>([]);
 
   const getComicPanels = (topic: string): ComicPanel[] => {
-    switch (topic) {
-      case 'ai-learning':
-        return [
-          {
-            id: 1,
-            title: "Meet Kesi, Your AI Guide",
-            character: "🤖",
-            dialogue: "Greetings! I'm Kesi, your AI comic hero! Just like the wise Anansi spins knowledge into webs, I weave learning into adventures!",
-            concept: "AI Introduction",
-            visual: "🕷️🕸️✨",
-            tip: "AI stands for Artificial Intelligence - computer programs that can learn and make decisions!",
-            interactiveElement: {
-              type: 'demo',
-              content: "Watch how I learn from each game we play!",
-              action: "show-learning"
-            }
-          },
-          {
-            id: 2,
-            title: "The Pattern Spider",
-            character: "🕷️",
-            dialogue: "Like Anansi weaving patterns in his web, I look for patterns in your moves. Each game teaches me something new!",
-            concept: "Pattern Recognition",
-            visual: "🎯🔍📊",
-            tip: "Pattern recognition helps AI understand and predict behaviors by finding similarities.",
-            interactiveElement: {
-              type: 'challenge',
-              content: "Can you spot the pattern in my moves?",
-              action: "pattern-challenge"
-            }
-          },
-          {
-            id: 3,
-            title: "Growing Wisdom",
-            character: "🌱",
-            dialogue: "Just like the patient tortoise, I don't rush! I slowly get better by learning from each game we play together.",
-            concept: "Machine Learning",
-            visual: "📈🧠⚡",
-            tip: "Machine learning means AI gets smarter through experience, not programming!",
-            interactiveElement: {
-              type: 'quiz',
-              content: "How do you think AI learns best?",
-              action: "learning-quiz"
-            }
-          },
-          {
-            id: 4,
-            title: "Adaptive Hero",
-            character: "⚖️",
-            dialogue: "I adjust my difficulty to match your skill! Too easy is boring, too hard is frustrating. Balance is key!",
-            concept: "Adaptive Algorithms",
-            visual: "🎮⚖️🎯",
-            tip: "Adaptive algorithms change their behavior based on feedback to create better experiences.",
-            interactiveElement: {
-              type: 'demo',
-              content: "See how I adjust to your playing style!",
-              action: "show-adaptation"
-            }
-          }
-        ];
-      
-      case 'cultural-wisdom':
-        return [
-          {
-            id: 1,
-            title: "Ancient Wisdom, Modern AI",
-            character: "👑",
-            dialogue: "African stories have taught wisdom for thousands of years. Now AI learns from these same principles!",
-            concept: "Cultural AI Learning",
-            visual: "📚🌍🤖",
-            tip: "AI can learn from cultural wisdom and traditional knowledge systems.",
-            interactiveElement: {
-              type: 'demo',
-              content: "Explore how different cultures influence AI learning!",
-              action: "cultural-demo"
-            }
-          },
-          {
-            id: 2,
-            title: "The Talking Drum Network",
-            character: "🥁",
-            dialogue: "Like talking drums sending messages across villages, AI networks share knowledge instantly across the world!",
-            concept: "Neural Networks",
-            visual: "🥁📡🌐",
-            tip: "Neural networks are inspired by how our brains connect and share information.",
-            interactiveElement: {
-              type: 'challenge',
-              content: "Help me send a message through the AI network!",
-              action: "network-challenge"
-            }
-          }
-        ];
-
-      default:
-        return [
-          {
-            id: 1,
-            title: "AI Adventure Begins",
-            character: "🤖",
-            dialogue: "Welcome to the world of AI! Let's explore together through stories and games.",
-            concept: "Introduction",
-            visual: "🚀🌟📖",
-            tip: "Every expert was once a beginner. Let's start your AI journey!",
-            interactiveElement: {
-              type: 'demo',
-              content: "Ready to begin your AI adventure?",
-              action: "start-adventure"
-            }
-          }
-        ];
+    const lessonData = comicLessons[topic as keyof typeof comicLessons];
+    
+    if (lessonData) {
+      return lessonData.panels.map(panel => ({
+        id: panel.id,
+        title: `${lessonData.character} - Panel ${panel.id.split('-')[1]}`,
+        character: panel.character,
+        dialogue: panel.dialogue,
+        concept: lessonData.title,
+        visual: getVisualForCharacter(panel.character),
+        learningTip: `Cultural wisdom: ${panel.dialogue.split('.')[0]}.`,
+        interactiveElement: panel.interactiveElement ? {
+          type: panel.interactiveElement.type as 'quiz' | 'demo' | 'challenge' | 'question' | 'click',
+          question: panel.interactiveElement.content,
+          options: panel.interactiveElement.options || [],
+          correctAnswer: panel.interactiveElement.correctAnswer || panel.interactiveElement.options?.[0] || '',
+          action: panel.interactiveElement.type === 'click' ? 'interactive' : undefined,
+          description: panel.interactiveElement.content,
+          content: panel.interactiveElement.content
+        } : undefined
+      }));
     }
+
+    // Fallback default panels
+    return [
+      {
+        id: 'panel-1',
+        title: 'Welcome to AI Adventures',
+        character: 'Kesi AI',
+        dialogue: 'Welcome to your AI learning journey! Every click, every game, every question helps you understand how artificial intelligence works.',
+        concept: 'Getting Started',
+        visual: '🚀✨',
+        learningTip: 'Learning AI is an adventure - enjoy the journey!',
+        interactiveElement: {
+          type: 'demo',
+          action: 'Get started',
+          description: 'Click to begin your AI learning adventure!',
+          question: '',
+          options: [],
+          correctAnswer: '',
+          content: 'Click to begin your AI learning adventure!'
+        }
+      }
+    ];
+  };
+
+  const getVisualForCharacter = (character: string): string => {
+    const characterVisuals: Record<string, string> = {
+      'AI-ko': '🤖✨',
+      'Inventor Zuberi': '🔧💡',
+      'Student Amara': '📚🎓',
+      'Market Vendor Asha': '🍅🛒',
+      'Elder Fatima': '👵🏾📿',
+      'Teacher Kwame': '👨🏾‍🏫📖',
+      'Village Chief': '👑🏘️',
+      'Anansi': '🕷️🕸️',
+      'Elder Kwaku': '👴🏾📚',
+      'Elder Amara': '👵🏾🤝',
+      'Storyteller': '🗣️📖',
+      default: '🌟💫'
+    };
+    
+    return characterVisuals[character] || characterVisuals.default;
   };
 
   const panels = getComicPanels(topic);
   const panel = panels[currentPanel];
-  const progress = ((currentPanel + 1) / panels.length) * 100;
+
+  useEffect(() => {
+    // Auto-advance story based on game state changes
+    if (currentGameState?.winner && currentPanel < panels.length - 1) {
+      setTimeout(() => {
+        setCurrentPanel(prev => Math.min(prev + 1, panels.length - 1));
+      }, 2000);
+    }
+  }, [currentGameState?.winner, currentPanel, panels.length]);
 
   const nextPanel = () => {
     if (currentPanel < panels.length - 1) {
@@ -173,9 +146,7 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
   };
 
   const handleInteraction = () => {
-    if (panel.interactiveElement) {
-      onInteraction?.(panel.interactiveElement.action);
-    }
+    onInteraction?.();
     // Mark panel as completed
     if (!completedPanels.includes(currentPanel)) {
       setCompletedPanels([...completedPanels, currentPanel]);
@@ -184,15 +155,23 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
 
   const getIcon = (concept: string) => {
     switch (concept.toLowerCase()) {
-      case 'pattern recognition': return Target;
-      case 'machine learning': return Brain;
-      case 'adaptive algorithms': return Zap;
-      case 'neural networks': return Brain;
-      default: return Lightbulb;
+      case 'ai introduction':
+      case 'introduction to ai': 
+        return Brain;
+      case 'pattern recognition': 
+        return Zap;
+      case 'machine learning': 
+        return Lightbulb;
+      case 'neural networks': 
+        return Users;
+      default: 
+        return Star;
     }
   };
 
   const ConceptIcon = getIcon(panel.concept);
+
+  if (!panel) return null;
 
   return (
     <Card className="border-2 border-primary/20 bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-cyan-950/20">
@@ -211,7 +190,7 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
             )}
           </div>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={((currentPanel + 1) / panels.length) * 100} className="h-2" />
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -234,16 +213,21 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
 
             {/* Character and Visual */}
             <div className="text-center space-y-2">
-              <div className="text-6xl mb-2">{panel.character}</div>
-              <div className="text-2xl">{panel.visual}</div>
+              <div className="text-6xl mb-2 animate-bounce">
+                {panel.character}
+              </div>
+              <div className="text-2xl animate-pulse">{panel.visual}</div>
             </div>
 
             {/* Dialogue */}
             <div className="bg-background border rounded-lg p-3 relative">
               <div className="absolute -top-2 left-6 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-border"></div>
-              <p className="text-foreground text-sm leading-relaxed italic">
-                "{panel.dialogue}"
-              </p>
+              <div className="flex items-start gap-2">
+                <MessageSquare className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-foreground text-sm leading-relaxed italic">
+                  "{panel.dialogue}"
+                </p>
+              </div>
             </div>
 
             {/* Learning Tip */}
@@ -252,27 +236,116 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
                 <Lightbulb className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="font-medium text-sm text-blue-700 dark:text-blue-300 mb-1">Learning Tip:</h4>
-                  <p className="text-blue-600 dark:text-blue-400 text-xs">{panel.tip}</p>
+                  <p className="text-blue-600 dark:text-blue-400 text-xs">{panel.learningTip}</p>
                 </div>
               </div>
             </div>
 
             {/* Interactive Element */}
             {panel.interactiveElement && (
-              <div className="bg-gradient-to-r from-green-50 to-cyan-50 dark:from-green-950/20 dark:to-cyan-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                <div className="space-y-2">
-                  <p className="text-green-700 dark:text-green-300 text-sm font-medium">
-                    {panel.interactiveElement.content}
-                  </p>
+              <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-purple-50 dark:from-cyan-950/20 dark:to-purple-950/20 rounded-lg border border-cyan-200 dark:border-cyan-800">
+                {panel.interactiveElement.type === 'quiz' && panel.interactiveElement.options.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-cyan-700 dark:text-cyan-300 flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      {panel.interactiveElement.question}
+                    </h4>
+                    <div className="space-y-2">
+                      {panel.interactiveElement.options.map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-left justify-start hover:bg-cyan-100 dark:hover:bg-cyan-900/20 transition-all duration-200"
+                          onClick={() => {
+                            handleInteraction();
+                            if (option === panel.interactiveElement?.correctAnswer) {
+                              // Add visual feedback for correct answer
+                              const button = document.activeElement as HTMLElement;
+                              if (button) {
+                                button.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                                setTimeout(() => {
+                                  button.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
+                                }, 1000);
+                              }
+                            }
+                          }}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-2" />
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {panel.interactiveElement.type === 'demo' && (
                   <Button 
-                    size="sm" 
-                    onClick={handleInteraction}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white" 
+                    onClick={() => handleInteraction()}
                   >
-                    <Zap className="h-3 w-3 mr-1" />
-                    {panel.interactiveElement.action.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    <Zap className="h-4 w-4 mr-2" />
+                    {panel.interactiveElement.description}
                   </Button>
-                </div>
+                )}
+                
+                {panel.interactiveElement.type === 'challenge' && (
+                  <div className="text-center">
+                    <Button 
+                      variant="secondary" 
+                      className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white"
+                      onClick={() => handleInteraction()}
+                    >
+                      <Star className="h-4 w-4 mr-2" />
+                      Accept Challenge
+                    </Button>
+                  </div>
+                )}
+
+                {panel.interactiveElement.type === 'question' && panel.interactiveElement.options.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-cyan-700 dark:text-cyan-300 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      {panel.interactiveElement.question || panel.interactiveElement.content}
+                    </h4>
+                    <div className="space-y-2">
+                      {panel.interactiveElement.options.map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-left justify-start hover:bg-purple-100 dark:hover:bg-purple-900/20 transition-all duration-200"
+                          onClick={() => {
+                            handleInteraction();
+                            if (option === panel.interactiveElement?.correctAnswer) {
+                              // Add celebration effect
+                              const button = document.activeElement as HTMLElement;
+                              if (button) {
+                                button.innerHTML = `<span class="flex items-center gap-2"><span>🎉</span>${option}<span>✨</span></span>`;
+                                setTimeout(() => {
+                                  button.innerHTML = `<svg class="h-3 w-3 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>${option}`;
+                                }, 2000);
+                              }
+                            }
+                          }}
+                        >
+                          <CheckCircle className="h-3 w-3 mr-2" />
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {panel.interactiveElement.type === 'click' && (
+                  <Button 
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white animate-pulse" 
+                    onClick={() => handleInteraction()}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {panel.interactiveElement.content}
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -285,6 +358,7 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
             size="sm" 
             onClick={prevPanel}
             disabled={currentPanel === 0}
+            className="hover:bg-primary/10"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Previous
@@ -310,6 +384,7 @@ export const ComicLesson = ({ topic, currentGameState, onInteraction }: ComicLes
             size="sm" 
             onClick={nextPanel}
             disabled={currentPanel === panels.length - 1}
+            className="hover:bg-primary/10"
           >
             Next
             <ChevronRight className="h-4 w-4 ml-1" />

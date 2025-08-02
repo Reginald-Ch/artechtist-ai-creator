@@ -51,8 +51,8 @@ const AILessons = () => {
           
           <ComicLesson
             topic="ai-learning"
-            onInteraction={(action) => {
-              console.log('Lesson interaction:', action);
+            onInteraction={() => {
+              console.log('Lesson interaction');
               handleLessonProgress(lesson.id, 75);
             }}
           />
