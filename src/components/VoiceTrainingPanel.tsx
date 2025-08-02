@@ -399,8 +399,27 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
             )}
 
             {!apiKey && (
-              <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
-                ⚠️ Configure ElevenLabs API key for enhanced speech recognition
+              <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <span>⚠️</span>
+                  <span className="font-medium">Enhanced Speech Recognition Available</span>
+                </div>
+                <p className="text-xs mb-3">
+                  Connect ElevenLabs API for real speech-to-text with African language support, 
+                  voice cloning, and advanced accent recognition.
+                </p>
+                <details className="text-xs">
+                  <summary className="cursor-pointer hover:text-amber-700 dark:hover:text-amber-300">
+                    Why use ElevenLabs? (Click to expand)
+                  </summary>
+                  <ul className="mt-2 ml-4 space-y-1 list-disc">
+                    <li>Real-time speech recognition for 10+ African languages</li>
+                    <li>Advanced accent detection and adaptation</li>
+                    <li>Voice cloning for personalized AI responses</li>
+                    <li>Cultural context understanding</li>
+                    <li>High accuracy for regional dialects</li>
+                  </ul>
+                </details>
               </div>
             )}
           </div>
