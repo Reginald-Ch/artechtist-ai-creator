@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
@@ -133,6 +133,17 @@ const BotBuilder = () => {
       },
     };
     setNodes((nds) => [...nds, newNode]);
+  };
+
+  const deleteSelectedNode = () => {
+    if (!selectedNode || selectedNode.data.isDefault) return;
+    
+    // Remove node and its connected edges
+    setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
+    setEdges((eds) => eds.filter((edge) => 
+      edge.source !== selectedNode.id && edge.target !== selectedNode.id
+    ));
+    setSelectedNode(null);
   };
 
   const updateSelectedNode = (field: string, value: any) => {
@@ -268,13 +279,24 @@ const BotBuilder = () => {
           {selectedNode ? (
             <Card className="border-0 rounded-none h-full">
               <CardHeader className="bg-orange-50 dark:bg-orange-900/20">
-                <CardTitle className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" />
-                  Intent: {selectedNode.data.label as string}
-                  {selectedNode.data.isDefault && (
-                    <Badge variant="secondary" className="text-xs">Default</Badge>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
+                    Intent: {selectedNode.data.label as string}
+                    {selectedNode.data.isDefault && (
+                      <Badge variant="secondary" className="text-xs">Default</Badge>
+                    )}
+                  </CardTitle>
+                  {!selectedNode.data.isDefault && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={deleteSelectedNode}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   )}
-                </CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="p-4 space-y-6">
                 <Tabs defaultValue="training" className="w-full">
@@ -367,7 +389,13 @@ const BotBuilder = () => {
 
         {/* Test Panel */}
         {showTestPanel && (
-          <TestPanel onClose={() => setShowTestPanel(false)} />
+          <TestPanel 
+            onClose={() => setShowTestPanel(false)}
+            nodes={nodes}
+            edges={edges}
+            botName={botName}
+            botPersonality={botPersonality}
+          />
         )}
 
         {/* Voice Training Panel */}
