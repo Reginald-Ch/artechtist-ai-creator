@@ -99,15 +99,17 @@ const Dashboard = () => {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                <Globe className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
-              <CardDescription>Explore African stories, languages & traditions</CardDescription>
-            </CardHeader>
-          </Card>
+          <Link to="/cultural-hub">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                  <Globe className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
+                <CardDescription>Explore African stories, languages & traditions</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
 
           <Link to="/ai-lessons">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-yellow-200 hover:border-yellow-300">

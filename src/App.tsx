@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import BotBuilder from "./pages/BotBuilder";
 import VoiceTraining from "./pages/VoiceTraining";
 import AILessons from "./pages/AILessons";
+import CulturalHub from "./pages/CulturalHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/builder/:id" element={<BotBuilder />} />
           <Route path="/voice-training" element={<VoiceTraining />} />
           <Route path="/ai-lessons" element={<AILessons />} />
+          <Route path="/cultural-hub" element={<CulturalHub />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
