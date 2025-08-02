@@ -300,35 +300,67 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
             </Select>
           </div>
 
-          {/* Recording Section */}
+            {/* Recording Section */}
           <div className="space-y-4">
             <div className="text-center space-y-4">
-              <div className="flex justify-center">
+              {/* Recording Button with Enhanced Visual Feedback */}
+              <div className="relative flex justify-center">
+                <div className={`absolute inset-0 rounded-full ${isRecording ? 'animate-ping bg-red-400/75' : 'bg-green-400/20'} w-20 h-20 mx-auto`}></div>
                 <Button
                   size="lg"
                   variant={isRecording ? "destructive" : "default"}
-                  className={`w-20 h-20 rounded-full ${isRecording ? '' : 'bg-green-500 hover:bg-green-600'}`}
+                  className={`relative w-20 h-20 rounded-full border-4 transition-all duration-300 ${
+                    isRecording 
+                      ? 'border-red-300 bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50' 
+                      : !selectedIntent
+                      ? 'border-gray-300 bg-gray-400 cursor-not-allowed'
+                      : 'border-green-300 bg-green-500 hover:bg-green-600 shadow-lg shadow-green-500/50 hover:scale-105'
+                  }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={!selectedIntent}
                 >
                   {isRecording ? (
-                    <MicOff className="h-8 w-8" />
+                    <MicOff className="h-8 w-8 animate-pulse" />
                   ) : (
                     <Mic className="h-8 w-8" />
                   )}
                 </Button>
               </div>
               
+              {/* Enhanced Recording Progress */}
               {isRecording && (
-                <div className="space-y-2">
-                  <Progress value={recordingProgress} className="w-full" />
-                  <p className="text-sm text-muted-foreground">Recording... {Math.round(recordingProgress)}%</p>
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Progress value={recordingProgress} className="w-full h-3" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-medium text-white mix-blend-difference">
+                        {Math.round(recordingProgress)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 text-sm text-red-600 dark:text-red-400">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    Recording in {africanLanguages.find(l => l.code === selectedLanguage)?.name}...
+                  </div>
                 </div>
               )}
               
-              <p className="text-sm text-muted-foreground">
-                {isRecording ? 'Speak clearly in your selected language' : 'Click to start recording'}
-              </p>
+              {/* Status and Instructions */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {!selectedIntent 
+                    ? 'Please select an intent first' 
+                    : isRecording 
+                    ? 'Speak clearly in your selected language' 
+                    : 'Click the microphone to start recording'
+                  }
+                </p>
+                {!isRecording && selectedIntent && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    💡 Tip: Speak naturally for 3-5 seconds for best results
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Audio Playback */}
@@ -425,28 +457,45 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
           </div>
 
           {/* Voice Training Progress */}
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
-            <CardHeader>
-              <CardTitle className="text-lg">Your Voice Training Progress</CardTitle>
+          <Card className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20 border-emerald-200 dark:border-emerald-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-emerald-600" />
+                Voice Training Journey
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-3 text-center mb-4">
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-blue-600">{trainingPhrases.length}</div>
-                  <div className="text-xs text-muted-foreground">Phrases Trained</div>
+                  <div className="text-xl font-bold text-emerald-600">{trainingPhrases.length}</div>
+                  <div className="text-xs text-muted-foreground">Phrases</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-green-600">{voiceAccuracy}%</div>
+                  <div className="text-xl font-bold text-blue-600">{voiceAccuracy}%</div>
                   <div className="text-xs text-muted-foreground">Accuracy</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xl font-bold text-purple-600">{sessionCount}</div>
+                  <div className="text-xs text-muted-foreground">Sessions</div>
                 </div>
               </div>
               
-              <div className="mt-4 space-y-2">
+              <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span>Training Progress</span>
+                  <span>Overall Progress</span>
                   <span>{Math.min(100, trainingPhrases.length * 10)}%</span>
                 </div>
-                <Progress value={Math.min(100, trainingPhrases.length * 10)} className="h-2" />
+                <Progress value={Math.min(100, trainingPhrases.length * 10)} className="h-3" />
+                
+                {/* Language Diversity */}
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {[...new Set(trainingPhrases.map(p => p.language))].map(lang => (
+                    <Badge key={lang} variant="outline" className="text-xs">
+                      {africanLanguages.find(l => l.code === lang)?.flag} 
+                      {africanLanguages.find(l => l.code === lang)?.name.split(' ')[0]}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

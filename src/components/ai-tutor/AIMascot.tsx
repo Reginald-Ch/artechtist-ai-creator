@@ -2,250 +2,175 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Brain, 
-  MessageCircle, 
-  Lightbulb, 
-  Sparkles, 
-  BookOpen,
-  Target,
-  Zap,
-  Heart
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Brain, Sparkles, MessageCircle, Lightbulb, Star } from 'lucide-react';
 
 interface AIMascotProps {
-  currentTopic?: string;
-  onTopicChange?: (topic: string) => void;
-  className?: string;
+  emotion?: 'happy' | 'thinking' | 'excited' | 'explaining' | 'surprised';
+  message?: string;
+  showTip?: boolean;
+  learningLevel?: number;
+  isInteracting?: boolean;
+  onInteraction?: () => void;
 }
 
-const mascotPhrases = {
-  greeting: [
-    "Hi there! I'm AI-ko, your friendly AI learning companion! 🤖",
-    "Ready to explore the amazing world of AI together?",
-    "Let's make learning AI fun and easy!"
-  ],
-  encouragement: [
-    "You're doing great! Keep exploring!",
-    "Amazing progress! AI is becoming clearer, isn't it?",
-    "That's the spirit! Every expert was once a beginner."
-  ],
-  concepts: [
-    "Think of AI like teaching a computer to recognize patterns, just like how you learned to recognize faces!",
-    "Machine Learning is like training a pet - the more examples you show, the better it gets!",
-    "Neural networks work like our brain - lots of simple connections creating smart behavior!"
-  ]
-};
-
-const aiConcepts = [
-  {
-    id: 'intent',
-    title: 'What is an Intent?',
-    icon: Target,
-    description: 'An intent is what the user wants to accomplish',
-    example: 'Like saying "book a flight" - the intent is booking',
-    difficulty: 'Beginner'
-  },
-  {
-    id: 'training',
-    title: 'Training Phrases',
-    icon: MessageCircle,
-    description: 'Different ways users might express the same intent',
-    example: '"Book me a ticket", "I need a flight", "Reserve airline"',
-    difficulty: 'Beginner'
-  },
-  {
-    id: 'responses',
-    title: 'Bot Responses',
-    icon: Brain,
-    description: 'How your AI responds when it understands an intent',
-    example: 'Asking for departure city, dates, or passenger count',
-    difficulty: 'Beginner'
-  },
-  {
-    id: 'entities',
-    title: 'Entities & Parameters',
-    icon: Zap,
-    description: 'Specific information extracted from user messages',
-    example: 'From "Book flight to Paris" → extract "Paris" as destination',
-    difficulty: 'Intermediate'
-  },
-  {
-    id: 'context',
-    title: 'Conversation Context',
-    icon: BookOpen,
-    description: 'How AI remembers previous parts of the conversation',
-    example: 'Remembering user said "Paris" when asking for dates',
-    difficulty: 'Intermediate'
-  },
-  {
-    id: 'nlp',
-    title: 'Natural Language Processing',
-    icon: Sparkles,
-    description: 'How computers understand human language',
-    example: 'Converting "u r awesome" to "you are awesome"',
-    difficulty: 'Advanced'
-  }
-];
-
-export const AIMascot: React.FC<AIMascotProps> = ({ 
-  currentTopic, 
-  onTopicChange,
-  className 
-}) => {
-  const [currentPhrase, setCurrentPhrase] = useState(0);
-  const [mascotMood, setMascotMood] = useState<'happy' | 'thinking' | 'excited'>('happy');
-  const [showConcepts, setShowConcepts] = useState(false);
-  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+export const AIMascot = ({ 
+  emotion = 'happy', 
+  message, 
+  showTip = false, 
+  learningLevel = 0,
+  isInteracting = false,
+  onInteraction 
+}: AIMascotProps) => {
+  const [currentEmotion, setCurrentEmotion] = useState(emotion);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPhrase((prev) => (prev + 1) % mascotPhrases.encouragement.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
+    setCurrentEmotion(emotion);
+  }, [emotion]);
 
-  const handleConceptSelect = (conceptId: string) => {
-    setSelectedConcept(conceptId);
-    setMascotMood('thinking');
-    onTopicChange?.(conceptId);
-    
-    setTimeout(() => setMascotMood('excited'), 1000);
+  const getMascotAppearance = () => {
+    switch (currentEmotion) {
+      case 'thinking':
+        return {
+          face: '🤔',
+          body: '🟦',
+          accent: 'border-blue-400 bg-blue-50 dark:bg-blue-950/20',
+          glow: 'shadow-blue-400/30'
+        };
+      case 'excited':
+        return {
+          face: '🤩',
+          body: '🟨',
+          accent: 'border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20',
+          glow: 'shadow-yellow-400/30'
+        };
+      case 'explaining':
+        return {
+          face: '🧠',
+          body: '🟪',
+          accent: 'border-purple-400 bg-purple-50 dark:bg-purple-950/20',
+          glow: 'shadow-purple-400/30'
+        };
+      case 'surprised':
+        return {
+          face: '😮',
+          body: '🟧',
+          accent: 'border-orange-400 bg-orange-50 dark:bg-orange-950/20',
+          glow: 'shadow-orange-400/30'
+        };
+      default: // happy
+        return {
+          face: '😊',
+          body: '🟩',
+          accent: 'border-green-400 bg-green-50 dark:bg-green-950/20',
+          glow: 'shadow-green-400/30'
+        };
+    }
   };
 
-  const selectedConceptData = aiConcepts.find(c => c.id === selectedConcept);
+  const appearance = getMascotAppearance();
+
+  const handleClick = () => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 500);
+    onInteraction?.();
+  };
+
+  const getLearningBadge = () => {
+    if (learningLevel < 20) return { text: 'Learning', color: 'bg-blue-500', icon: Brain };
+    if (learningLevel < 50) return { text: 'Growing', color: 'bg-green-500', icon: Sparkles };
+    if (learningLevel < 80) return { text: 'Smart', color: 'bg-purple-500', icon: Lightbulb };
+    return { text: 'Genius', color: 'bg-yellow-500', icon: Star };
+  };
+
+  const badge = getLearningBadge();
 
   return (
-    <div className={cn("space-y-4", className)}>
-      {/* Mascot Avatar */}
-      <Card className="p-4 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-        <CardContent className="p-0">
-          <div className="flex items-center space-x-3">
-            <div className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500",
-              mascotMood === 'happy' && "bg-primary/20 animate-pulse",
-              mascotMood === 'thinking' && "bg-muted animate-bounce",
-              mascotMood === 'excited' && "bg-primary/30 animate-pulse scale-110"
-            )}>
-              {mascotMood === 'thinking' ? (
-                <Brain className="h-6 w-6 text-primary animate-spin" />
-              ) : (
-                <Heart className="h-6 w-6 text-primary" />
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <h3 className="font-semibold text-foreground">AI-ko</h3>
-                <Badge variant="secondary" className="text-xs">
-                  AI Tutor
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {mascotPhrases.encouragement[currentPhrase]}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowConcepts(!showConcepts)}
-          className="flex items-center space-x-1"
-        >
-          <BookOpen className="h-4 w-4" />
-          <span>Learn AI Concepts</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setMascotMood('excited')}
-          className="flex items-center space-x-1"
-        >
-          <Lightbulb className="h-4 w-4" />
-          <span>Get Hint</span>
-        </Button>
-      </div>
-
-      {/* AI Concepts Learning Panel */}
-      {showConcepts && (
-        <Card className="p-4">
-          <CardContent className="p-0 space-y-4">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h4 className="font-semibold">AI Concepts Explorer</h4>
+    <Card className={`${appearance.accent} border-2 ${appearance.glow} shadow-lg transition-all duration-300 ${isAnimating ? 'scale-110' : 'scale-100'} ${isInteracting ? 'animate-pulse' : ''}`}>
+      <CardContent className="p-4">
+        <div className="text-center space-y-3">
+          {/* Mascot Character */}
+          <div 
+            className={`relative inline-block cursor-pointer transition-transform duration-300 ${isAnimating ? 'animate-bounce' : 'hover:scale-110'}`}
+            onClick={handleClick}
+          >
+            {/* Body */}
+            <div className="text-6xl mb-2">
+              {appearance.body}
             </div>
             
-            <div className="grid gap-2">
-              {aiConcepts.map((concept) => {
-                const IconComponent = concept.icon;
-                const isSelected = selectedConcept === concept.id;
-                
-                return (
-                  <button
-                    key={concept.id}
-                    onClick={() => handleConceptSelect(concept.id)}
-                    className={cn(
-                      "w-full p-3 rounded-lg border text-left transition-all duration-200 hover:shadow-md",
-                      isSelected 
-                        ? "border-primary bg-primary/5 shadow-sm" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className={cn(
-                        "p-1 rounded-md",
-                        isSelected ? "bg-primary/20" : "bg-muted"
-                      )}>
-                        <IconComponent className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h5 className="font-medium text-sm">{concept.title}</h5>
-                          <Badge 
-                            variant={concept.difficulty === 'Beginner' ? 'default' : 
-                                   concept.difficulty === 'Intermediate' ? 'secondary' : 'destructive'}
-                            className="text-xs"
-                          >
-                            {concept.difficulty}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {concept.description}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Face */}
+            <div className="text-4xl absolute -top-2 left-1/2 transform -translate-x-1/2">
+              {appearance.face}
             </div>
+            
+            {/* Learning Level Badge */}
+            <div className="absolute -top-1 -right-1">
+              <Badge className={`${badge.color} text-white text-xs px-1 py-0.5 flex items-center gap-1`}>
+                <badge.icon className="h-3 w-3" />
+                {badge.text}
+              </Badge>
+            </div>
+            
+            {/* AI Glow Effect */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/20 to-purple-400/20 blur-sm -z-10 animate-pulse"></div>
+          </div>
 
-            {/* Selected Concept Details */}
-            {selectedConceptData && (
-              <Card className="p-3 bg-primary/5 border-primary/20">
-                <CardContent className="p-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Lightbulb className="h-4 w-4 text-primary" />
-                    <h6 className="font-medium text-sm">Example in Action</h6>
-                  </div>
-                  <p className="text-sm text-foreground">
-                    {selectedConceptData.example}
-                  </p>
-                  <div className="mt-3 p-2 bg-background rounded border">
-                    <p className="text-xs text-muted-foreground">
-                      💡 <strong>AI-ko says:</strong> {mascotPhrases.concepts[0]}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          {/* Name */}
+          <div className="space-y-1">
+            <h3 className="font-bold text-lg text-foreground">Kesi AI</h3>
+            <p className="text-xs text-muted-foreground">Your Comic Hero Guide</p>
+          </div>
+
+          {/* Learning Progress */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs">
+              <span>Learning Progress</span>
+              <span>{learningLevel}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ${badge.color}`}
+                style={{ width: `${learningLevel}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Message Bubble */}
+          {message && (
+            <div className="relative bg-background border rounded-lg p-3 text-sm">
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-border"></div>
+              <div className="flex items-start gap-2">
+                <MessageCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-foreground leading-relaxed">{message}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Interactive Tip */}
+          {showTip && (
+            <div className="bg-gradient-to-r from-cyan-50 to-purple-50 dark:from-cyan-950/20 dark:to-purple-950/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Sparkles className="h-3 w-3 text-cyan-500" />
+                <span className="text-cyan-700 dark:text-cyan-300">Click me to learn more!</span>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          {onInteraction && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleClick}
+              className="w-full text-xs"
+            >
+              <MessageCircle className="h-3 w-3 mr-1" />
+              Ask Kesi
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

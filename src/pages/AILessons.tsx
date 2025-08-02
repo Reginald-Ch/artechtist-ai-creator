@@ -50,12 +50,11 @@ const AILessons = () => {
           </div>
           
           <ComicLesson
-            lessonId={lesson.id}
-            title={lesson.title}
-            character={lesson.character}
-            panels={lesson.panels}
-            onComplete={handleLessonComplete}
-            onProgress={handleLessonProgress}
+            topic="ai-learning"
+            onInteraction={(action) => {
+              console.log('Lesson interaction:', action);
+              handleLessonProgress(lesson.id, 75);
+            }}
           />
         </div>
       </div>

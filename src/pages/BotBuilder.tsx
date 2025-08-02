@@ -404,8 +404,10 @@ const BotBuilder = () => {
           <div className="p-4 space-y-4">
             {/* AI Mascot */}
             <AIMascot 
-              currentTopic={selectedConcept}
-              onTopicChange={setSelectedConcept}
+              emotion="thinking"
+              message={`Working on: ${selectedConcept}`}
+              showTip={true}
+              learningLevel={50}
             />
             
             {/* Concept Explainer */}
