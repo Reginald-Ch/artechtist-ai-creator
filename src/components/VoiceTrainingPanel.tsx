@@ -248,15 +248,20 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
   };
 
   return (
-    <div className="w-96 border-l bg-background overflow-y-auto">
+    <div className="fixed right-0 top-0 h-full w-96 bg-background border-l-2 border-primary/20 shadow-2xl z-50 overflow-y-auto">
       <Card className="border-0 rounded-none h-full">
-        <CardHeader className="bg-green-50 dark:bg-green-900/20">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-b">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Mic className="h-5 w-5" />
-              Voice Training
+              <div className="p-2 bg-green-500 rounded-full">
+                <Mic className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Voice Training Studio</h2>
+                <p className="text-sm text-muted-foreground">Train AI with African languages</p>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-red-100 dark:hover:bg-red-900/20">
               <X className="h-4 w-4" />
             </Button>
           </CardTitle>
