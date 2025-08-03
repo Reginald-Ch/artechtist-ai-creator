@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen } from "lucide-react";
+import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TemplateGallery from "@/components/TemplateGallery";
-import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [showTutorial, setShowTutorial] = useState<string | null>(null);
-  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   
   const handleUseTemplate = (template: any) => {
     // Navigate to bot builder with template data
@@ -99,42 +94,28 @@ const Dashboard = () => {
             </Card>
           </Link>
 
-          <Link to="/cultural-hub">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                  <Globe className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
-                <CardDescription>Explore African stories, languages & traditions</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                <Globe className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
+              <CardDescription>Explore African stories, languages & traditions</CardDescription>
+            </CardHeader>
+          </Card>
 
-          <Link to="/ai-lessons">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-yellow-200 hover:border-yellow-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-yellow-600">AI Comic Lessons</CardTitle>
-                <CardDescription>Learn AI through interactive African stories</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-yellow-200 hover:border-yellow-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-yellow-600">AI Playground</CardTitle>
+              <CardDescription>Experiment with AI concepts and models</CardDescription>
+            </CardHeader>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* AI Mascot */}
-          <div className="lg:col-span-1">
-             <AIMascot 
-               emotion="happy"
-               message="Welcome to your AI learning journey!"
-               showTip={true}
-               learningLevel={25}
-             />
-          </div>
-          
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* My Bots */}
           <Card>
             <CardHeader>
@@ -215,18 +196,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Tutorial Overlays */}
-        {showTutorial && (
-          <TutorialOverlay 
-            isVisible={!!showTutorial}
-            onClose={() => setShowTutorial(null)}
-            tutorialType={showTutorial as any}
-            onStepComplete={(stepId) => {
-              console.log('Completed step:', stepId);
-            }}
-          />
-        )}
       </div>
     </div>
   );
