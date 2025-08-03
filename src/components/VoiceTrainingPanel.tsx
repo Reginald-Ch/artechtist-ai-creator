@@ -303,32 +303,57 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
           {/* Recording Section */}
           <div className="space-y-4">
             <div className="text-center space-y-4">
-              <div className="flex justify-center">
+              <div className="flex justify-center relative">
                 <Button
                   size="lg"
                   variant={isRecording ? "destructive" : "default"}
-                  className={`w-20 h-20 rounded-full ${isRecording ? '' : 'bg-green-500 hover:bg-green-600'}`}
+                  className={`w-20 h-20 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                    isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-lg shadow-red-500/25' 
+                      : selectedIntent
+                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
+                        : 'opacity-50 cursor-not-allowed'
+                  }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={!selectedIntent}
                 >
                   {isRecording ? (
-                    <MicOff className="h-8 w-8" />
+                    <MicOff className="h-8 w-8 text-white" />
                   ) : (
-                    <Mic className="h-8 w-8" />
+                    <Mic className="h-8 w-8 text-white" />
                   )}
                 </Button>
+                
+                {/* Recording indicator ripple effect */}
+                {isRecording && (
+                  <div className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-75" />
+                )}
               </div>
               
               {isRecording && (
-                <div className="space-y-2">
-                  <Progress value={recordingProgress} className="w-full" />
-                  <p className="text-sm text-muted-foreground">Recording... {Math.round(recordingProgress)}%</p>
+                <div className="space-y-3 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium">RECORDING</span>
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  </div>
+                  <Progress value={recordingProgress} className="w-full h-2" />
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {Math.round(recordingProgress)}% - Speak clearly in your selected language
+                  </p>
                 </div>
               )}
               
-              <p className="text-sm text-muted-foreground">
-                {isRecording ? 'Speak clearly in your selected language' : 'Click to start recording'}
-              </p>
+              {!isRecording && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    {!selectedIntent 
+                      ? 'Please select an intent first to start recording' 
+                      : 'Ready to record - Click the microphone to begin'
+                    }
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Audio Playback */}
