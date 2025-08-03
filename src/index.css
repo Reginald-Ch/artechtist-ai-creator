@@ -103,39 +103,3 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
-
-/* React Flow Performance Optimizations */
-.react-flow__node {
-  will-change: transform;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-.react-flow__edge {
-  will-change: auto;
-}
-
-/* Smooth dragging for nodes */
-.react-flow__node.dragging {
-  transition: none;
-  transform: translateZ(0);
-}
-
-/* Optimize selection box */
-.react-flow__selection {
-  background: rgba(0, 89, 220, 0.08);
-  border: 1px solid rgba(0, 89, 220, 0.3);
-}
-
-/* Smooth controls */
-.react-flow__controls {
-  transition: all 0.2s ease;
-}
-
-.react-flow__controls button {
-  transition: all 0.15s ease;
-}
-
-.react-flow__controls button:hover {
-  transform: scale(1.05);
-}

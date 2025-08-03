@@ -127,10 +127,12 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* AI Mascot */}
           <div className="lg:col-span-1">
-            <AIMascot 
-              currentTopic={selectedConcept}
-              onTopicChange={setSelectedConcept}
-            />
+             <AIMascot 
+               emotion="happy"
+               message="Welcome to your AI learning journey!"
+               showTip={true}
+               learningLevel={25}
+             />
           </div>
           
           {/* My Bots */}

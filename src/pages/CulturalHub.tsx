@@ -16,6 +16,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AIMascot } from '@/components/ai-tutor/AIMascot';
+import { ComicLesson } from '@/components/ai-tutor/ComicLesson';
 
 type Player = 'X' | 'O' | null;
 type Board = Player[];
@@ -46,6 +48,9 @@ const CulturalHub = () => {
   const [showLearning, setShowLearning] = useState(true);
   const [currentStory, setCurrentStory] = useState(0);
   const [currentLearningPanel, setCurrentLearningPanel] = useState(0);
+  const [mascotEmotion, setMascotEmotion] = useState<'happy' | 'thinking' | 'excited' | 'explaining' | 'surprised'>('happy');
+  const [mascotMessage, setMascotMessage] = useState('Ready to explore AI together? Let\'s start with a game!');
+  const [showComicLesson, setShowComicLesson] = useState(false);
 
   const learningPanels = [
     {

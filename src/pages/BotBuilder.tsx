@@ -381,32 +381,13 @@ const BotBuilder = () => {
             }}
             fitView
             className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30"
-            proOptions={{ hideAttribution: true }}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            elementsSelectable={true}
-            selectNodesOnDrag={false}
-            panOnDrag={true}
-            zoomOnScroll={true}
-            zoomOnPinch={true}
-            zoomOnDoubleClick={false}
-            preventScrolling={false}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
           >
-            <Controls className="bg-white shadow-lg rounded-lg border" position="top-left" />
+            <Controls className="bg-white shadow-lg" />
             <MiniMap 
-              className="bg-white border shadow-lg rounded-lg overflow-hidden" 
+              className="bg-white border shadow-lg" 
               nodeColor={(node) => node.data.isDefault ? '#f97316' : '#3b82f6'}
-              position="bottom-right"
-              pannable={true}
-              zoomable={true}
             />
-            <Background 
-              variant={BackgroundVariant.Dots} 
-              gap={20} 
-              size={1} 
-              color="#e5e7eb"
-            />
+            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           </ReactFlow>
           
           {/* Add Intent Button */}
@@ -423,8 +404,10 @@ const BotBuilder = () => {
           <div className="p-4 space-y-4">
             {/* AI Mascot */}
             <AIMascot 
-              currentTopic={selectedConcept}
-              onTopicChange={setSelectedConcept}
+              emotion="thinking"
+              message={`Working on: ${selectedConcept}`}
+              showTip={true}
+              learningLevel={50}
             />
             
             {/* Concept Explainer */}

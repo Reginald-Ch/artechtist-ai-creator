@@ -248,15 +248,20 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
   };
 
   return (
-    <div className="w-96 border-l bg-background overflow-y-auto">
+    <div className="fixed right-0 top-0 h-full w-96 bg-background border-l-2 border-primary/20 shadow-2xl z-50 overflow-y-auto">
       <Card className="border-0 rounded-none h-full">
-        <CardHeader className="bg-green-50 dark:bg-green-900/20">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-b">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Mic className="h-5 w-5" />
-              Voice Training
+              <div className="p-2 bg-green-500 rounded-full">
+                <Mic className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Voice Training Studio</h2>
+                <p className="text-sm text-muted-foreground">Train AI with African languages</p>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-red-100 dark:hover:bg-red-900/20">
               <X className="h-4 w-4" />
             </Button>
           </CardTitle>
@@ -300,60 +305,67 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
             </Select>
           </div>
 
-          {/* Recording Section */}
+            {/* Recording Section */}
           <div className="space-y-4">
             <div className="text-center space-y-4">
-              <div className="flex justify-center relative">
+              {/* Recording Button with Enhanced Visual Feedback */}
+              <div className="relative flex justify-center">
+                <div className={`absolute inset-0 rounded-full ${isRecording ? 'animate-ping bg-red-400/75' : 'bg-green-400/20'} w-20 h-20 mx-auto`}></div>
                 <Button
                   size="lg"
                   variant={isRecording ? "destructive" : "default"}
-                  className={`w-20 h-20 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                  className={`relative w-20 h-20 rounded-full border-4 transition-all duration-300 ${
                     isRecording 
-                      ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-lg shadow-red-500/25' 
-                      : selectedIntent
-                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/25'
-                        : 'opacity-50 cursor-not-allowed'
+                      ? 'border-red-300 bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50' 
+                      : !selectedIntent
+                      ? 'border-gray-300 bg-gray-400 cursor-not-allowed'
+                      : 'border-green-300 bg-green-500 hover:bg-green-600 shadow-lg shadow-green-500/50 hover:scale-105'
                   }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={!selectedIntent}
                 >
                   {isRecording ? (
-                    <MicOff className="h-8 w-8 text-white" />
+                    <MicOff className="h-8 w-8 animate-pulse" />
                   ) : (
-                    <Mic className="h-8 w-8 text-white" />
+                    <Mic className="h-8 w-8" />
                   )}
                 </Button>
-                
-                {/* Recording indicator ripple effect */}
-                {isRecording && (
-                  <div className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-75" />
-                )}
               </div>
               
+              {/* Enhanced Recording Progress */}
               {isRecording && (
-                <div className="space-y-3 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                  <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium">RECORDING</span>
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Progress value={recordingProgress} className="w-full h-3" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-medium text-white mix-blend-difference">
+                        {Math.round(recordingProgress)}%
+                      </span>
+                    </div>
                   </div>
-                  <Progress value={recordingProgress} className="w-full h-2" />
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    {Math.round(recordingProgress)}% - Speak clearly in your selected language
-                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-red-600 dark:text-red-400">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    Recording in {africanLanguages.find(l => l.code === selectedLanguage)?.name}...
+                  </div>
                 </div>
               )}
               
-              {!isRecording && (
-                <div className="bg-muted/50 p-3 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    {!selectedIntent 
-                      ? 'Please select an intent first to start recording' 
-                      : 'Ready to record - Click the microphone to begin'
-                    }
+              {/* Status and Instructions */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {!selectedIntent 
+                    ? 'Please select an intent first' 
+                    : isRecording 
+                    ? 'Speak clearly in your selected language' 
+                    : 'Click the microphone to start recording'
+                  }
+                </p>
+                {!isRecording && selectedIntent && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    💡 Tip: Speak naturally for 3-5 seconds for best results
                   </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Audio Playback */}
@@ -450,28 +462,45 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
           </div>
 
           {/* Voice Training Progress */}
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
-            <CardHeader>
-              <CardTitle className="text-lg">Your Voice Training Progress</CardTitle>
+          <Card className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20 border-emerald-200 dark:border-emerald-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-emerald-600" />
+                Voice Training Journey
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-3 text-center mb-4">
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-blue-600">{trainingPhrases.length}</div>
-                  <div className="text-xs text-muted-foreground">Phrases Trained</div>
+                  <div className="text-xl font-bold text-emerald-600">{trainingPhrases.length}</div>
+                  <div className="text-xs text-muted-foreground">Phrases</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-green-600">{voiceAccuracy}%</div>
+                  <div className="text-xl font-bold text-blue-600">{voiceAccuracy}%</div>
                   <div className="text-xs text-muted-foreground">Accuracy</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xl font-bold text-purple-600">{sessionCount}</div>
+                  <div className="text-xs text-muted-foreground">Sessions</div>
                 </div>
               </div>
               
-              <div className="mt-4 space-y-2">
+              <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span>Training Progress</span>
+                  <span>Overall Progress</span>
                   <span>{Math.min(100, trainingPhrases.length * 10)}%</span>
                 </div>
-                <Progress value={Math.min(100, trainingPhrases.length * 10)} className="h-2" />
+                <Progress value={Math.min(100, trainingPhrases.length * 10)} className="h-3" />
+                
+                {/* Language Diversity */}
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {[...new Set(trainingPhrases.map(p => p.language))].map(lang => (
+                    <Badge key={lang} variant="outline" className="text-xs">
+                      {africanLanguages.find(l => l.code === lang)?.flag} 
+                      {africanLanguages.find(l => l.code === lang)?.name.split(' ')[0]}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
