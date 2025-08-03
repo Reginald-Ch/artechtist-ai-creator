@@ -1,7 +1,14 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Badge } from "@/components/ui/badge";
-import { Bot, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bot, MessageSquare, X, Copy, Edit, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface IntentNodeData {
   label: string;
@@ -13,21 +20,74 @@ interface IntentNodeData {
 interface IntentNodeProps {
   data: IntentNodeData;
   selected?: boolean;
+  onDelete?: (nodeId: string) => void;
+  onDuplicate?: (nodeId: string) => void;
+  onEdit?: (nodeId: string) => void;
+  id?: string;
 }
 
-const IntentNode = memo(({ data, selected }: IntentNodeProps) => {
+const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: IntentNodeProps) => {
   const { label, trainingPhrases = [], responses = [], isDefault = false } = data;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div 
-      className={`bg-white border-2 rounded-lg shadow-lg min-w-48 transition-all ${
+      className={`bg-white border-2 rounded-lg shadow-lg min-w-48 transition-all relative group ${
         selected 
           ? 'border-orange-500 shadow-xl' 
           : isDefault 
             ? 'border-orange-300 hover:border-orange-400' 
             : 'border-blue-300 hover:border-blue-400'
       }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Visual Delete Button - appears on hover for non-default nodes */}
+      {!isDefault && (isHovered || selected) && (
+        <Button
+          size="sm"
+          variant="destructive"
+          className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-90 hover:opacity-100 z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete?.(id || '');
+          }}
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+      
+      {/* Right-click Context Menu */}
+      {!isDefault && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            >
+              <MoreVertical className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit?.(id || '')}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDuplicate?.(id || '')}>
+              <Copy className="mr-2 h-4 w-4" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onDelete?.(id || '')}
+              className="text-destructive"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       <Handle 
         type="target" 
         position={Position.Top} 
