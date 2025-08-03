@@ -12,7 +12,6 @@ import {
   Node,
   MarkerType,
   BackgroundVariant,
-  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -23,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
@@ -32,10 +31,6 @@ import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
-import { useUndoRedo } from "@/hooks/useUndoRedo";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { toast } from "@/hooks/use-toast";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -75,7 +70,6 @@ const BotBuilder = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [selectedNodes, setSelectedNodes] = useState<Node[]>([]);
   const [botName, setBotName] = useState("My AI Assistant");
   const [botAvatar, setBotAvatar] = useState("🤖");
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
@@ -83,51 +77,6 @@ const BotBuilder = () => {
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    description: string;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: '',
-    description: '',
-    onConfirm: () => {},
-  });
-
-  // Undo/Redo functionality
-  const undoRedo = useUndoRedo();
-
-  // Save initial state
-  useEffect(() => {
-    undoRedo.saveState(nodes, edges);
-  }, []);
-
-  // Save state on changes (debounced)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      undoRedo.saveState(nodes, edges);
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [nodes, edges]);
-
-  const handleUndo = () => {
-    const state = undoRedo.undo();
-    if (state) {
-      setNodes(state.nodes);
-      setEdges(state.edges);
-      toast({ title: "Undone", description: "Previous action undone" });
-    }
-  };
-
-  const handleRedo = () => {
-    const state = undoRedo.redo();
-    if (state) {
-      setNodes(state.nodes);
-      setEdges(state.edges);
-      toast({ title: "Redone", description: "Action redone" });
-    }
-  };
   
   // Apply template data when component mounts
   useEffect(() => {
@@ -188,77 +137,14 @@ const BotBuilder = () => {
 
   const deleteSelectedNode = () => {
     if (!selectedNode || selectedNode.data.isDefault) return;
-    deleteNode(selectedNode.id);
-  };
-
-  const deleteNode = (nodeId: string) => {
-    const nodeToDelete = nodes.find(n => n.id === nodeId);
-    if (!nodeToDelete || nodeToDelete.data.isDefault) return;
-
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Delete Intent',
-      description: `Are you sure you want to delete "${nodeToDelete.data.label}"? This action cannot be undone.`,
-      onConfirm: () => {
-        setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-        setEdges((eds) => eds.filter((edge) => 
-          edge.source !== nodeId && edge.target !== nodeId
-        ));
-        setSelectedNode(null);
-        toast({ title: "Intent deleted", description: `"${nodeToDelete.data.label}" has been removed` });
-      },
-    });
-  };
-
-  const duplicateNode = (nodeId: string) => {
-    const nodeToDuplicate = nodes.find(n => n.id === nodeId);
-    if (!nodeToDuplicate) return;
-
-    const newId = `${nodeId}-copy-${Date.now()}`;
-    const newNode: Node = {
-      ...nodeToDuplicate,
-      id: newId,
-      position: {
-        x: nodeToDuplicate.position.x + 50,
-        y: nodeToDuplicate.position.y + 50,
-      },
-      data: {
-        ...nodeToDuplicate.data,
-        label: `${nodeToDuplicate.data.label} (Copy)`,
-        isDefault: false,
-      },
-    };
     
-    setNodes((nds) => [...nds, newNode]);
-    toast({ title: "Intent duplicated", description: `Created copy of "${nodeToDuplicate.data.label}"` });
+    // Remove node and its connected edges
+    setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
+    setEdges((eds) => eds.filter((edge) => 
+      edge.source !== selectedNode.id && edge.target !== selectedNode.id
+    ));
+    setSelectedNode(null);
   };
-
-  const editNode = (nodeId: string) => {
-    const nodeToEdit = nodes.find(n => n.id === nodeId);
-    if (nodeToEdit) {
-      setSelectedNode(nodeToEdit);
-    }
-  };
-
-  const handleKeyboardActions = {
-    onDelete: () => {
-      if (selectedNode && !selectedNode.data.isDefault) {
-        deleteNode(selectedNode.id);
-      }
-    },
-    onDuplicate: () => {
-      if (selectedNode) {
-        duplicateNode(selectedNode.id);
-      }
-    },
-    onUndo: handleUndo,
-    onRedo: handleRedo,
-    onSave: () => {
-      toast({ title: "Bot saved", description: "Your bot has been saved successfully" });
-    },
-  };
-
-  useKeyboardShortcuts(handleKeyboardActions);
 
   const updateSelectedNode = (field: string, value: any) => {
     if (!selectedNode) return;
@@ -320,24 +206,6 @@ const BotBuilder = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={handleUndo}
-              disabled={!undoRedo.canUndo}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRedo}
-              disabled={!undoRedo.canRedo}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
               onClick={() => setShowTestPanel(!showTestPanel)}
             >
               <Play className="h-4 w-4 mr-2" />
@@ -351,7 +219,7 @@ const BotBuilder = () => {
               <HelpCircle className="h-4 w-4 mr-2" />
               Tutorial
             </Button>
-            <Button size="sm" onClick={handleKeyboardActions.onSave}>
+            <Button size="sm">
               <Save className="h-4 w-4 mr-2" />
               Save
             </Button>
@@ -369,16 +237,7 @@ const BotBuilder = () => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
-            nodeTypes={{
-              intent: (props) => (
-                <IntentNode 
-                  {...props} 
-                  onDelete={deleteNode}
-                  onDuplicate={duplicateNode}
-                  onEdit={editNode}
-                />
-              ),
-            }}
+            nodeTypes={nodeTypes}
             fitView
             className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30"
           >
@@ -561,17 +420,6 @@ const BotBuilder = () => {
           onStepComplete={(stepId) => {
             console.log('Completed step:', stepId);
           }}
-        />
-
-        {/* Confirmation Dialog */}
-        <ConfirmationDialog
-          isOpen={confirmDialog.isOpen}
-          onClose={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
-          onConfirm={confirmDialog.onConfirm}
-          title={confirmDialog.title}
-          description={confirmDialog.description}
-          confirmText="Delete"
-          variant="destructive"
         />
       </div>
     </div>
