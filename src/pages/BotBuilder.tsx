@@ -22,12 +22,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
 import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
+import { AIMascot } from "@/components/ai-tutor/AIMascot";
+import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
+import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -72,6 +75,8 @@ const BotBuilder = () => {
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [showTestPanel, setShowTestPanel] = useState(false);
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   
   // Apply template data when component mounts
   useEffect(() => {
@@ -195,6 +200,14 @@ const BotBuilder = () => {
               <Play className="h-4 w-4 mr-2" />
               Test Bot
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowTutorial(true)}
+            >
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Tutorial
+            </Button>
             <Button size="sm">
               <Save className="h-4 w-4 mr-2" />
               Save
@@ -236,6 +249,22 @@ const BotBuilder = () => {
 
         {/* Properties Panel */}
         <div className="w-80 border-l bg-muted/30 overflow-y-auto">
+          <div className="p-4 space-y-4">
+            {/* AI Mascot */}
+            <AIMascot 
+              currentTopic={selectedConcept}
+              onTopicChange={setSelectedConcept}
+            />
+            
+            {/* Concept Explainer */}
+            {selectedConcept && (
+              <ConceptExplainer 
+                concept={selectedConcept}
+                onClose={() => setSelectedConcept(null)}
+              />
+            )}
+          </div>
+          
           {selectedNode ? (
             <Card className="border-0 rounded-none h-full">
               <CardHeader className="bg-orange-50 dark:bg-orange-900/20">
@@ -331,6 +360,7 @@ const BotBuilder = () => {
             <div className="p-8 text-center text-muted-foreground">
               <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Click on an intent node to edit its properties</p>
+              <p className="text-sm mt-2">Or explore AI concepts with AI-ko above!</p>
             </div>
           )}
         </div>
@@ -353,6 +383,16 @@ const BotBuilder = () => {
             }}
           />
         )}
+
+        {/* Tutorial Overlay */}
+        <TutorialOverlay 
+          isVisible={showTutorial}
+          onClose={() => setShowTutorial(false)}
+          tutorialType="bot-builder"
+          onStepComplete={(stepId) => {
+            console.log('Completed step:', stepId);
+          }}
+        />
       </div>
     </div>
   );
