@@ -1,17 +1,12 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen } from "lucide-react";
+import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TemplateGallery from "@/components/TemplateGallery";
-import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [showTutorial, setShowTutorial] = useState<string | null>(null);
-  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   
   const handleUseTemplate = (template: any) => {
     // Navigate to bot builder with template data
@@ -120,15 +115,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* AI Mascot */}
-          <div className="lg:col-span-1">
-            <AIMascot 
-              currentTopic={selectedConcept}
-              onTopicChange={setSelectedConcept}
-            />
-          </div>
-          
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* My Bots */}
           <Card>
             <CardHeader>
@@ -209,18 +196,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Tutorial Overlays */}
-        {showTutorial && (
-          <TutorialOverlay 
-            isVisible={!!showTutorial}
-            onClose={() => setShowTutorial(null)}
-            tutorialType={showTutorial as any}
-            onStepComplete={(stepId) => {
-              console.log('Completed step:', stepId);
-            }}
-          />
-        )}
       </div>
     </div>
   );
