@@ -19,9 +19,9 @@ interface ComicPanel {
   dialogue: string;
   action?: string;
   background: string;
-  animation?: string; // Allow any animation string for flexibility
+  animation?: 'fadeIn' | 'slideLeft' | 'slideRight' | 'bounce' | 'pulse';
   interactiveElement?: {
-    type: string; // Allow any type string for flexibility
+    type: 'question' | 'choice' | 'click';
     content: string;
     options?: string[];
     correctAnswer?: string;

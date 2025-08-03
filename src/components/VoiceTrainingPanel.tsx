@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, MicOff, Volume2, Play, Pause, RotateCcw, Check, X, Globe, Settings } from "lucide-react";
+import { Mic, MicOff, Volume2, Play, Pause, RotateCcw, Check, X, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { VoiceSettingsDialog } from './VoiceSettingsDialog';
 
 interface VoiceTrainingPanelProps {
   onClose: () => void;
@@ -22,22 +21,10 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
   const [recordingProgress, setRecordingProgress] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [trainingPhrases, setTrainingPhrases] = useState<Array<{id: string, text: string, intent: string, language: string}>>([]);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  
-  // ElevenLabs Settings
-  const [apiKey, setApiKey] = useState(localStorage.getItem('elevenlabs_api_key') || '');
-  const [selectedVoice, setSelectedVoice] = useState('9BWtsMINqrJLrRacOk9x'); // Aria voice
-  const [selectedModel, setSelectedModel] = useState('eleven_multilingual_v2');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-
-  // Save API key to localStorage when changed
-  const handleApiKeyChange = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('elevenlabs_api_key', key);
-  };
 
   const africanLanguages = [
     { code: 'en-US', name: 'English', flag: '🇺🇸' },
@@ -80,8 +67,8 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
         const blob = new Blob(chunks, { type: 'audio/wav' });
         setAudioBlob(blob);
         
-        // Auto-transcribe after recording
-        setTimeout(() => transcribeAudio(), 500);
+        // Simulate transcription (in real app, would use speech-to-text API)
+        simulateTranscription();
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
@@ -120,83 +107,21 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
     setRecordingProgress(0);
   };
 
-  // Real transcription with enhanced African language support
-  const transcribeAudio = async () => {
-    if (!audioBlob) {
-      toast({
-        title: "No Audio",
-        description: "Please record audio first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsTranscribing(true);
-    
-    try {
-      // Enhanced simulation with better African language support
-      const samplePhrases = {
-        'en-US': [
-          'Hello there!', 'How are you?', 'Can you help me?', 'Good morning!',
-          'I need assistance', 'Thank you very much', 'What time is it?'
-        ],
-        'sw-KE': [
-          'Hujambo!', 'Habari yako?', 'Unaweza kunisaidia?', 'Habari za asubuhi!',
-          'Nahitaji msaada', 'Asante sana', 'Ni saa ngapi?'
-        ],
-        'zu-ZA': [
-          'Sawubona!', 'Kunjani?', 'Ungangisiza?', 'Sawubona ekuseni!',
-          'Ngidinga usizo', 'Ngiyabonga kakhulu', 'Yisikhathi esithini?'
-        ],
-        'yo-NG': [
-          'Bawo ni!', 'Se daada ni?', 'Se o le ran mi lowo?', 'E ku aaro!',
-          'Mo nilo iranlowo', 'E se pupo', 'Ago wo ni?'
-        ],
-        'ha-NG': [
-          'Sannu!', 'Yaya kake?', 'Za ka iya taimaka mini?', 'Barka da safe!',
-          'Ina bukatan taimako', 'Na gode sosai', 'Lokaci nawa ne?'
-        ],
-        'fr-SN': [
-          'Bonjour!', 'Comment allez-vous?', 'Pouvez-vous m\'aider?', 'Bonjour du matin!',
-          'J\'ai besoin d\'aide', 'Merci beaucoup', 'Quelle heure est-il?'
-        ],
-      };
-      
-      const phrases = samplePhrases[selectedLanguage as keyof typeof samplePhrases] || samplePhrases['en-US'];
-      const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-      
-      // Simulate API processing time
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setTranscription(randomPhrase);
-      
-      toast({
-        title: "🎤 Transcription Complete",
-        description: `Speech converted to text in ${getLanguageName(selectedLanguage)}!`,
-      });
-      
-    } catch (error) {
-      console.error('Transcription error:', error);
-      toast({
-        title: "Transcription Failed",
-        description: "Could not convert speech to text. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsTranscribing(false);
-    }
-  };
-
-  const getLanguageName = (code: string) => {
-    const languages: Record<string, string> = {
-      'en-US': 'English',
-      'sw-KE': 'Swahili',
-      'zu-ZA': 'Zulu', 
-      'yo-NG': 'Yoruba',
-      'ha-NG': 'Hausa',
-      'fr-SN': 'French'
+  const simulateTranscription = () => {
+    // Simulate transcription based on selected language
+    const samplePhrases = {
+      'en-US': ['Hello there!', 'How are you?', 'Can you help me?', 'Good morning!'],
+      'sw-KE': ['Hujambo!', 'Habari yako?', 'Unaweza kunisaidia?', 'Habari za asubuhi!'],
+      'zu-ZA': ['Sawubona!', 'Kunjani?', 'Ungangisiza?', 'Sawubona ekuseni!'],
+      'fr-SN': ['Bonjour!', 'Comment allez-vous?', 'Pouvez-vous m\'aider?', 'Bonjour du matin!'],
     };
-    return languages[code] || code;
+    
+    const phrases = samplePhrases[selectedLanguage as keyof typeof samplePhrases] || samplePhrases['en-US'];
+    const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    
+    setTimeout(() => {
+      setTranscription(randomPhrase);
+    }, 1000);
   };
 
   const playAudio = () => {
@@ -344,28 +269,6 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
               </div>
             )}
 
-            {/* Voice Settings */}
-            <div className="flex justify-center">
-              <VoiceSettingsDialog
-                apiKey={apiKey}
-                onApiKeyChange={handleApiKeyChange}
-                selectedVoice={selectedVoice}
-                onVoiceChange={setSelectedVoice}
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
-            </div>
-
-            {/* Transcription Processing */}
-            {isTranscribing && (
-              <div className="text-center space-y-2">
-                <div className="animate-pulse text-blue-600">
-                  🤖 Processing your speech...
-                </div>
-                <Progress value={75} className="w-full" />
-              </div>
-            )}
-
             {/* Transcription Result */}
             {transcription && (
               <div className="border rounded-lg p-4 space-y-3">
@@ -387,17 +290,7 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
                     <RotateCcw className="h-4 w-4 mr-1" />
                     Retry
                   </Button>
-                  <Button size="sm" variant="outline" onClick={transcribeAudio} disabled={isTranscribing}>
-                    <Volume2 className="h-4 w-4 mr-1" />
-                    Re-transcribe
-                  </Button>
                 </div>
-              </div>
-            )}
-
-            {!apiKey && (
-              <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg">
-                ⚠️ Configure ElevenLabs API key for enhanced speech recognition
               </div>
             )}
           </div>
