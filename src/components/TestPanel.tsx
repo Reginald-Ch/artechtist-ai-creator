@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { X, Send, Bot, User, Mic, Volume2, MicOff, VolumeX, Settings, Zap, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useConversationEngine } from "@/hooks/useConversationEngine";
 
 interface Message {
   id: string;
@@ -21,6 +22,10 @@ interface Message {
 
 interface TestPanelProps {
   onClose: () => void;
+  nodes?: any[];
+  edges?: any[];
+  botName?: string;
+  botPersonality?: string;
 }
 
 interface VoiceSettings {
@@ -31,7 +36,7 @@ interface VoiceSettings {
   enabled: boolean;
 }
 
-const TestPanel = ({ onClose }: TestPanelProps) => {
+const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", botPersonality = "helpful and friendly" }: TestPanelProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -57,6 +62,9 @@ const TestPanel = ({ onClose }: TestPanelProps) => {
   const { toast } = useToast();
   const recognition = useRef<any>(null);
   const synthesis = useRef<any>(null);
+  
+  // Initialize conversation engine
+  const { processUserInput, resetConversation } = useConversationEngine(nodes, edges, botPersonality);
 
   // Available voices for African learners
   const availableVoices = [
@@ -129,20 +137,13 @@ const TestPanel = ({ onClose }: TestPanelProps) => {
     setIsTyping(true);
     setIsRecording(false);
 
-    // Simulate AI response with cultural awareness
-    setTimeout(() => {
-      const responses = [
-        "Sawubona! That's a great question. Let me help you with that.",
-        "Jambo! I understand what you're asking. Here's what I think...",
-        "Bonjour! Très bonne question. I'm learning to help African students like you!",
-        "That's amazing! I love helping young African innovators like yourself.",
-        "Wonderful question! In Africa, we believe in Ubuntu - I am because we are. Let's learn together!",
-        "Fantastic! Did you know that Africa is leading in mobile innovation? Your question shows great thinking!",
-      ];
-
+    // Process input through conversation engine
+    try {
+      const result = await processUserInput(inputValue);
+      
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: responses[Math.floor(Math.random() * responses.length)],
+        text: result.response,
         sender: 'bot',
         timestamp: new Date(),
       };
@@ -154,7 +155,22 @@ const TestPanel = ({ onClose }: TestPanelProps) => {
       if (voiceSettings.enabled) {
         speakText(botResponse.text);
       }
-    }, 1000);
+      
+      // Show debug info if intent was matched
+      if (result.matchedIntent) {
+        toast({
+          title: `Intent: ${result.matchedIntent}`,
+          description: `Confidence: ${(result.confidence * 100).toFixed(1)}%`,
+        });
+      }
+    } catch (error) {
+      setIsTyping(false);
+      toast({
+        title: "Error processing message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleVoiceInput = () => {
