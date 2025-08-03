@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -23,11 +23,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
-import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -61,9 +60,6 @@ const initialNodes: Node[] = [
 const initialEdges: Edge[] = [];
 
 const BotBuilder = () => {
-  const location = useLocation();
-  const template = location.state?.template;
-  
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -71,35 +67,6 @@ const BotBuilder = () => {
   const [botAvatar, setBotAvatar] = useState("🤖");
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [showTestPanel, setShowTestPanel] = useState(false);
-  const [showVoiceTraining, setShowVoiceTraining] = useState(false);
-  
-  // Apply template data when component mounts
-  useEffect(() => {
-    if (template) {
-      setBotName(template.name);
-      setBotAvatar(template.avatar);
-      setBotPersonality(template.description);
-      
-      // Convert template intents to nodes
-      const templateNodes = template.intents.map((intent: any, index: number) => ({
-        id: intent.name.toLowerCase().replace(/\s+/g, '-'),
-        type: 'intent',
-        position: { 
-          x: 100 + (index % 3) * 300, 
-          y: 50 + Math.floor(index / 3) * 200 
-        },
-        data: {
-          label: intent.name,
-          trainingPhrases: intent.trainingPhrases,
-          responses: intent.responses,
-          isDefault: intent.name === 'Greet' || intent.name === 'Fallback',
-        },
-      }));
-      
-      setNodes(templateNodes);
-      setEdges([]); // Start with no connections, user can add them
-    }
-  }, [template, setNodes]);
   
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({
@@ -269,12 +236,7 @@ const BotBuilder = () => {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <Label>Training Phrases</Label>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          disabled={selectedNode.data.isDefault as boolean}
-                          onClick={() => setShowVoiceTraining(true)}
-                        >
+                        <Button size="sm" variant="outline" disabled={selectedNode.data.isDefault as boolean}>
                           <Mic className="h-4 w-4 mr-1" />
                           Voice
                         </Button>
@@ -338,20 +300,6 @@ const BotBuilder = () => {
         {/* Test Panel */}
         {showTestPanel && (
           <TestPanel onClose={() => setShowTestPanel(false)} />
-        )}
-
-        {/* Voice Training Panel */}
-        {showVoiceTraining && (
-          <VoiceTrainingPanel 
-            onClose={() => setShowVoiceTraining(false)}
-            onAddTrainingPhrase={(phrase, intent) => {
-              // Add the phrase to the selected node if it matches the intent
-              if (selectedNode && selectedNode.data.label === intent) {
-                const currentPhrases = selectedNode.data.trainingPhrases as string[] || [];
-                updateSelectedNode('trainingPhrases', [...currentPhrases, phrase]);
-              }
-            }}
-          />
         )}
       </div>
     </div>

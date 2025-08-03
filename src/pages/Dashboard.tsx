@@ -2,17 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import TemplateGallery from "@/components/TemplateGallery";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  
-  const handleUseTemplate = (template: any) => {
-    // Navigate to bot builder with template data
-    navigate('/builder', { state: { template } });
-  };
-  
   const myBots = [
     { id: 1, name: "Breakfast Bot", avatar: "🍳", lastEdited: "2 hours ago", status: "Active" },
     { id: 2, name: "Story Helper", avatar: "📚", lastEdited: "1 day ago", status: "Draft" },
@@ -78,21 +71,22 @@ const Dashboard = () => {
               <CardDescription>Get inspired by sample bots and templates</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <TemplateGallery onUseTemplate={handleUseTemplate} />
+              <TemplateGallery onUseTemplate={(template) => {
+                // Handle template selection - could navigate to builder with template data
+                console.log('Selected template:', template);
+              }} />
             </CardContent>
           </Card>
 
-          <Link to="/voice-training">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                  <Mic className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-green-600">Voice Training</CardTitle>
-                <CardDescription>Train your AI with voice in African languages</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                <Mic className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-green-600">Voice Training</CardTitle>
+              <CardDescription>Train your AI with voice in African languages</CardDescription>
+            </CardHeader>
+          </Card>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer border-purple-200 hover:border-purple-300">
             <CardHeader className="text-center">
@@ -189,7 +183,9 @@ const Dashboard = () => {
                         {bot.difficulty}
                       </span>
                     </div>
-                    <TemplateGallery onUseTemplate={handleUseTemplate} />
+                    <Button size="sm" variant="outline" className="w-full">
+                      Try This Template
+                    </Button>
                   </div>
                 ))}
               </div>
