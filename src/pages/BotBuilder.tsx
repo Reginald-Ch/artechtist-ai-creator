@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -103,13 +103,13 @@ const BotBuilder = () => {
     undoRedo.saveState(nodes, edges);
   }, []);
 
-  // Save state on changes (debounced)
+  // Save state on changes (optimized debouncing)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       undoRedo.saveState(nodes, edges);
-    }, 500);
+    }, 1000); // Increased debounce time to reduce frequent saves
     return () => clearTimeout(timeoutId);
-  }, [nodes, edges]);
+  }, [nodes, edges, undoRedo]);
 
   const handleUndo = () => {
     const state = undoRedo.undo();
@@ -167,6 +167,7 @@ const BotBuilder = () => {
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    event.stopPropagation();
     setSelectedNode(node);
   }, []);
 
@@ -260,7 +261,19 @@ const BotBuilder = () => {
 
   useKeyboardShortcuts(handleKeyboardActions);
 
-  const updateSelectedNode = (field: string, value: any) => {
+  // Memoize nodeTypes to prevent recreation on every render
+  const memoizedNodeTypes = useMemo(() => ({
+    intent: (props: any) => (
+      <IntentNode 
+        {...props} 
+        onDelete={deleteNode}
+        onDuplicate={duplicateNode}
+        onEdit={editNode}
+      />
+    ),
+  }), []);
+
+  const updateSelectedNode = useCallback((field: string, value: any) => {
     if (!selectedNode) return;
     
     setNodes((nds) =>
@@ -284,7 +297,7 @@ const BotBuilder = () => {
         [field]: value,
       },
     });
-  };
+  }, [selectedNode, setNodes]);
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -369,17 +382,13 @@ const BotBuilder = () => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
-            nodeTypes={{
-              intent: (props) => (
-                <IntentNode 
-                  {...props} 
-                  onDelete={deleteNode}
-                  onDuplicate={duplicateNode}
-                  onEdit={editNode}
-                />
-              ),
-            }}
+            nodeTypes={memoizedNodeTypes}
             fitView
+            nodesDraggable
+            nodesConnectable
+            elementsSelectable
+            selectNodesOnDrag={false}
+            panOnDrag={[1, 2]}
             className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30"
           >
             <Controls className="bg-white shadow-lg" />
