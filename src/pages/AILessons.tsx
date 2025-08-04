@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BookOpen, Play, CheckCircle, Clock, Star } from "lucide-react";
+import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
 import { comicLessons } from "@/data/comicLessons";
@@ -63,70 +63,128 @@ const AILessons = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+    <div className="min-h-screen comic-gradient">
+      {/* Floating Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 text-4xl comic-float">🌟</div>
+        <div className="absolute top-20 right-20 text-3xl comic-float" style={{animationDelay: '1s'}}>🚀</div>
+        <div className="absolute bottom-20 left-20 text-4xl comic-float" style={{animationDelay: '2s'}}>⚡</div>
+        <div className="absolute bottom-10 right-10 text-3xl comic-float" style={{animationDelay: '3s'}}>🎯</div>
+      </div>
+
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-8 w-8 text-purple-500" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
-              AI Comic Lessons
-            </h1>
+      <header className="relative border-b-4 border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="character-avatar w-12 h-12 text-2xl">
+              🤖
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold font-fredoka bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
+                Comic AI Adventures
+              </h1>
+              <p className="text-sm font-comic text-muted-foreground">🌟 Learn AI Through Comics!</p>
+            </div>
           </div>
           <Link to="/dashboard">
-            <Button variant="outline">
-              Back to Dashboard
+            <Button variant="outline" className="font-comic border-2 border-primary/20 hover:border-primary">
+              Back to Adventures
             </Button>
           </Link>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="text-center mb-12">
-          <Brain className="h-16 w-16 text-purple-500 mx-auto mb-4" />
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Learn AI Through African Stories 🌍
+      <div className="container mx-auto px-4 py-8 relative">
+        {/* Hero Section */}
+        <div className="text-center mb-16 relative">
+          <div className="speech-bubble inline-block mb-6 comic-bounce">
+            <p className="text-lg font-comic text-primary font-semibold">
+              Hi there! Ready to learn about AI? 🤖✨
+            </p>
+          </div>
+          
+          <div className="flex justify-center mb-6">
+            <div className="character-avatar w-24 h-24 text-6xl comic-pulse">
+              🤖
+            </div>
+          </div>
+          
+          <h2 className="text-5xl font-bold font-fredoka mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
+            Choose Your
+            <br />
+            <span className="text-6xl">AI Adventure</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Join our African characters on an exciting journey through the world of Artificial Intelligence! 
-            Learn AI concepts through interactive comic stories featuring diverse African cultures and perspectives.
+          <p className="text-xl font-comic text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Embark on exciting comic adventures that make AI concepts easy to understand and fun to learn! 
+            Meet diverse African characters and explore the amazing world of artificial intelligence.
           </p>
+          
+          <div className="flex justify-center gap-4 mt-6">
+            <Badge className="font-comic text-sm px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+              <Sparkles className="h-4 w-4 mr-1" />
+              Learn AI Concepts
+            </Badge>
+            <Badge className="font-comic text-sm px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+              <Zap className="h-4 w-4 mr-1" />
+              Interactive Stories
+            </Badge>
+            <Badge className="font-comic text-sm px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">
+              <Star className="h-4 w-4 mr-1" />
+              Kid-Friendly
+            </Badge>
+          </div>
         </div>
 
-        {/* Progress Overview */}
-        <div className="mb-8 bg-white/80 dark:bg-gray-900/80 rounded-2xl p-6 border border-purple-100 dark:border-purple-900/20">
-          <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Star className="h-6 w-6 text-purple-500" />
-            Your Learning Progress
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">{completedLessons.size}</div>
-              <div className="text-sm text-muted-foreground">Completed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">{Object.keys(comicLessons).length}</div>
-              <div className="text-sm text-muted-foreground">Total Lessons</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
-                {Math.round((completedLessons.size / Object.keys(comicLessons).length) * 100)}%
+        {/* Learning Adventures Section */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <Badge className="font-comic text-base px-6 py-2 mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+              🎓 Learning Adventures
+            </Badge>
+            <h3 className="text-3xl font-bold font-fredoka text-foreground mb-2">
+              Your AI Learning Journey
+            </h3>
+            <p className="text-muted-foreground font-comic">
+              Track your progress as you master AI concepts through fun adventures!
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div className="text-center relative">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
+                <div className="text-4xl font-bold font-fredoka text-blue-600">{completedLessons.size}</div>
+                <div className="text-sm font-comic text-muted-foreground">Adventures Completed</div>
+                {completedLessons.size > 0 && <div className="progress-starburst"></div>}
               </div>
-              <div className="text-sm text-muted-foreground">Progress</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">
-                {Object.values(lessonProgress).reduce((a, b) => a + b, 0)}
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
+                <div className="text-4xl font-bold font-fredoka text-purple-600">{Object.keys(comicLessons).length}</div>
+                <div className="text-sm font-comic text-muted-foreground">Total Adventures</div>
               </div>
-              <div className="text-sm text-muted-foreground">Panels Read</div>
+            </div>
+            <div className="text-center">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
+                <div className="text-4xl font-bold font-fredoka text-green-600">
+                  {Math.round((completedLessons.size / Object.keys(comicLessons).length) * 100)}%
+                </div>
+                <div className="text-sm font-comic text-muted-foreground">Progress Made</div>
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
+                <div className="text-4xl font-bold font-fredoka text-orange-600">
+                  {Object.values(lessonProgress).reduce((a, b) => a + b, 0)}
+                </div>
+                <div className="text-sm font-comic text-muted-foreground">Panels Explored</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Lessons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(comicLessons).map(([lessonId, lesson]) => {
+        {/* Adventures Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {Object.entries(comicLessons).map(([lessonId, lesson], index) => {
             const isCompleted = completedLessons.has(lessonId);
             const progress = lessonProgress[lessonId] || 0;
             const totalPanels = lesson.panels.length;
@@ -134,55 +192,69 @@ const AILessons = () => {
             return (
               <Card 
                 key={lessonId} 
-                className={`hover:shadow-xl transition-all cursor-pointer border-2 ${
-                  isCompleted 
-                    ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20' 
-                    : 'border-purple-200 hover:border-purple-300 dark:border-purple-800 dark:hover:border-purple-700'
+                className={`comic-card rounded-3xl cursor-pointer border-0 overflow-hidden comic-bounce ${
+                  isCompleted ? 'ring-2 ring-green-400' : ''
                 }`}
+                style={{animationDelay: `${index * 0.1}s`}}
                 onClick={() => setSelectedLesson(lessonId)}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-4xl mb-2">
+                <CardHeader className="relative p-6">
+                  {/* Character Avatar */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="character-avatar">
                       {lesson.character === 'AI-ko' ? '🤖' : 
                        lesson.character === 'Student Amara' ? '👩🏾‍🎓' :
                        lesson.character === 'Teacher Kwame' ? '👨🏿‍🏫' :
                        lesson.character === 'Elder Fatima' ? '👵🏾' :
                        lesson.character === 'Inventor Zuberi' ? '👨🏾‍💻' :
-                       lesson.character === 'Market Vendor Asha' ? '👩🏾‍💼' : '👴🏿'}
+                       lesson.character === 'Market Vendor Asha' ? '👩🏾‍💼' :
+                       lesson.character === 'Village Chief' ? '👴🏿' : '🧙🏾‍♂️'}
                     </div>
                     {isCompleted && (
-                      <CheckCircle className="h-6 w-6 text-green-500" />
+                      <div className="relative">
+                        <CheckCircle className="h-8 w-8 text-green-500 comic-pulse" />
+                        <div className="absolute -top-1 -right-1 text-xl">🏆</div>
+                      </div>
                     )}
                   </div>
                   
-                  <CardTitle className="text-xl mb-2">{lesson.title}</CardTitle>
-                  <CardDescription className="mb-3">{lesson.description}</CardDescription>
+                  <CardTitle className="text-2xl font-fredoka font-bold mb-3 text-foreground leading-tight">
+                    {lesson.title}
+                  </CardTitle>
+                  <CardDescription className="font-comic text-base mb-4 leading-relaxed text-muted-foreground">
+                    {lesson.description}
+                  </CardDescription>
                   
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <Badge className={getDifficultyColor(lesson.difficulty)}>
-                      {lesson.difficulty}
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <Badge 
+                      className={`font-comic font-semibold px-3 py-1 ${
+                        lesson.difficulty === 'Beginner' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' :
+                        lesson.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300' :
+                        'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
+                      }`}
+                    >
+                      ⭐ {lesson.difficulty}
                     </Badge>
-                    <Badge variant="outline" className="flex items-center gap-1">
+                    <Badge variant="outline" className="font-comic flex items-center gap-1 px-3 py-1">
                       <Clock className="h-3 w-3" />
                       {lesson.duration}
                     </Badge>
-                    <Badge variant="outline">
-                      {lesson.panels.length} panels
+                    <Badge variant="outline" className="font-comic px-3 py-1">
+                      📖 {lesson.panels.length} panels
                     </Badge>
                   </div>
                 </CardHeader>
                 
-                <CardContent>
+                <CardContent className="p-6 pt-0">
                   {progress > 0 && !isCompleted && (
-                    <div className="mb-4">
-                      <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                        <span>Progress</span>
-                        <span>{progress}/{totalPanels}</span>
+                    <div className="mb-6 comic-card rounded-2xl p-4">
+                      <div className="flex justify-between text-sm font-comic text-muted-foreground mb-2">
+                        <span>Adventure Progress</span>
+                        <span>{progress}/{totalPanels} panels</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                      <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                         <div 
-                          className="bg-purple-500 h-2 rounded-full transition-all"
+                          className="h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-blue-500 to-purple-500"
                           style={{ width: `${(progress / totalPanels) * 100}%` }}
                         />
                       </div>
@@ -190,23 +262,27 @@ const AILessons = () => {
                   )}
                   
                   <Button 
-                    className="w-full" 
-                    variant={isCompleted ? "outline" : "default"}
+                    className={`w-full h-14 text-lg font-comic font-semibold rounded-2xl transition-all duration-300 ${
+                      isCompleted 
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white' 
+                        : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:scale-105'
+                    }`}
+                    variant="default"
                   >
                     {isCompleted ? (
                       <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Review Lesson
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        Review Adventure 🔄
                       </>
                     ) : progress > 0 ? (
                       <>
-                        <Play className="h-4 w-4 mr-2" />
-                        Continue
+                        <Play className="h-5 w-5 mr-2" />
+                        Continue Adventure ▶️
                       </>
                     ) : (
                       <>
-                        <Play className="h-4 w-4 mr-2" />
-                        Start Lesson
+                        <Play className="h-5 w-5 mr-2" />
+                        Start Adventure 🚀
                       </>
                     )}
                   </Button>
@@ -218,23 +294,46 @@ const AILessons = () => {
 
         {/* Achievement Section */}
         {completedLessons.size > 0 && (
-          <div className="mt-12 text-center bg-gradient-to-r from-purple-500 to-blue-500 rounded-3xl p-8 text-white">
-            <Star className="h-12 w-12 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Great Progress! 🎉</h3>
-            <p className="text-lg opacity-90 mb-4">
-              You've completed {completedLessons.size} out of {Object.keys(comicLessons).length} AI lessons
-            </p>
-            {completedLessons.size === Object.keys(comicLessons).length && (
-              <div>
-                <p className="text-xl font-bold mb-4">🏆 Congratulations! You're now an AI Expert! 🏆</p>
-                <Link to="/builder">
-                  <Button size="lg" variant="secondary" className="px-8 py-4">
-                    Build Your First AI Bot
-                    <Brain className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+          <div className="mt-16 text-center relative">
+            <div className="comic-card rounded-3xl p-12 bg-gradient-to-br from-purple-500 via-blue-500 to-emerald-500 text-white overflow-hidden relative">
+              {/* Floating celebration elements */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-4 left-8 text-4xl comic-float">🎉</div>
+                <div className="absolute top-8 right-12 text-3xl comic-float" style={{animationDelay: '0.5s'}}>⭐</div>
+                <div className="absolute bottom-8 left-12 text-4xl comic-float" style={{animationDelay: '1s'}}>🏆</div>
+                <div className="absolute bottom-4 right-8 text-3xl comic-float" style={{animationDelay: '1.5s'}}>🌟</div>
               </div>
-            )}
+              
+              <div className="relative z-10">
+                <div className="character-avatar w-20 h-20 text-6xl mx-auto mb-6 bg-white/20">
+                  🤖
+                </div>
+                <h3 className="text-4xl font-fredoka font-bold mb-4">Awesome Progress! 🎊</h3>
+                <p className="text-xl font-comic opacity-95 mb-6 max-w-2xl mx-auto">
+                  Amazing work! You've completed <strong>{completedLessons.size}</strong> out of <strong>{Object.keys(comicLessons).length}</strong> AI adventures. 
+                  Keep exploring the fascinating world of artificial intelligence!
+                </p>
+                
+                {completedLessons.size === Object.keys(comicLessons).length && (
+                  <div className="comic-bounce">
+                    <div className="speech-bubble bg-white text-purple-600 font-comic text-xl font-bold mb-6 inline-block">
+                      🏆 Congratulations! You're now an AI Master! 🏆
+                    </div>
+                    <div>
+                      <Link to="/builder">
+                        <Button 
+                          size="lg" 
+                          className="font-comic font-bold text-lg px-8 py-6 bg-white text-purple-600 hover:bg-gray-100 rounded-2xl hover:scale-105 transition-all"
+                        >
+                          Build Your First AI Bot 🤖
+                          <Brain className="ml-2 h-6 w-6" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

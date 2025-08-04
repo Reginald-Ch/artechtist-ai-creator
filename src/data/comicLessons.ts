@@ -442,5 +442,155 @@ export const comicLessons = {
         animation: 'fadeIn'
       }
     ]
+  },
+
+  'neural-networks': {
+    id: 'neural-networks',
+    title: 'Neural Networks Adventure',
+    character: 'AI-ko',
+    difficulty: 'Intermediate', 
+    duration: '8 min',
+    description: 'Discover how AI learns just like your brain! Follow magical neural pathways in this exciting story.',
+    panels: [
+      {
+        id: 'panel-1',
+        character: 'Student Amara',
+        dialogue: 'AI-ko, how does a computer brain actually learn? My brain has neurons - does AI have something similar?',
+        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-2', 
+        character: 'AI-ko',
+        dialogue: 'Great question! Neural networks are inspired by your amazing brain! Just like your neurons connect and pass signals, artificial neurons work together to recognize patterns.',
+        background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-3',
+        character: 'Elder Fatima',
+        dialogue: 'In our village, when children learn traditional dances, each movement connects to the next. Neural networks learn the same way - step by step, connection by connection.',
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+        animation: 'slideRight',
+        interactiveElement: {
+          type: 'question',
+          content: 'What makes neural networks powerful?',
+          options: [
+            'Many simple connections working together',
+            'One super smart neuron',
+            'Random guessing',
+            'Copying exactly'
+          ],
+          correctAnswer: 'Many simple connections working together'
+        }
+      },
+      {
+        id: 'panel-4',
+        character: 'AI-ko',
+        dialogue: 'Exactly! Each artificial neuron receives inputs, processes them, and passes the result forward. Together, they can recognize faces, understand speech, and even create art!',
+        background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+        animation: 'bounce'
+      }
+    ]
+  },
+
+  'computer-vision': {
+    id: 'computer-vision',
+    title: 'Computer Vision Quest',
+    character: 'AI-ko',
+    difficulty: 'Intermediate',
+    duration: '9 min', 
+    description: 'Help your robot friend learn to see and understand images in this visual learning adventure!',
+    panels: [
+      {
+        id: 'panel-1',
+        character: 'Inventor Zuberi',
+        dialogue: 'I want my robot to help identify animals in wildlife photos, but it can\'t see like we do. How can I teach it to understand images?',
+        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-2',
+        character: 'AI-ko', 
+        dialogue: 'Welcome to Computer Vision! This is how we teach computers to "see" and understand images. Your robot friend can learn to recognize animals, people, and objects!',
+        background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-3',
+        character: 'Market Vendor Asha',
+        dialogue: 'When I look at fruits, I see colors, shapes, and textures. Can computers see these details too?',
+        background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+        animation: 'slideRight',
+        interactiveElement: {
+          type: 'question',
+          content: 'How does computer vision work?',
+          options: [
+            'Analyzes pixels and patterns in images',
+            'Guesses randomly',
+            'Uses magic',
+            'Copies human eyes exactly'
+          ],
+          correctAnswer: 'Analyzes pixels and patterns in images'
+        }
+      },
+      {
+        id: 'panel-4',
+        character: 'AI-ko',
+        dialogue: 'Perfect! Computers see images as thousands of tiny colored dots called pixels. They learn to recognize patterns in these pixels to identify objects, just like you recognize your friend\'s smile!',
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+        animation: 'pulse'
+      }
+    ]
+  },
+
+  'deep-learning': {
+    id: 'deep-learning',
+    title: 'Deep Learning Depths',
+    character: 'AI-ko',
+    difficulty: 'Advanced',
+    duration: '12 min',
+    description: 'Dive deep into the advanced world of AI that powers amazing technologies around us!',
+    panels: [
+      {
+        id: 'panel-1',
+        character: 'Teacher Kwame',
+        dialogue: 'I keep hearing about "deep learning" in the news. What makes it different from regular machine learning?',
+        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-2',
+        character: 'AI-ko',
+        dialogue: 'Deep learning uses many layers of artificial neurons - like a deep river with many levels! Each layer learns more complex patterns than the last.',
+        background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-3',
+        character: 'Village Chief',
+        dialogue: 'This reminds me of how we pass down wisdom through generations. Each generation adds deeper understanding to our traditions.',
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+        animation: 'slideRight',
+        interactiveElement: {
+          type: 'question',
+          content: 'Deep learning is powerful because:',
+          options: [
+            'It learns complex patterns through many layers',
+            'It uses more electricity',
+            'It works faster than humans',
+            'It never makes mistakes'
+          ],
+          correctAnswer: 'It learns complex patterns through many layers'
+        }
+      },
+      {
+        id: 'panel-4',
+        character: 'AI-ko',
+        dialogue: 'Exactly! Deep learning powers voice assistants, language translation, medical diagnosis, and even helps create beautiful art. It\'s like having many wise teachers working together!',
+        background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
+        animation: 'bounce'
+      }
+    ]
   }
 };
