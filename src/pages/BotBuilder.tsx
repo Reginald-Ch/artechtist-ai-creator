@@ -389,14 +389,34 @@ const BotBuilder = () => {
             elementsSelectable
             selectNodesOnDrag={false}
             panOnDrag={[1, 2]}
-            className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30"
+            zoomOnDoubleClick={false}
+            attributionPosition="bottom-left"
+            proOptions={{ hideAttribution: true }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            minZoom={0.5}
+            maxZoom={2}
+            className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30 dark:from-orange-950/10 dark:to-yellow-950/10"
           >
-            <Controls className="bg-white shadow-lg" />
-            <MiniMap 
-              className="bg-white border shadow-lg" 
-              nodeColor={(node) => node.data.isDefault ? '#f97316' : '#3b82f6'}
+            <Controls 
+              className="bg-background/80 backdrop-blur-sm shadow-lg border border-border rounded-lg" 
+              showInteractive={false}
             />
-            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+            <MiniMap 
+              className="bg-background/80 backdrop-blur-sm border border-border rounded-lg"
+              nodeColor={(node) => {
+                if (node.data?.isDefault) return '#f97316'; // orange
+                return '#3b82f6'; // blue
+              }}
+              maskColor="rgb(240, 240, 240, 0.8)"
+              pannable
+              zoomable
+            />
+            <Background 
+              variant={BackgroundVariant.Dots} 
+              gap={20} 
+              size={1}
+              className="opacity-30"
+            />
           </ReactFlow>
           
           {/* Add Intent Button */}

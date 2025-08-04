@@ -16,6 +16,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 type Player = 'X' | 'O' | null;
 type Board = Player[];
@@ -347,38 +348,75 @@ const CulturalHub = () => {
                   </Card>
                 )}
 
-                {/* Game Board */}
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="grid grid-cols-3 gap-2 w-64 h-64">
+                {/* Enhanced Game Board */}
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="grid grid-cols-3 gap-3 w-72 h-72 p-4 bg-gradient-to-br from-white/80 to-gray-50/80 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl shadow-lg backdrop-blur-sm border border-orange-200/30">
                     {board.map((cell, index) => (
                       <button
                         key={index}
                         onClick={() => handleCellClick(index)}
-                        className="w-20 h-20 bg-white dark:bg-muted border-2 border-border rounded-lg text-4xl font-bold hover:bg-accent transition-colors disabled:cursor-not-allowed"
+                        className={cn(
+                          "w-20 h-20 rounded-lg text-4xl font-bold transition-all duration-200 transform-gpu",
+                          "hover:scale-105 active:scale-95",
+                          "bg-background/90 backdrop-blur-sm border-2 border-border/50",
+                          "hover:bg-accent/50 hover:border-primary/30 hover:shadow-md",
+                          "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100",
+                          cell === 'X' && "text-blue-600 bg-blue-50/80 dark:bg-blue-950/30 border-blue-300",
+                          cell === 'O' && "text-orange-600 bg-orange-50/80 dark:bg-orange-950/30 border-orange-300"
+                        )}
                         disabled={!!cell || gameOver || !isPlayerTurn}
                       >
-                        {cell}
+                        {cell && (
+                          <span className="animate-scale-in">
+                            {cell}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
 
-                  {/* Game Status */}
-                  <div className="text-center">
+                  {/* Enhanced Game Status */}
+                  <div className="text-center space-y-3">
                     {gameOver ? (
-                      <div className="space-y-2">
-                        <div className="text-2xl font-bold">
-                          {winner === 'X' && '🎉 You won!'}
-                          {winner === 'O' && '🤖 AI wins!'}
-                          {winner === 'draw' && '🤝 It\'s a draw!'}
+                      <div className="space-y-4 animate-fade-in">
+                        <div className="text-3xl font-bold">
+                          {winner === 'X' && <span className="text-green-600">🎉 Victory!</span>}
+                          {winner === 'O' && <span className="text-orange-600">🤖 AI Wins!</span>}
+                          {winner === 'draw' && <span className="text-blue-600">🤝 Draw!</span>}
                         </div>
-                        <Button onClick={resetGame} className="mt-2">
+                        <div className="text-sm text-muted-foreground">
+                          {winner === 'X' && "Great job! The AI will adapt to be more challenging."}
+                          {winner === 'O' && "Nice try! The AI will adjust to your skill level."}
+                          {winner === 'draw' && "Well played! Both players showed great strategy."}
+                        </div>
+                        <Button 
+                          onClick={resetGame} 
+                          className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
                           <RotateCcw className="h-4 w-4 mr-2" />
                           Play Again
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-lg">
-                        {isPlayerTurn ? "Your turn (X)" : "AI is thinking... 🤔"}
+                      <div className="space-y-2">
+                        <div className="text-xl font-semibold">
+                          {isPlayerTurn ? (
+                            <span className="text-blue-600 flex items-center justify-center gap-2">
+                              <span className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+                              Your Turn (X)
+                            </span>
+                          ) : (
+                            <span className="text-orange-600 flex items-center justify-center gap-2">
+                              <span className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></span>
+                              AI Thinking... 🤔
+                            </span>
+                          )}
+                        </div>
+                        {!isPlayerTurn && (
+                          <div className="text-xs text-muted-foreground">
+                            Analyzing board position...
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -402,20 +440,34 @@ const CulturalHub = () => {
                   {africanStories.map((story, index) => (
                     <Card 
                       key={index} 
-                      className={`cursor-pointer transition-all ${
-                        currentStory === index ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' : ''
-                      }`}
+                      className={cn(
+                        "cursor-pointer transition-all duration-300 transform-gpu hover:scale-[1.02] hover:shadow-lg group",
+                        currentStory === index ? 'border-orange-500 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 shadow-md scale-[1.02]' : 'hover:border-orange-300'
+                      )}
                       onClick={() => setCurrentStory(index)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-2xl">{story.avatar}</div>
-                          <div>
-                            <h3 className="font-medium">{story.title}</h3>
-                            <p className="text-sm text-muted-foreground">{story.culture}</p>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="text-3xl p-2 bg-gradient-to-br from-orange-100 to-yellow-100 dark:from-orange-900/30 dark:to-yellow-900/30 rounded-lg">
+                            {story.avatar}
                           </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg">{story.title}</h3>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Globe className="h-3 w-3" />
+                              {story.culture}
+                            </p>
+                          </div>
+                          {currentStory === index && (
+                            <div className="text-orange-500 animate-pulse">
+                              <Star className="h-5 w-5 fill-current" />
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm mt-2">{story.description}</p>
+                        <p className="text-sm leading-relaxed">{story.description}</p>
+                        <div className="mt-3 text-xs text-orange-600 dark:text-orange-400 font-medium">
+                          Lesson: {story.lesson}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -435,21 +487,40 @@ const CulturalHub = () => {
               <CardContent>
                 <div className="space-y-3">
                   {languages.map((lang, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{lang.flag}</span>
-                        <div>
-                          <h3 className="font-medium">{lang.name}</h3>
-                          <p className="text-sm text-muted-foreground">{lang.greeting} - {lang.meaning}</p>
+                    <div 
+                      key={index} 
+                      className="group relative p-4 rounded-xl border border-border hover:border-primary/30 bg-gradient-to-r from-background/90 to-accent/20 hover:to-accent/40 transition-all duration-300 hover:shadow-md transform-gpu hover:scale-[1.02]"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="text-2xl p-2 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg">
+                            {lang.flag}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-base">{lang.name}</h3>
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-primary">{lang.greeting}</p>
+                              <p className="text-xs text-muted-foreground">"{lang.meaning}"</p>
+                            </div>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="shrink-0 hover:bg-primary/10 hover:border-primary/50 transition-colors group-hover:shadow-sm"
+                          onClick={() => speakText(lang.greeting)}
+                        >
+                          <Volume2 className="h-4 w-4 mr-1" />
+                          Listen
+                        </Button>
+                      </div>
+                      
+                      {/* Pronunciation Guide */}
+                      <div className="mt-3 pt-3 border-t border-border/50">
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-medium">Pronunciation:</span> /{lang.greeting.toLowerCase()}/
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => speakText(lang.greeting)}
-                      >
-                        <Volume2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
                 </div>
