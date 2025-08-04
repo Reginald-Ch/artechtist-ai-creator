@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, MicOff, Volume2, Play, Pause, RotateCcw, Check, X, Globe, Settings } from "lucide-react";
+import { Mic, MicOff, Volume2, Play, Pause, RotateCcw, Check, X, Globe, Settings, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceSettingsDialog } from './VoiceSettingsDialog';
 
@@ -23,6 +23,10 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [trainingPhrases, setTrainingPhrases] = useState<Array<{id: string, text: string, intent: string, language: string}>>([]);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [audioLevels, setAudioLevels] = useState<number[]>([]);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number>();
   
   // ElevenLabs Settings
   const [apiKey, setApiKey] = useState(localStorage.getItem('elevenlabs_api_key') || '');
@@ -62,8 +66,41 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
+
+  // Audio level monitoring for waveform visualization
+  const startAudioLevelMonitoring = (stream: MediaStream) => {
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const microphone = audioContext.createMediaStreamSource(stream);
+    
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.85;
+    microphone.connect(analyser);
+    analyserRef.current = analyser;
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    const updateLevels = () => {
+      if (analyserRef.current && isRecording) {
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        
+        setAudioLevels(prev => {
+          const newLevels = [...prev, Math.min(average / 2, 100)];
+          return newLevels.slice(-20); // Keep last 20 readings
+        });
+        
+        animationFrameRef.current = requestAnimationFrame(updateLevels);
+      }
+    };
+    
+    updateLevels();
+  };
 
   const startRecording = async () => {
     try {
@@ -85,21 +122,35 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
         
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
+        
+        // Reset audio levels
+        setAudioLevels([]);
+        setRecordingTime(0);
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingProgress(0);
+      setAudioLevels([]);
+      
+      // Start audio level monitoring for waveform
+      startAudioLevelMonitoring(stream);
 
-      // Progress simulation
+      // Recording time counter
+      const timeInterval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+      // Progress simulation with max 30 seconds
       const progressInterval = setInterval(() => {
         setRecordingProgress(prev => {
           if (prev >= 100) {
             clearInterval(progressInterval);
+            clearInterval(timeInterval);
             stopRecording();
             return 100;
           }
-          return prev + 2;
+          return prev + (100 / 300); // 30 seconds total
         });
       }, 100);
 
@@ -115,6 +166,9 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
     }
     setIsRecording(false);
     setRecordingProgress(0);
@@ -300,11 +354,15 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
           {/* Recording Section */}
           <div className="space-y-4">
             <div className="text-center space-y-4">
-              <div className="flex justify-center">
+              <div className="flex justify-center relative">
                 <Button
                   size="lg"
                   variant={isRecording ? "destructive" : "default"}
-                  className={`w-20 h-20 rounded-full ${isRecording ? '' : 'bg-green-500 hover:bg-green-600'}`}
+                  className={`w-20 h-20 rounded-full transition-all duration-300 ${
+                    isRecording 
+                      ? 'animate-pulse bg-destructive hover:bg-destructive/90' 
+                      : 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl'
+                  }`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={!selectedIntent}
                 >
@@ -314,17 +372,54 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
                     <Mic className="h-8 w-8" />
                   )}
                 </Button>
+                
+                {/* Recording pulse rings */}
+                {isRecording && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-24 h-24 rounded-full border-2 border-destructive animate-ping opacity-30"></div>
+                    <div className="absolute w-28 h-28 rounded-full border-2 border-destructive animate-ping opacity-20" style={{ animationDelay: '0.5s' }}></div>
+                  </div>
+                )}
               </div>
+
+              {/* Waveform visualization */}
+              {isRecording && audioLevels.length > 0 && (
+                <div className="flex justify-center items-end space-x-1 h-16 bg-muted/30 rounded-lg p-2">
+                  {audioLevels.map((level, index) => (
+                    <div
+                      key={index}
+                      className="bg-primary rounded-full transition-all duration-100"
+                      style={{
+                        width: '3px',
+                        height: `${Math.max(4, level)}%`,
+                        opacity: index === audioLevels.length - 1 ? 1 : 0.7 - (audioLevels.length - index) * 0.035
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
               
               {isRecording && (
-                <div className="space-y-2">
-                  <Progress value={recordingProgress} className="w-full" />
-                  <p className="text-sm text-muted-foreground">Recording... {Math.round(recordingProgress)}%</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="text-sm font-medium">
+                      {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {Math.round(recordingProgress)}% • Max 30s
+                    </div>
+                  </div>
+                  <Progress value={recordingProgress} className="w-full h-2" />
                 </div>
               )}
               
               <p className="text-sm text-muted-foreground">
-                {isRecording ? 'Speak clearly in your selected language' : 'Click to start recording'}
+                {!selectedIntent 
+                  ? 'Select an intent to start recording'
+                  : isRecording 
+                    ? 'Speak clearly in your selected language' 
+                    : 'Click to start recording'
+                }
               </p>
             </div>
 
@@ -358,38 +453,55 @@ const VoiceTrainingPanel = ({ onClose, onAddTrainingPhrase }: VoiceTrainingPanel
 
             {/* Transcription Processing */}
             {isTranscribing && (
-              <div className="text-center space-y-2">
-                <div className="animate-pulse text-blue-600">
-                  🤖 Processing your speech...
+              <div className="text-center space-y-3 bg-muted/30 rounded-lg p-4">
+                <div className="flex items-center justify-center gap-2 text-primary font-medium">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Wand2 className="h-4 w-4" />
+                  Converting speech to text...
                 </div>
-                <Progress value={75} className="w-full" />
+                <div className="space-y-2">
+                  <Progress value={75} className="w-full h-2" />
+                  <div className="text-xs text-muted-foreground">
+                    Processing {getLanguageName(selectedLanguage)} audio
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Transcription Result */}
-            {transcription && (
-              <div className="border rounded-lg p-4 space-y-3">
+            {transcription && !isTranscribing && (
+              <div className="border-2 border-primary/20 rounded-lg p-4 space-y-4 bg-primary/5 animate-fade-in">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Transcription:</label>
-                  <Badge variant="outline" className="text-xs">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-500" />
+                    <label className="text-sm font-medium">Transcription Complete:</label>
+                  </div>
+                  <Badge variant="outline" className="text-xs border-primary/30">
                     <Globe className="h-3 w-3 mr-1" />
                     {africanLanguages.find(l => l.code === selectedLanguage)?.name}
                   </Badge>
                 </div>
-                <p className="text-sm bg-muted p-2 rounded">{transcription}</p>
+                
+                <div className="bg-background/80 backdrop-blur-sm p-3 rounded-lg border">
+                  <p className="text-sm font-medium">{transcription}</p>
+                </div>
                 
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={acceptTranscription} className="flex-1">
+                  <Button 
+                    size="sm" 
+                    onClick={acceptTranscription} 
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                  >
                     <Check className="h-4 w-4 mr-1" />
-                    Accept
+                    Accept & Add
                   </Button>
-                  <Button size="sm" variant="outline" onClick={rejectTranscription}>
+                  <Button size="sm" variant="outline" onClick={rejectTranscription} className="border-destructive/30 hover:bg-destructive/10">
+                    <X className="h-4 w-4 mr-1" />
+                    Reject
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={transcribeAudio} disabled={isTranscribing} className="border-primary/30 hover:bg-primary/10">
                     <RotateCcw className="h-4 w-4 mr-1" />
-                    Retry
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={transcribeAudio} disabled={isTranscribing}>
-                    <Volume2 className="h-4 w-4 mr-1" />
-                    Re-transcribe
+                    Re-try
                   </Button>
                 </div>
               </div>
