@@ -9,6 +9,7 @@ import BotBuilder from "./pages/BotBuilder";
 import VoiceTraining from "./pages/VoiceTraining";
 import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/builder" element={<BotBuilder />} />
           <Route path="/builder/:id" element={<BotBuilder />} />
