@@ -26,13 +26,13 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link to="/auth">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg">
+            <Link to="/dashboard">
+              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 text-lg">
                 Start Building AI
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-border hover:bg-accent">
+            <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-orange-200 hover:bg-orange-50">
               Explore Templates
             </Button>
           </div>
@@ -99,7 +99,7 @@ const Index = () => {
           <p className="text-xl mb-8 opacity-90">
             Join thousands of young African innovators building the future with AI
           </p>
-          <Link to="/auth">
+          <Link to="/dashboard">
             <Button size="lg" variant="secondary" className="px-8 py-4 text-lg">
               Get Started Free
               <Users className="ml-2 h-5 w-5" />
