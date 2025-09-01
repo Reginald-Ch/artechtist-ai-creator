@@ -96,15 +96,15 @@ export const GoogleAssistantPanel = ({ nodes, botName, onDeploy }: GoogleAssista
   const compatibilityScore = () => {
     const intentNodes = nodes.filter(node => node.type === 'intent');
     const totalPhrases = intentNodes.reduce((sum, node) => 
-      sum + (node.data.trainingPhrases?.length || 0), 0
+      sum + ((node.data.trainingPhrases as string[])?.length || 0), 0
     );
     
     let score = 0;
     if (intentNodes.length >= 2) score += 30; // Has basic intents
     if (totalPhrases >= 10) score += 30; // Sufficient training data
     if (invocationName.length >= 2) score += 20; // Valid invocation name
-    if (intentNodes.some(node => node.data.label?.toLowerCase().includes('help'))) score += 10;
-    if (intentNodes.some(node => node.data.label?.toLowerCase().includes('fallback'))) score += 10;
+    if (intentNodes.some(node => (node.data.label as string)?.toLowerCase().includes('help'))) score += 10;
+    if (intentNodes.some(node => (node.data.label as string)?.toLowerCase().includes('fallback'))) score += 10;
     
     return Math.min(100, score);
   };
@@ -182,7 +182,7 @@ export const GoogleAssistantPanel = ({ nodes, botName, onDeploy }: GoogleAssista
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  {nodes.reduce((sum, node) => sum + (node.data.trainingPhrases?.length || 0), 0) >= 10 ? (
+                  {nodes.reduce((sum, node) => sum + ((node.data.trainingPhrases as string[])?.length || 0), 0) >= 10 ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-orange-500" />

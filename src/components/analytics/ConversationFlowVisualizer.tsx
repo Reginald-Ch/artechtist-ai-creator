@@ -170,7 +170,7 @@ export const ConversationFlowVisualizer = ({ nodes, edges }: ConversationFlowVis
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div>
-                    <strong className="text-green-700 dark:text-green-300">Top Intent:</strong> {analytics.topIntent}
+                    <strong className="text-green-700 dark:text-green-300">Top Intent:</strong> {String(analytics.topIntent)}
                     <p className="text-sm text-muted-foreground">
                       {analytics.intentUsage[0]?.uses || 0} uses ({Math.round(analytics.intentUsage[0]?.percentage || 0)}% of traffic)
                     </p>
@@ -186,7 +186,7 @@ export const ConversationFlowVisualizer = ({ nodes, edges }: ConversationFlowVis
                     <div className="space-y-2">
                       {analytics.intentUsage.slice(0, 5).map((intent, index) => (
                         <div key={intent.intentId} className="flex items-center gap-3">
-                          <span className="text-sm w-20 truncate">{intent.name}</span>
+                          <span className="text-sm w-20 truncate">{String(intent.name)}</span>
                           <Progress value={intent.percentage} className="flex-1 h-2" />
                           <span className="text-xs w-12">{intent.uses}</span>
                         </div>
@@ -199,7 +199,7 @@ export const ConversationFlowVisualizer = ({ nodes, edges }: ConversationFlowVis
                     <div className="space-y-2">
                       {analytics.intentUsage.slice(0, 5).map((intent) => (
                         <div key={intent.intentId} className="flex items-center justify-between">
-                          <span className="text-sm">{intent.name}</span>
+                          <span className="text-sm">{String(intent.name)}</span>
                           <Badge className={`${getConfidenceColor(intent.avgConfidence)} bg-transparent border`}>
                             {Math.round(intent.avgConfidence * 100)}%
                           </Badge>
@@ -225,7 +225,7 @@ export const ConversationFlowVisualizer = ({ nodes, edges }: ConversationFlowVis
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <span className="font-medium">#{index + 1}</span>
-                        <span className="font-medium">{intent.name}</span>
+                        <span className="font-medium">{String(intent.name)}</span>
                       </div>
                       <div className="flex gap-2">
                         <Badge className={getUsageColor(intent.percentage)}>
@@ -264,13 +264,13 @@ export const ConversationFlowVisualizer = ({ nodes, edges }: ConversationFlowVis
                 {analytics.conversationPaths.length > 0 ? (
                   analytics.conversationPaths.map((path, index) => (
                     <div key={index} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
-                      <Badge variant="outline">{path.from}</Badge>
+                      <Badge variant="outline">{String(path.from)}</Badge>
                       <div className="flex-1 flex items-center">
                         <div className="h-px bg-border flex-1"></div>
                         <span className="text-xs text-muted-foreground mx-2">{path.frequency}x</span>
                         <div className="h-px bg-border flex-1"></div>
                       </div>
-                      <Badge variant="outline">{path.to}</Badge>
+                      <Badge variant="outline">{String(path.to)}</Badge>
                     </div>
                   ))
                 ) : (

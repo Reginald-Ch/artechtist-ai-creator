@@ -34,8 +34,8 @@ export const DatasetVisualizer = ({ nodes, onImportData, onExportData }: Dataset
     };
 
     intentNodes.forEach(node => {
-      const phrases = node.data.trainingPhrases || [];
-      const responses = node.data.responses || [];
+      const phrases = (node.data.trainingPhrases as string[]) || [];
+      const responses = (node.data.responses as string[]) || [];
       
       analysis.totalPhrases += phrases.length;
       analysis.totalResponses += responses.length;
