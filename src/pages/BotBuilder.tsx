@@ -25,30 +25,20 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy, GraduationCap, BarChart, Database, Globe } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import IntentNode from "@/components/flow/IntentNode";
-import TestPanel from "@/components/TestPanel";
-import AvatarSelector from "@/components/AvatarSelector";
-import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
-import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
-import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
-import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
-import { SmartSuggestions } from "@/components/enhanced/SmartSuggestions";
-import { PerformanceMetrics } from "@/components/enhanced/PerformanceMetrics";
-import { CollaborationPanel } from "@/components/enhanced/CollaborationPanel";
-import { UseModePanel } from "@/components/learning/UseModePanel";
-import { ModifyModePanel } from "@/components/learning/ModifyModePanel";
+import { ConversationFlowBuilder } from "@/components/flow/ConversationFlowBuilder";
+import { EnhancedLearningFlow } from "@/components/learning/EnhancedLearningFlow";
+import { EnhancedVoiceTraining } from "@/components/voice/EnhancedVoiceTraining";
+import { GoogleAssistantSDK } from "@/components/device/GoogleAssistantSDK";
 import { DatasetVisualizer } from "@/components/dataset/DatasetVisualizer";
 import { ConversationFlowVisualizer } from "@/components/analytics/ConversationFlowVisualizer";
-import { GoogleAssistantPanel } from "@/components/integration/GoogleAssistantPanel";
+import TestPanel from "@/components/TestPanel";
+import AvatarSelector from "@/components/AvatarSelector";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "@/hooks/use-toast";
 
-const nodeTypes = {
-  intent: IntentNode,
-};
+// Enhanced node types handled by ConversationFlowBuilder
 
 const initialNodes: Node[] = [
   {
@@ -412,49 +402,16 @@ const BotBuilder = () => {
       <div className="flex-1 flex">
         {/* Flow Builder */}
         <div className="flex-1 relative">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={onNodeClick}
-            nodeTypes={memoizedNodeTypes}
-            fitView
-            nodesDraggable
-            nodesConnectable
-            elementsSelectable
-            selectNodesOnDrag={false}
-            panOnDrag={[1, 2]}
-            zoomOnDoubleClick={false}
-            attributionPosition="bottom-left"
-            proOptions={{ hideAttribution: true }}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-            minZoom={0.5}
-            maxZoom={2}
-            className="bg-gradient-to-br from-primary/5 via-background to-primary-glow/5"
-          >
-            <Controls 
-              className="glassmorphism shadow-lg rounded-lg" 
-              showInteractive={false}
-            />
-            <MiniMap 
-              className="glassmorphism rounded-lg"
-              nodeColor={(node) => {
-                if (node.data?.isDefault) return 'hsl(var(--primary))';
-                return 'hsl(var(--primary-glow))';
-              }}
-              maskColor="hsla(var(--background) / 0.8)"
-              pannable
-              zoomable
-            />
-            <Background 
-              variant={BackgroundVariant.Dots} 
-              gap={20} 
-              size={1}
-              className="opacity-30"
-            />
-          </ReactFlow>
+        <EnhancedLearningFlow
+          currentMode={learningMode}
+          onModeChange={setLearningMode}
+          onApplyTemplate={(template) => {
+            toast({
+              title: "Template Applied",
+              description: "Bot template has been applied successfully",
+            });
+          }}
+        />
           
           {/* Enhanced Add Intent Button */}
           <div className="absolute top-4 left-4">
@@ -757,9 +714,12 @@ const BotBuilder = () => {
 
               <TabsContent value="integration" className="p-0 mt-0 h-full">
                 <div className="p-4">
-                  <GoogleAssistantPanel
-                    nodes={nodes}
-                    botName={botName}
+                  <GoogleAssistantSDK
+                    botData={{
+                      name: botName,
+                      nodes: nodes,
+                      responses: nodes.flatMap(n => n.data.responses || [])
+                    }}
                     onDeploy={() => {
                       toast({
                         title: "Deployed to Google Assistant! 🚀",
@@ -784,17 +744,18 @@ const BotBuilder = () => {
           />
         )}
 
-        {/* Voice Training Panel */}
+        {/* Enhanced Voice Training Panel */}
         {showVoiceTraining && (
-          <VoiceTrainingPanel 
-            onClose={() => setShowVoiceTraining(false)}
-            onAddTrainingPhrase={(phrase, intent) => {
-              // Add the phrase to the selected node if it matches the intent
-              if (selectedNode && selectedNode.data.label === intent) {
-                const currentPhrases = selectedNode.data.trainingPhrases as string[] || [];
-                updateSelectedNode('trainingPhrases', [...currentPhrases, phrase]);
-              }
+          <EnhancedVoiceTraining
+            selectedNode={selectedNode}
+            onUpdateNode={(nodeId, data) => {
+              setNodes((nds) =>
+                nds.map((node) =>
+                  node.id === nodeId ? { ...node, data } : node
+                )
+              );
             }}
+            onClose={() => setShowVoiceTraining(false)}
           />
         )}
 
