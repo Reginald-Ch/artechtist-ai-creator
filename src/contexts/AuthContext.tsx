@@ -50,13 +50,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, parentEmail?: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -82,10 +79,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Sign up successful!",
-          description: "Please check your email to confirm your account.",
-        });
+        // If signup is successful and user is immediately available, they're logged in
+        if (data.user && data.session) {
+          toast({
+            title: "Welcome to Artechtist AI!",
+            description: "Your account has been created successfully.",
+          });
+        } else {
+          toast({
+            title: "Sign up successful!",
+            description: "You can now sign in with your credentials.",
+          });
+        }
       }
 
       return { error };
