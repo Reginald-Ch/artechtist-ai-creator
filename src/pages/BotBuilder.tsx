@@ -23,29 +23,27 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy, GraduationCap, BarChart, Database, Globe } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { ConversationFlowBuilder } from "@/components/flow/ConversationFlowBuilder";
-import { EnhancedLearningFlow } from "@/components/learning/EnhancedLearningFlow";
-import { EnhancedVoiceTraining } from "@/components/voice/EnhancedVoiceTraining";
-import { GoogleAssistantSDK } from "@/components/device/GoogleAssistantSDK";
-import { DatasetVisualizer } from "@/components/dataset/DatasetVisualizer";
-import { ConversationFlowVisualizer } from "@/components/analytics/ConversationFlowVisualizer";
-import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
-import { UseModePanel } from "@/components/learning/UseModePanel";
-import { ModifyModePanel } from "@/components/learning/ModifyModePanel";
-import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
-import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
+import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
+import { AIMascot } from "@/components/ai-tutor/AIMascot";
+import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
+import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
+import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
+import { SmartSuggestions } from "@/components/enhanced/SmartSuggestions";
+import { PerformanceMetrics } from "@/components/enhanced/PerformanceMetrics";
+import { CollaborationPanel } from "@/components/enhanced/CollaborationPanel";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "@/hooks/use-toast";
 
-// Enhanced node types handled by ConversationFlowBuilder
+const nodeTypes = {
+  intent: IntentNode,
+};
 
 const initialNodes: Node[] = [
   {
@@ -89,8 +87,6 @@ const BotBuilder = () => {
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
-  const [learningMode, setLearningMode] = useState<'use' | 'modify' | 'create'>('create');
-  const [activePanel, setActivePanel] = useState<'properties' | 'dataset' | 'analytics' | 'integration'>('properties');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -409,16 +405,49 @@ const BotBuilder = () => {
       <div className="flex-1 flex">
         {/* Flow Builder */}
         <div className="flex-1 relative">
-        <EnhancedLearningFlow
-          currentMode={learningMode}
-          onModeChange={setLearningMode}
-          onApplyTemplate={(template) => {
-            toast({
-              title: "Template Applied",
-              description: "Bot template has been applied successfully",
-            });
-          }}
-        />
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            nodeTypes={memoizedNodeTypes}
+            fitView
+            nodesDraggable
+            nodesConnectable
+            elementsSelectable
+            selectNodesOnDrag={false}
+            panOnDrag={[1, 2]}
+            zoomOnDoubleClick={false}
+            attributionPosition="bottom-left"
+            proOptions={{ hideAttribution: true }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            minZoom={0.5}
+            maxZoom={2}
+            className="bg-gradient-to-br from-primary/5 via-background to-primary-glow/5"
+          >
+            <Controls 
+              className="glassmorphism shadow-lg rounded-lg" 
+              showInteractive={false}
+            />
+            <MiniMap 
+              className="glassmorphism rounded-lg"
+              nodeColor={(node) => {
+                if (node.data?.isDefault) return 'hsl(var(--primary))';
+                return 'hsl(var(--primary-glow))';
+              }}
+              maskColor="hsla(var(--background) / 0.8)"
+              pannable
+              zoomable
+            />
+            <Background 
+              variant={BackgroundVariant.Dots} 
+              gap={20} 
+              size={1}
+              className="opacity-30"
+            />
+          </ReactFlow>
           
           {/* Enhanced Add Intent Button */}
           <div className="absolute top-4 left-4">
@@ -434,310 +463,224 @@ const BotBuilder = () => {
 
         {/* Enhanced Properties Panel */}
         <div className="w-96 border-l glassmorphism overflow-y-auto">
-          {/* Learning Mode Toggle */}
-          <div className="border-b p-4 bg-gradient-to-r from-primary/5 to-primary-glow/5">
-            <div className="flex items-center gap-2 mb-3">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              <h3 className="font-medium">Learning Mode</h3>
+          <Tabs defaultValue="properties" className="h-full">
+            <div className="border-b p-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="properties" className="text-xs">Properties</TabsTrigger>
+                <TabsTrigger value="suggestions" className="text-xs">AI</TabsTrigger>
+                <TabsTrigger value="metrics" className="text-xs">Metrics</TabsTrigger>
+                <TabsTrigger value="collaborate" className="text-xs">Team</TabsTrigger>
+              </TabsList>
             </div>
-            <div className="grid grid-cols-3 gap-1">
-              <Button
-                size="sm"
-                variant={learningMode === 'use' ? 'default' : 'outline'}
-                onClick={() => setLearningMode('use')}
-                className="text-xs"
-              >
-                Use
-              </Button>
-              <Button
-                size="sm"
-                variant={learningMode === 'modify' ? 'default' : 'outline'}
-                onClick={() => setLearningMode('modify')}
-                className="text-xs"
-              >
-                Modify
-              </Button>
-              <Button
-                size="sm"
-                variant={learningMode === 'create' ? 'default' : 'outline'}
-                onClick={() => setLearningMode('create')}
-                className="text-xs"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
 
-          {learningMode === 'use' ? (
-            <UseModePanel
-              onSwitchToModify={() => setLearningMode('modify')}
-              onSwitchToCreate={() => setLearningMode('create')}
-            />
-          ) : learningMode === 'modify' ? (
-            <ModifyModePanel
-              onSwitchToCreate={() => setLearningMode('create')}
-              onApplyChanges={(modifiedBot) => {
-                // Apply the modified bot data to current nodes
-                toast({
-                  title: "Template Applied!",
-                  description: "Modified bot template has been applied to your canvas",
-                });
-                setLearningMode('create');
-              }}
-            />
-          ) : (
-            <Tabs value={activePanel} onValueChange={(value: any) => setActivePanel(value)} className="h-full">
-              <div className="border-b p-4">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="properties" className="text-xs">
-                    <Bot className="h-3 w-3" />
-                  </TabsTrigger>
-                  <TabsTrigger value="dataset" className="text-xs">
-                    <Database className="h-3 w-3" />
-                  </TabsTrigger>
-                  <TabsTrigger value="analytics" className="text-xs">
-                    <BarChart className="h-3 w-3" />
-                  </TabsTrigger>
-                  <TabsTrigger value="integration" className="text-xs">
-                    <Globe className="h-3 w-3" />
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value="properties" className="p-0 mt-0 h-full">
-                <div className="p-4 space-y-4">
-                  {/* AI Mascot */}
-                  <AIMascot 
-                    currentTopic={selectedConcept}
-                    onTopicChange={setSelectedConcept}
+            <TabsContent value="properties" className="p-0 mt-0 h-full">
+              <div className="p-4 space-y-4">
+                {/* AI Mascot */}
+                <AIMascot 
+                  currentTopic={selectedConcept}
+                  onTopicChange={setSelectedConcept}
+                />
+                
+                {/* Concept Explainer */}
+                {selectedConcept && (
+                  <ConceptExplainer 
+                    concept={selectedConcept}
+                    onClose={() => setSelectedConcept(null)}
                   />
-                  
-                  {/* Concept Explainer */}
-                  {selectedConcept && (
-                    <ConceptExplainer 
-                      concept={selectedConcept}
-                      onClose={() => setSelectedConcept(null)}
-                    />
-                  )}
-                </div>
+                )}
+              </div>
           
-                {selectedNode ? (
-                  <div className="space-y-4">
-                    <Card className="border-0 rounded-none animate-fade-in">
-                      <CardHeader className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border-b">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-2">
-                            <Bot className="h-5 w-5 text-primary" />
-                            Intent Properties
-                          </CardTitle>
-                          {!selectedNode.data.isDefault && (
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={deleteSelectedNode}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 space-y-6">
-                        {/* Intent Name */}
-                        <div className="space-y-2">
-                          <Label htmlFor="intent-name">Intent Name</Label>
-                          <Input
-                            id="intent-name"
-                            value={selectedNode.data.label as string}
-                            onChange={(e) => updateSelectedNode('label', e.target.value)}
-                            placeholder="Enter intent name"
-                          />
-                        </div>
-
-                        {/* Training Phrases */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Label>Training Phrases</Label>
-                            <Badge variant="outline">{(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {(selectedNode.data.trainingPhrases as string[])?.map((phrase, index) => (
-                              <div key={index} className="flex items-center gap-2">
-                                <Input
-                                  value={phrase}
-                                  onChange={(e) => {
-                                    const newPhrases = [...(selectedNode.data.trainingPhrases as string[])];
-                                    newPhrases[index] = e.target.value;
-                                    updateSelectedNode('trainingPhrases', newPhrases);
-                                  }}
-                                  placeholder="Training phrase"
-                                  className="flex-1"
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    const newPhrases = (selectedNode.data.trainingPhrases as string[]).filter((_, i) => i !== index);
-                                    updateSelectedNode('trainingPhrases', newPhrases);
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const currentPhrases = (selectedNode.data.trainingPhrases as string[]) || [];
-                                updateSelectedNode('trainingPhrases', [...currentPhrases, '']);
-                              }}
-                              className="w-full"
-                            >
-                              + Add Training Phrase
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Responses */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Label>Bot Responses</Label>
-                            <Badge variant="outline">{(selectedNode.data.responses as string[])?.length || 0} responses</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {(selectedNode.data.responses as string[])?.map((response, index) => (
-                              <div key={index} className="flex items-start gap-2">
-                                <Textarea
-                                  value={response}
-                                  onChange={(e) => {
-                                    const newResponses = [...(selectedNode.data.responses as string[])];
-                                    newResponses[index] = e.target.value;
-                                    updateSelectedNode('responses', newResponses);
-                                  }}
-                                  placeholder="Bot response"
-                                  className="flex-1 min-h-[60px]"
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    const newResponses = (selectedNode.data.responses as string[]).filter((_, i) => i !== index);
-                                    updateSelectedNode('responses', newResponses);
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const currentResponses = (selectedNode.data.responses as string[]) || [];
-                                updateSelectedNode('responses', [...currentResponses, '']);
-                              }}
-                              className="w-full"
-                            >
-                              + Add Response
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="pt-4 border-t space-y-2">
-                          <Button
-                            variant="outline"
+              {selectedNode ? (
+                <div className="space-y-4">
+                  <Card className="border-0 rounded-none animate-fade-in">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border-b">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Bot className="h-5 w-5 text-primary" />
+                          Intent Properties
+                        </CardTitle>
+                        {!selectedNode.data.isDefault && (
+                          <Button 
+                            variant="destructive" 
                             size="sm"
-                            onClick={() => setShowVoiceTraining(true)}
-                            className="w-full"
+                            onClick={deleteSelectedNode}
                           >
-                            <Mic className="h-4 w-4 mr-2" />
-                            Voice Training
+                            <Trash2 className="h-4 w-4" />
                           </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-6">
+                      {/* Intent Name */}
+                      <div className="space-y-2">
+                        <Label htmlFor="intent-name">Intent Name</Label>
+                        <Input
+                          id="intent-name"
+                          value={selectedNode.data.label as string}
+                          onChange={(e) => updateSelectedNode('label', e.target.value)}
+                          placeholder="Enter intent name"
+                        />
+                      </div>
+
+                      {/* Training Phrases */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Training Phrases</Label>
+                          <Badge variant="outline">{(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {(selectedNode.data.trainingPhrases as string[])?.map((phrase, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <Input
+                                value={phrase}
+                                onChange={(e) => {
+                                  const newPhrases = [...(selectedNode.data.trainingPhrases as string[])];
+                                  newPhrases[index] = e.target.value;
+                                  updateSelectedNode('trainingPhrases', newPhrases);
+                                }}
+                                placeholder="Training phrase"
+                                className="flex-1"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newPhrases = (selectedNode.data.trainingPhrases as string[]).filter((_, i) => i !== index);
+                                  updateSelectedNode('trainingPhrases', newPhrases);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              if (selectedNode) {
-                                duplicateNode(selectedNode.id);
-                              }
+                              const currentPhrases = (selectedNode.data.trainingPhrases as string[]) || [];
+                              updateSelectedNode('trainingPhrases', [...currentPhrases, '']);
                             }}
                             className="w-full"
                           >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicate Intent
+                            + Add Training Phrase
                           </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <div className="p-8 text-center text-muted-foreground animate-fade-in">
-                    <Bot className="h-16 w-16 mx-auto mb-4 opacity-50 animate-bounce" />
-                    <p className="text-lg font-medium mb-2">Select an Intent</p>
-                    <p className="text-sm">Click on any intent node to edit its properties</p>
-                  </div>
-                )}
-              </TabsContent>
+                      </div>
 
-              <TabsContent value="dataset" className="p-0 mt-0 h-full">
-                <div className="p-4">
-                  <DatasetVisualizer
-                    nodes={nodes}
-                    onImportData={(data) => {
-                      toast({
-                        title: "Dataset Imported",
-                        description: "Training data has been imported successfully",
-                      });
-                    }}
-                    onExportData={() => {
-                      const dataStr = JSON.stringify({
-                        intents: nodes.filter(n => n.type === 'intent').map(n => ({
-                          name: n.data.label,
-                          trainingPhrases: n.data.trainingPhrases || [],
-                          responses: n.data.responses || []
-                        }))
-                      }, null, 2);
-                      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                      const url = URL.createObjectURL(dataBlob);
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.download = `${botName}_dataset.json`;
-                      link.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                  />
-                </div>
-              </TabsContent>
+                      {/* Responses */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Bot Responses</Label>
+                          <Badge variant="outline">{(selectedNode.data.responses as string[])?.length || 0} responses</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {(selectedNode.data.responses as string[])?.map((response, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <Textarea
+                                value={response}
+                                onChange={(e) => {
+                                  const newResponses = [...(selectedNode.data.responses as string[])];
+                                  newResponses[index] = e.target.value;
+                                  updateSelectedNode('responses', newResponses);
+                                }}
+                                placeholder="Bot response"
+                                className="flex-1 min-h-[60px]"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newResponses = (selectedNode.data.responses as string[]).filter((_, i) => i !== index);
+                                  updateSelectedNode('responses', newResponses);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentResponses = (selectedNode.data.responses as string[]) || [];
+                              updateSelectedNode('responses', [...currentResponses, '']);
+                            }}
+                            className="w-full"
+                          >
+                            + Add Response
+                          </Button>
+                        </div>
+                      </div>
 
-              <TabsContent value="analytics" className="p-0 mt-0 h-full">
-                <div className="p-4">
-                  <ConversationFlowVisualizer
-                    nodes={nodes}
-                    edges={edges}
-                  />
+                      {/* Quick Actions */}
+                      <div className="pt-4 border-t space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowVoiceTraining(true)}
+                          className="w-full"
+                        >
+                          <Mic className="h-4 w-4 mr-2" />
+                          Voice Training
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedNode) {
+                              duplicateNode(selectedNode.id);
+                            }
+                          }}
+                          className="w-full"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicate Intent
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </TabsContent>
+              ) : (
+                <div className="p-8 text-center text-muted-foreground animate-fade-in">
+                  <Bot className="h-16 w-16 mx-auto mb-4 opacity-50 animate-bounce" />
+                  <p className="text-lg font-medium mb-2">Select an Intent</p>
+                  <p className="text-sm">Click on any intent node to edit its properties</p>
+                </div>
+              )}
+            </TabsContent>
 
-              <TabsContent value="integration" className="p-0 mt-0 h-full">
-                <div className="p-4">
-                  <GoogleAssistantSDK
-                    botData={{
-                      name: botName,
-                      nodes: nodes,
-                      responses: nodes.flatMap(n => (n.data.responses as string[]) || [])
-                    }}
-                    onDeploy={() => {
-                      toast({
-                        title: "Deployed to Google Assistant! 🚀",
-                        description: "Your bot is now available on Google Assistant",
-                      });
-                    }}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
+            <TabsContent value="suggestions" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <SmartSuggestions
+                  nodes={nodes}
+                  edges={edges}
+                  selectedNode={selectedNode}
+                  onApplySuggestion={(suggestion) => {
+                    console.log('Applied suggestion:', suggestion);
+                  }}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="metrics" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <PerformanceMetrics
+                  nodes={nodes}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="collaborate" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <CollaborationPanel
+                  selectedNode={selectedNode}
+                  onAddComment={(comment, nodeId) => {
+                    console.log('Added comment:', comment, 'to node:', nodeId);
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Test Panel */}
@@ -751,18 +694,17 @@ const BotBuilder = () => {
           />
         )}
 
-        {/* Enhanced Voice Training Panel */}
+        {/* Voice Training Panel */}
         {showVoiceTraining && (
-          <EnhancedVoiceTraining
-            selectedNode={selectedNode}
-            onUpdateNode={(nodeId, data) => {
-              setNodes((nds) =>
-                nds.map((node) =>
-                  node.id === nodeId ? { ...node, data } : node
-                )
-              );
-            }}
+          <VoiceTrainingPanel 
             onClose={() => setShowVoiceTraining(false)}
+            onAddTrainingPhrase={(phrase, intent) => {
+              // Add the phrase to the selected node if it matches the intent
+              if (selectedNode && selectedNode.data.label === intent) {
+                const currentPhrases = selectedNode.data.trainingPhrases as string[] || [];
+                updateSelectedNode('trainingPhrases', [...currentPhrases, phrase]);
+              }
+            }}
           />
         )}
 
