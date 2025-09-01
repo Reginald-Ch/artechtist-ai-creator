@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Mail, Lock, User, Users, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle, ShieldCheck, RefreshCw } from "lucide-react";
+import { Brain, Mail, Lock, User, Users, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle, ShieldCheck, RefreshCw, Gem } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ const EnhancedAuth = () => {
     confirmPassword: '',
     parentEmail: ''
   });
+  const [treasureCode, setTreasureCode] = useState('');
   
   const { user, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -224,6 +226,49 @@ const EnhancedAuth = () => {
     }
   };
 
+  const handleTreasureCode = async () => {
+    if (!treasureCode || treasureCode.length !== 5 || !/^\d{5}$/.test(treasureCode)) {
+      toast({
+        title: "Invalid treasure code",
+        description: "Please enter a 5-digit treasure code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-treasure-code', {
+        body: { code: treasureCode }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success && data.session) {
+        // Set the session manually
+        await supabase.auth.setSession(data.session);
+        
+        toast({
+          title: "Welcome, Treasure Hunter! 🏴‍☠️",
+          description: `${data.message} Your access expires on ${new Date(data.expires_at).toLocaleDateString()}`,
+        });
+        
+        navigate('/dashboard');
+      } else {
+        throw new Error(data.error || 'Invalid treasure code');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Treasure hunt failed",
+        description: error.message || "Invalid or expired treasure code. Check your code and try again!",
+        variant: "destructive",
+      });
+    }
+    setIsLoading(false);
+  };
+
   const handleResendConfirmation = async () => {
     if (!canResendEmail || resendCooldown > 0) return;
     
@@ -346,9 +391,10 @@ const EnhancedAuth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="treasure">Treasure Hunt</TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
@@ -727,6 +773,67 @@ const EnhancedAuth = () => {
                 <p className="mt-6 text-xs text-center text-muted-foreground">
                   By signing up, you agree to our Terms of Service and Privacy Policy
                 </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="treasure">
+            <Card className="border-2 border-gradient-to-r from-amber-500/50 to-orange-500/50 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20">
+              <CardHeader className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+                  <Gem className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  Treasure Hunt Access
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Enter your 5-digit treasure code to unlock your adventure! 🏴‍☠️
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="treasureCode" className="text-base font-medium">
+                    Treasure Code
+                  </Label>
+                  <Input
+                    id="treasureCode"
+                    type="text"
+                    placeholder="Enter 5-digit code (e.g., 12345)"
+                    value={treasureCode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                      setTreasureCode(value);
+                    }}
+                    className="text-center text-2xl font-mono tracking-widest border-2 border-amber-300 focus:border-amber-500 dark:border-amber-700 dark:focus:border-amber-500"
+                    maxLength={5}
+                  />
+                  <p className="text-sm text-muted-foreground text-center">
+                    This code gives you free access to the app for a limited time
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={handleTreasureCode} 
+                  disabled={isLoading || treasureCode.length !== 5}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 text-lg shadow-lg"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Unlocking treasure...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Gem className="h-5 w-5" />
+                      Start Adventure
+                    </div>
+                  )}
+                </Button>
+
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Don't have a treasure code? Contact your teacher or program coordinator
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
