@@ -262,17 +262,7 @@ const BotBuilder = () => {
 
   useKeyboardShortcuts(handleKeyboardActions);
 
-  // Memoize nodeTypes to prevent recreation on every render
-  const memoizedNodeTypes = useMemo(() => ({
-    intent: (props: any) => (
-      <IntentNode 
-        {...props} 
-        onDelete={deleteNode}
-        onDuplicate={duplicateNode}
-        onEdit={editNode}
-      />
-    ),
-  }), []);
+  // Remove old memoized nodeTypes since we're using ConversationFlowBuilder now
 
   const updateSelectedNode = useCallback((field: string, value: any) => {
     if (!selectedNode) return;
@@ -384,20 +374,27 @@ const BotBuilder = () => {
         </div>
       </div>
 
-      {/* Enhanced Toolbar */}
-      <BotBuilderToolbar
-        onTestBot={() => setShowTestPanel(!showTestPanel)}
-        onTutorial={() => setShowTutorial(true)}
-        onSave={handleKeyboardActions.onSave}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onExport={handleExport}
-        onImport={handleImport}
-        onAddIntent={addNewIntent}
-        canUndo={undoRedo.canUndo}
-        canRedo={undoRedo.canRedo}
-        nodeCount={nodes.length}
-      />
+      {/* Enhanced Learning Flow Toolbar */}
+      <div className="flex items-center justify-between p-4 bg-muted/30 border-b">
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowTestPanel(!showTestPanel)}
+            variant="outline"
+            size="sm"
+          >
+            <Play className="h-4 w-4 mr-2" />
+            Test Bot
+          </Button>
+          <Button 
+            onClick={() => setShowVoiceTraining(!showVoiceTraining)}
+            variant="outline"
+            size="sm"
+          >
+            <Mic className="h-4 w-4 mr-2" />
+            Voice Training
+          </Button>
+        </div>
+      </div>
 
       <div className="flex-1 flex">
         {/* Flow Builder */}
@@ -461,23 +458,36 @@ const BotBuilder = () => {
             </div>
           </div>
 
-          {learningMode === 'use' ? (
-            <UseModePanel
-              onSwitchToModify={() => setLearningMode('modify')}
-              onSwitchToCreate={() => setLearningMode('create')}
-            />
-          ) : learningMode === 'modify' ? (
-            <ModifyModePanel
-              onSwitchToCreate={() => setLearningMode('create')}
-              onApplyChanges={(modifiedBot) => {
-                // Apply the modified bot data to current nodes
-                toast({
-                  title: "Template Applied!",
-                  description: "Modified bot template has been applied to your canvas",
-                });
-                setLearningMode('create');
-              }}
-            />
+          {/* Show learning mode content based on mode */}
+          {learningMode === 'create' ? (
+            <div className="h-full">
+              <ConversationFlowBuilder
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onNodeSelect={(node) => setSelectedNode(node)}
+                onNodeDelete={deleteNode}
+                onNodeDuplicate={duplicateNode}
+                onNodeEdit={editNode}
+                onAddFollowUp={addNewIntent}
+                onVoiceInput={(nodeId) => {
+                  setSelectedNode(nodes.find(n => n.id === nodeId) || null);
+                  setShowVoiceTraining(true);
+                }}
+                onPlayResponse={(nodeId) => {
+                  const node = nodes.find(n => n.id === nodeId);
+                  if (node?.data.responses?.[0]) {
+                    // Simulate text-to-speech
+                    toast({
+                      title: "Playing Response",
+                      description: node.data.responses[0],
+                    });
+                  }
+                }}
+                className="h-full"
+              />
+            </div>
           ) : (
             <Tabs value={activePanel} onValueChange={(value: any) => setActivePanel(value)} className="h-full">
               <div className="border-b p-4">
@@ -499,19 +509,12 @@ const BotBuilder = () => {
 
               <TabsContent value="properties" className="p-0 mt-0 h-full">
                 <div className="p-4 space-y-4">
-                  {/* AI Mascot */}
-                  <AIMascot 
-                    currentTopic={selectedConcept}
-                    onTopicChange={setSelectedConcept}
-                  />
-                  
-                  {/* Concept Explainer */}
-                  {selectedConcept && (
-                    <ConceptExplainer 
-                      concept={selectedConcept}
-                      onClose={() => setSelectedConcept(null)}
-                    />
-                  )}
+                  {/* Simple property panel without AI mascot for now */}
+                  <div className="text-center p-4 bg-muted/20 rounded-lg">
+                    <Brain className="h-8 w-8 mx-auto mb-2 text-primary" />
+                    <h3 className="font-semibold">Intent Properties</h3>
+                    <p className="text-sm text-muted-foreground">Select an intent to edit its properties</p>
+                  </div>
                 </div>
           
                 {selectedNode ? (
@@ -718,7 +721,7 @@ const BotBuilder = () => {
                     botData={{
                       name: botName,
                       nodes: nodes,
-                      responses: nodes.flatMap(n => n.data.responses || [])
+                      responses: nodes.flatMap(n => (n.data.responses as string[]) || [])
                     }}
                     onDeploy={() => {
                       toast({
@@ -759,15 +762,33 @@ const BotBuilder = () => {
           />
         )}
 
-        {/* Tutorial Overlay */}
-        <TutorialOverlay 
-          isVisible={showTutorial}
-          onClose={() => setShowTutorial(false)}
-          tutorialType="bot-builder"
-          onStepComplete={(stepId) => {
-            console.log('Completed step:', stepId);
-          }}
-        />
+        {/* Simple tutorial overlay replacement */}
+        {showTutorial && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <Card className="max-w-md mx-4">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Bot Builder Tutorial
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTutorial(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Welcome to the enhanced bot builder! This tutorial will guide you through creating amazing AI assistants.
+                </p>
+                <Button onClick={() => setShowTutorial(false)} className="w-full">
+                  Got it!
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Confirmation Dialog */}
         <ConfirmationDialog
