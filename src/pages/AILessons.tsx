@@ -111,7 +111,7 @@ const AILessons = () => {
   }
 
   return (
-    <div className="min-h-screen comic-gradient">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Floating Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 left-10 text-4xl comic-float">🌟</div>
@@ -121,22 +121,22 @@ const AILessons = () => {
       </div>
 
       {/* Header */}
-      <header className="relative border-b-4 border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="relative border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="character-avatar w-12 h-12 text-2xl">
+            <div className="w-12 h-12 text-2xl bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-full flex items-center justify-center">
               🤖
             </div>
             <div>
-              <h1 className="text-3xl font-bold font-fredoka bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
-                Comic AI Adventures
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                AI Learning Hub
               </h1>
-              <p className="text-sm font-comic text-muted-foreground">🌟 Learn AI Through Comics!</p>
+              <p className="text-sm text-muted-foreground">🌟 Learn AI Through Interactive Lessons!</p>
             </div>
           </div>
           <Link to="/dashboard">
-            <Button variant="outline" className="font-comic border-2 border-primary/20 hover:border-primary">
-              Back to Adventures
+            <Button variant="outline" className="border-2 border-primary/20 hover:border-primary">
+              Back to Dashboard
             </Button>
           </Link>
         </div>
@@ -152,15 +152,15 @@ const AILessons = () => {
           </div>
           
           <div className="flex justify-center mb-6">
-            <div className="character-avatar w-24 h-24 text-6xl comic-pulse">
+            <div className="w-24 h-24 text-6xl bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-full flex items-center justify-center border-4 border-primary/20 animate-pulse">
               🤖
             </div>
           </div>
           
-          <h2 className="text-5xl font-bold font-fredoka mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-orange-500 bg-clip-text text-transparent">
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
             Choose Your
             <br />
-            <span className="text-6xl">AI Adventure</span>
+            <span className="text-6xl">AI Learning Path</span>
           </h2>
           <p className="text-xl font-comic text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Embark on exciting comic adventures that make AI concepts easy to understand and fun to learn! 
@@ -168,21 +168,21 @@ const AILessons = () => {
           </p>
           
           <div className="flex justify-center gap-4 mt-6 flex-wrap">
-            <Badge className="font-comic text-sm px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+            <Badge className="text-sm px-4 py-2 bg-primary/10 text-primary border border-primary/20">
               <Sparkles className="h-4 w-4 mr-1" />
               Learn AI Concepts
             </Badge>
-            <Badge className="font-comic text-sm px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300">
+            <Badge className="text-sm px-4 py-2 bg-secondary text-secondary-foreground">
               <Zap className="h-4 w-4 mr-1" />
               Interactive Stories
             </Badge>
-            <Badge className="font-comic text-sm px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">
+            <Badge className="text-sm px-4 py-2 bg-muted text-muted-foreground">
               <Star className="h-4 w-4 mr-1" />
               Kid-Friendly
             </Badge>
             <Button
               onClick={() => setShowFlashcards(true)}
-              className="font-comic text-sm px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-full"
+              className="text-sm px-4 py-2 bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
             >
               <GraduationCap className="h-4 w-4 mr-1" />
               Quiz Mode 🧠
@@ -192,25 +192,25 @@ const AILessons = () => {
 
         {/* Learning Adventures Section */}
         <div className="mb-12">
-          <div className="text-center mb-8">
-            <Badge className="font-comic text-base px-6 py-2 mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white animate-glow-pulse">
+            <div className="text-center mb-8">
+            <Badge className="text-base px-6 py-2 mb-4 bg-gradient-to-r from-primary to-primary-glow text-white animate-glow-pulse">
               <Sparkles className="h-4 w-4 mr-2" />
               🎓 Learning Adventures
             </Badge>
-            <h3 className="text-3xl font-bold font-fredoka text-foreground mb-2 animate-slide-in-left">
+            <h3 className="text-3xl font-bold text-foreground mb-2 animate-slide-in-left">
               Your AI Learning Journey
             </h3>
-            <p className="text-muted-foreground font-comic animate-fade-in">
+            <p className="text-muted-foreground animate-fade-in">
               Track your progress as you master AI concepts through fun adventures!
             </p>
             <div className="flex justify-center gap-2 mt-4">
-              <Badge variant="outline" className="font-comic px-3 py-1 bg-blue-50 dark:bg-blue-950/20">
+              <Badge variant="outline" className="px-3 py-1 bg-primary/10 text-primary border-primary/20">
                 🧠 Critical Thinking
               </Badge>
-              <Badge variant="outline" className="font-comic px-3 py-1 bg-purple-50 dark:bg-purple-950/20">
+              <Badge variant="outline" className="px-3 py-1 bg-secondary text-secondary-foreground">
                 🔬 Problem Solving
               </Badge>
-              <Badge variant="outline" className="font-comic px-3 py-1 bg-green-50 dark:bg-green-950/20">
+              <Badge variant="outline" className="px-3 py-1 bg-muted text-muted-foreground">
                 🎨 Creative Learning
               </Badge>
             </div>
