@@ -19,8 +19,12 @@ const Auth = () => {
     password: '',
     parentEmail: ''
   });
+  const [changePasswordForm, setChangePasswordForm] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
   
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, changePassword } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
@@ -68,6 +72,24 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!changePasswordForm.newPassword || !changePasswordForm.confirmPassword) return;
+    
+    if (changePasswordForm.newPassword !== changePasswordForm.confirmPassword) {
+      // Use toast for password mismatch error
+      return;
+    }
+    
+    setIsLoading(true);
+    const { error } = await changePassword(changePasswordForm.newPassword);
+    setIsLoading(false);
+    
+    if (!error) {
+      setChangePasswordForm({ newPassword: '', confirmPassword: '' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -92,9 +114,10 @@ const Auth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsTrigger value="change-password">Change Password</TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
@@ -335,6 +358,75 @@ const Auth = () => {
                 <p className="mt-6 text-xs text-center text-muted-foreground">
                   By signing up, you agree to our Terms of Service and Privacy Policy
                 </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Change Password Form */}
+          <TabsContent value="change-password">
+            <Card className="border-border/50 shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl font-bold">Change Password</CardTitle>
+                <CardDescription>
+                  {user ? "Update your account password" : "You must be signed in to change your password"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {user ? (
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="new-password"
+                          type="password"
+                          placeholder="Enter new password"
+                          className="pl-10"
+                          value={changePasswordForm.newPassword}
+                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          placeholder="Confirm new password"
+                          className="pl-10"
+                          value={changePasswordForm.confirmPassword}
+                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      {changePasswordForm.newPassword && changePasswordForm.confirmPassword && 
+                       changePasswordForm.newPassword !== changePasswordForm.confirmPassword && (
+                        <p className="text-sm text-destructive">Passwords do not match</p>
+                      )}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-primary hover:bg-primary/90"
+                      disabled={isLoading || !changePasswordForm.newPassword || !changePasswordForm.confirmPassword || 
+                                changePasswordForm.newPassword !== changePasswordForm.confirmPassword}
+                    >
+                      {isLoading ? "Updating Password..." : "Update Password"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground mb-4">Please sign in to change your password</p>
+                    <Button variant="outline" onClick={() => (document.querySelector('[value="login"]') as HTMLElement)?.click()}>
+                      Go to Sign In
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
