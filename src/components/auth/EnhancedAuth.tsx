@@ -451,11 +451,44 @@ const EnhancedAuth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            <TabsTrigger value="treasure">Treasure Hunt</TabsTrigger>
-            <TabsTrigger value="changepassword" disabled={!user}>Change Password</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-6 p-1 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 backdrop-blur-sm border border-border/50">
+            <TabsTrigger 
+              value="login" 
+              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+            >
+              <div className="relative z-10 flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Sign In
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="signup"
+              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+            >
+              <div className="relative z-10 flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Sign Up
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="treasure"
+              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
+            >
+              <div className="relative z-10 flex items-center gap-2">
+                <Gem className="h-4 w-4" />
+                <span className="hidden sm:inline">Treasure</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="changepassword" 
+              disabled={!user}
+              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg disabled:opacity-50"
+            >
+              <div className="relative z-10 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Password</span>
+              </div>
+            </TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
@@ -468,7 +501,7 @@ const EnhancedAuth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Error Display */}
+                  {/* Error Display */}
                 {authErrors.length > 0 && (
                   <Alert variant="destructive" className="mb-4 animate-fade-in">
                     <AlertCircle className="h-4 w-4" />
@@ -478,6 +511,51 @@ const EnhancedAuth = () => {
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
+                      {authErrors.some(error => 
+                        error.toLowerCase().includes('invalid') || 
+                        error.toLowerCase().includes('password') ||
+                        error.toLowerCase().includes('credentials')
+                      ) && (
+                        <div className="mt-3 pt-3 border-t border-destructive/20">
+                          <p className="text-sm mb-2">Forgot your password?</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const email = loginForm.email;
+                              if (!email) {
+                                toast({
+                                  title: "Email Required",
+                                  description: "Please enter your email address first.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              
+                              supabase.auth.resetPasswordForEmail(email, {
+                                redirectTo: `${window.location.origin}/auth?tab=changepassword`
+                              }).then(({ error }) => {
+                                if (error) {
+                                  toast({
+                                    title: "Reset Failed",
+                                    description: error.message,
+                                    variant: "destructive",
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Reset Email Sent",
+                                    description: "Check your email for password reset instructions.",
+                                  });
+                                }
+                              });
+                            }}
+                            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <RefreshCw className="h-3 w-3 mr-2" />
+                            Reset Password
+                          </Button>
+                        </div>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}

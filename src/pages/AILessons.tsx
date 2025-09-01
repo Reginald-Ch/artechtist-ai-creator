@@ -138,45 +138,77 @@ const AILessons = () => {
         {/* Learning Adventures Section */}
         <div className="mb-12">
           <div className="text-center mb-8">
-            <Badge className="font-comic text-base px-6 py-2 mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+            <Badge className="font-comic text-base px-6 py-2 mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white animate-glow-pulse">
+              <Sparkles className="h-4 w-4 mr-2" />
               🎓 Learning Adventures
             </Badge>
-            <h3 className="text-3xl font-bold font-fredoka text-foreground mb-2">
+            <h3 className="text-3xl font-bold font-fredoka text-foreground mb-2 animate-slide-in-left">
               Your AI Learning Journey
             </h3>
-            <p className="text-muted-foreground font-comic">
+            <p className="text-muted-foreground font-comic animate-fade-in">
               Track your progress as you master AI concepts through fun adventures!
             </p>
+            <div className="flex justify-center gap-2 mt-4">
+              <Badge variant="outline" className="font-comic px-3 py-1 bg-blue-50 dark:bg-blue-950/20">
+                🧠 Critical Thinking
+              </Badge>
+              <Badge variant="outline" className="font-comic px-3 py-1 bg-purple-50 dark:bg-purple-950/20">
+                🔬 Problem Solving
+              </Badge>
+              <Badge variant="outline" className="font-comic px-3 py-1 bg-green-50 dark:bg-green-950/20">
+                🎨 Creative Learning
+              </Badge>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div className="text-center relative">
-              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
-                <div className="text-4xl font-bold font-fredoka text-blue-600">{completedLessons.size}</div>
+            <div className="text-center relative group">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
+                <div className="text-4xl font-bold font-fredoka text-blue-600 group-hover:scale-110 transition-transform">{completedLessons.size}</div>
                 <div className="text-sm font-comic text-muted-foreground">Adventures Completed</div>
                 {completedLessons.size > 0 && <div className="progress-starburst"></div>}
               </div>
             </div>
-            <div className="text-center">
-              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
-                <div className="text-4xl font-bold font-fredoka text-purple-600">{Object.keys(comicLessons).length}</div>
+            <div className="text-center group">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
+                <div className="text-4xl font-bold font-fredoka text-purple-600 group-hover:scale-110 transition-transform">{Object.keys(comicLessons).length}</div>
                 <div className="text-sm font-comic text-muted-foreground">Total Adventures</div>
               </div>
             </div>
-            <div className="text-center">
-              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
-                <div className="text-4xl font-bold font-fredoka text-green-600">
+            <div className="text-center group">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
+                <div className="text-4xl font-bold font-fredoka text-green-600 group-hover:scale-110 transition-transform">
                   {Math.round((completedLessons.size / Object.keys(comicLessons).length) * 100)}%
                 </div>
                 <div className="text-sm font-comic text-muted-foreground">Progress Made</div>
               </div>
             </div>
-            <div className="text-center">
-              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center">
-                <div className="text-4xl font-bold font-fredoka text-orange-600">
+            <div className="text-center group">
+              <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
+                <div className="text-4xl font-bold font-fredoka text-orange-600 group-hover:scale-110 transition-transform">
                   {Object.values(lessonProgress).reduce((a, b) => a + b, 0)}
                 </div>
                 <div className="text-sm font-comic text-muted-foreground">Panels Explored</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Learning Path Visualization */}
+          <div className="mb-8">
+            <div className="flex items-center justify-center gap-4 p-6 rounded-3xl bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-green-950/20 border border-border/50">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-blue-500 animate-pulse"></div>
+                <span className="font-comic text-sm text-muted-foreground">Beginner</span>
+              </div>
+              <div className="w-12 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-purple-500 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <span className="font-comic text-sm text-muted-foreground">Intermediate</span>
+              </div>
+              <div className="w-12 h-0.5 bg-gradient-to-r from-purple-500 to-green-500"></div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '1s'}}></div>
+                <span className="font-comic text-sm text-muted-foreground">Advanced</span>
               </div>
             </div>
           </div>
