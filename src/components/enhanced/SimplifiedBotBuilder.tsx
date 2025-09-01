@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
@@ -447,231 +447,321 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
   return (
     <TooltipProvider>
-      <div className="h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/20">
-        {/* Enhanced Header */}
-        <div className="flex items-center justify-between gap-4 p-4 border-b">
+      <div className="h-screen flex flex-col bg-background">
+        {/* Header - Match AMBY exactly */}
+        <div className="flex items-center justify-between gap-4 p-4 border-b bg-background">
           <div className="flex items-center gap-3">
             <Link to="/dashboard">
               <Button variant="ghost" size="sm" className="hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                Back to Dashboard
               </Button>
             </Link>
-            <AvatarSelector 
-              selectedAvatar={botAvatar} 
-              onAvatarChange={(avatar, personality) => {
-                setBotAvatar(avatar);
-                setBotPersonality(personality);
-              }} 
-            />
-            <div className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-primary" />
-              <Input 
-                value={botName} 
-                onChange={(e) => setBotName(e.target.value)}
-                className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0 max-w-xs"
-              />
-            </div>
+            <h1 className="text-xl font-semibold text-foreground">Chatbot Playground</h1>
           </div>
 
-          {/* Enhanced Actions */}
           <div className="flex items-center gap-2">
-            {/* Undo/Redo Controls */}
-            <div className="flex items-center gap-1 mr-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleUndo}
-                    disabled={!undoRedo.canUndo}
-                  >
-                    <Undo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Undo</TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleRedo}
-                    disabled={!undoRedo.canRedo}
-                  >
-                    <Redo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Redo</TooltipContent>
-              </Tooltip>
-            </div>
-
-            <div className="flex flex-col items-end mr-4">
-              <div className="text-sm font-medium">Progress</div>
-              <div className="flex items-center gap-2">
-                <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-primary-glow transition-all duration-500"
-                    style={{ width: `${completionPercentage}%` }}
-                  />
-                </div>
-                <span className="text-sm text-muted-foreground">{completionPercentage}%</span>
-              </div>
-            </div>
-
-            {!isMobile && (
-              <Button 
-                onClick={() => setShowTestPanel(!showTestPanel)}
-                variant={showTestPanel ? "default" : "outline"}
-                className="gap-2"
-              >
-                <Play className="h-4 w-4" />
-                Test Bot
-              </Button>
-            )}
-            
-            <Button onClick={handleSave} className="gap-2">
-              <Save className="h-4 w-4" />
-              Save
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+              <Mic className="h-4 w-4" />
+              Voice Settings
             </Button>
-
-            {/* Mobile Menu */}
-            {isMobile && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Menu className="h-4 w-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-80">
-                  <PropertiesPanel />
-                </SheetContent>
-              </Sheet>
-            )}
+            <Button className="gap-2">
+              <Play className="h-4 w-4" />
+              Test Chatbot
+            </Button>
           </div>
         </div>
 
         <div className="flex-1 flex">
-          {/* Enhanced Flow Builder */}
-          <div className="flex-1 relative">
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeClick={onNodeClick}
-              nodeTypes={memoizedNodeTypes}
-              fitView
-              nodesDraggable
-              nodesConnectable
-              elementsSelectable
-              selectNodesOnDrag={false}
-              panOnDrag={[1, 2]}
-              attributionPosition="bottom-left"
-              proOptions={{ hideAttribution: true }}
-              className="bg-muted/20"
-              onKeyDown={(e) => {
-                if (e.ctrlKey || e.metaKey) {
-                  if (e.key === 'z' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleUndo();
-                  } else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
-                    e.preventDefault();
-                    handleRedo();
-                  } else if (e.key === 's') {
-                    e.preventDefault();
-                    handleSave();
-                  }
-                }
-                if (e.key === 'Delete' && selectedNode && !selectedNode.data.isDefault) {
-                  deleteNode(selectedNode.id);
-                }
-              }}
-              tabIndex={0}
-            >
-              <Controls className="shadow-sm" />
-              <Background 
-                variant={BackgroundVariant.Dots} 
-                gap={24} 
-                size={1}
-                className="opacity-20"
-              />
-              <MiniMap 
-                nodeColor="hsl(var(--primary))"
-                className="bg-background border border-border rounded-lg shadow-sm"
-                pannable
-                zoomable
-              />
-            </ReactFlow>
-            
-            {/* Enhanced Floating Actions */}
-            <div className="absolute bottom-6 right-6 flex flex-col gap-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={autoLayoutNodes} 
-                    size="lg"
-                    variant="outline"
-                    className="rounded-full shadow-lg hover:shadow-xl h-12 w-12 p-0"
-                  >
-                    <Layout className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Auto Layout</TooltipContent>
-              </Tooltip>
+          {/* Left Panel - Conversation Flow */}
+          <div className="w-80 border-r bg-background p-4">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold mb-2">Conversation Flow</h2>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <Layout className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Visual</span>
+                </div>
+                <span className="text-sm text-muted-foreground">List</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Drag and drop nodes to design your flow
+              </p>
               
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={addNewIntent} 
-                    size="lg"
-                    className="rounded-full shadow-lg hover:shadow-xl h-12 w-12 p-0"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Add Intent</TooltipContent>
-              </Tooltip>
+              <div className="flex gap-2 mb-6">
+                <Button onClick={addNewIntent} className="flex-1 gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Intent
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Save className="h-4 w-4" />
+                  Save Layout
+                </Button>
+              </div>
             </div>
 
-            {/* Mobile Test Panel Toggle */}
-            {isMobile && (
-              <div className="absolute top-4 right-4">
-                <Button 
-                  onClick={() => setShowTestPanel(!showTestPanel)}
-                  variant={showTestPanel ? "default" : "outline"}
-                  size="sm"
+            {/* Node Cards - Match AMBY style exactly */}
+            <div className="space-y-4">
+              {nodes.map((node) => (
+                <div
+                  key={node.id}
+                  onClick={() => setSelectedNode(node)}
+                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedNode?.id === node.id 
+                      ? 'border-primary bg-primary/5' 
+                      : node.data.isDefault && node.data.label === 'Fallback'
+                        ? 'border-orange-200 bg-orange-50/50'
+                        : 'border-blue-200 bg-blue-50/50 hover:border-blue-300'
+                  }`}
                 >
-                  <Play className="h-4 w-4" />
-                </Button>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-lg">
+                      {node.data.label === 'Fallback' ? '⚠️' : '👋'}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm">{String(node.data.label)}</h3>
+                      {node.data.isDefault && (
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          Default
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                    <span>📝 {(node.data.trainingPhrases as string[])?.length || 0} phrases</span>
+                    <span>💬 {(node.data.responses as string[])?.length || 0} responses</span>
+                  </div>
+                  
+                  {(node.data.trainingPhrases as string[])?.[0] && (
+                    <div className="text-xs text-muted-foreground">
+                      <span className="font-medium">Example:</span> {(node.data.trainingPhrases as string[])[0]}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between mt-2">
+                    <Badge 
+                      variant={
+                        (node.data.trainingPhrases as string[])?.length > 0 && 
+                        (node.data.responses as string[])?.length > 0 
+                          ? "default" : "outline"
+                      }
+                      className="text-xs"
+                    >
+                      {(node.data.trainingPhrases as string[])?.length > 0 && 
+                       (node.data.responses as string[])?.length > 0 
+                        ? "Ready" : node.data.label === 'Fallback' && !(node.data.trainingPhrases as string[])?.length
+                        ? "No training" : "Editing"}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Flow Builder Tips */}
+            <div className="mt-8 p-3 bg-blue-50/50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Flow Builder Tips</span>
+              </div>
+              <ul className="text-xs text-blue-800 space-y-1">
+                <li>• Drag nodes to rearrange your conversation flow</li>
+                <li>• Click nodes to edit intents and responses</li>
+                <li>• Connect nodes by dragging connection points</li>
+                <li>• Use the minimap to navigate large flows</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Middle Panel - Intent Editor */}
+          <div className="flex-1 p-6 bg-muted/20">
+            {selectedNode ? (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-1">Edit: {String(selectedNode.data.label)}</h2>
+                  <p className="text-muted-foreground">Configure training phrases and responses</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Intent Name */}
+                  <div>
+                    <Label htmlFor="intent-name" className="text-sm font-medium">Intent Name</Label>
+                    <Input
+                      id="intent-name"
+                      value={selectedNode.data.label as string}
+                      onChange={(e) => updateSelectedNode('label', e.target.value)}
+                      className="mt-1"
+                      disabled={Boolean(selectedNode.data.isDefault)}
+                    />
+                    {selectedNode.data.isDefault && (
+                      <p className="text-xs text-muted-foreground mt-1">Default intents cannot be renamed</p>
+                    )}
+                  </div>
+
+                  {/* Training Phrases */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                      <Label className="text-sm font-medium">Training Phrases</Label>
+                      <Badge variant="outline" className="text-xs">
+                        {(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Add examples of what users might say to trigger this intent. Aim for at least 5 varied phrases.
+                    </p>
+                    
+                    {(selectedNode.data.trainingPhrases as string[])?.map((phrase, index) => (
+                      <div key={index} className="flex items-center gap-2 mb-2">
+                        <Input
+                          value={phrase}
+                          onChange={(e) => {
+                            const newPhrases = [...(selectedNode.data.trainingPhrases as string[])];
+                            newPhrases[index] = e.target.value;
+                            updateSelectedNode('trainingPhrases', newPhrases.filter(p => p.trim()));
+                          }}
+                          placeholder="e.g. How do I make pancakes?"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newPhrases = (selectedNode.data.trainingPhrases as string[]).filter((_, i) => i !== index);
+                            updateSelectedNode('trainingPhrases', newPhrases);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const newPhrases = [...(selectedNode.data.trainingPhrases as string[] || []), ''];
+                        updateSelectedNode('trainingPhrases', newPhrases);
+                      }}
+                      className="w-full mt-2"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Training Phrase
+                    </Button>
+                  </div>
+
+                  {/* Bot Responses */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-4 w-4 text-green-600" />
+                      <Label className="text-sm font-medium">Bot Responses</Label>
+                      <Badge variant="outline" className="text-xs">
+                        {(selectedNode.data.responses as string[])?.length || 0} responses
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      What should your bot say when this intent is triggered? Add multiple responses for variety.
+                    </p>
+                    
+                    {(selectedNode.data.responses as string[])?.map((response, index) => (
+                      <div key={index} className="mb-2">
+                        <Textarea
+                          value={response}
+                          onChange={(e) => {
+                            const newResponses = [...(selectedNode.data.responses as string[])];
+                            newResponses[index] = e.target.value;
+                            updateSelectedNode('responses', newResponses.filter(r => r.trim()));
+                          }}
+                          placeholder="e.g. You'll need flour, eggs, milk, and butter. Ready for the full recipe?"
+                          rows={2}
+                        />
+                      </div>
+                    ))}
+                    
+                    <Button
+                      onClick={() => {
+                        const newResponses = [...(selectedNode.data.responses as string[] || []), ''];
+                        updateSelectedNode('responses', newResponses);
+                      }}
+                      className="w-full mt-2"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Response
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Select an Intent to Edit</h3>
+                  <p className="text-muted-foreground">
+                    Choose an intent from the conversation flow to configure its training phrases and responses.
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Desktop Properties Panel */}
-          {!isMobile && <PropertiesPanel />}
-        </div>
-
-        {/* Mobile Test Panel Overlay */}
-        {isMobile && showTestPanel && (
-          <div className="absolute inset-0 bg-background z-50 flex flex-col">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Test Your Bot</h2>
-              <Button variant="ghost" onClick={() => setShowTestPanel(false)}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+          {/* Right Panel - Test Chat */}
+          <div className="w-80 border-l bg-background flex flex-col">
+            <div className="p-4 border-b">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold">Test Your Chatbot</h2>
+                <Button variant="ghost" size="sm">
+                  <Mic className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">Try talking to your chatbot</p>
             </div>
+
             <div className="flex-1 p-4">
-              <TestPanel
-                nodes={nodes}
-                botName={botName}
-                onClose={() => setShowTestPanel(false)}
-              />
+              <div className="mb-4">
+                <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                  <Bot className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium text-primary">Live Chat Test</span>
+                  <Button variant="ghost" size="sm" className="ml-auto">
+                    <Undo className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-4">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-muted p-3 rounded-lg">
+                      <p className="text-sm">Chat cleared! Try typing something to test me out!</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground mt-1 block">22:31:31</span>
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    <Mic className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-auto">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Type your message..."
+                    className="flex-1"
+                  />
+                  <Button size="sm">
+                    <Play className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Press Enter to send • Click mic for voice • 
+                  <Button variant="link" className="p-0 h-auto text-xs">
+                    Edit with Lovable
+                  </Button>
+                </p>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </TooltipProvider>
   );
