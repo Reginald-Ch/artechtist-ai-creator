@@ -44,6 +44,92 @@ export type Database = {
         }
         Relationships: []
       }
+      treasure_code_batches: {
+        Row: {
+          batch_name: string
+          created_at: string
+          description: string | null
+          expire_at: string
+          id: string
+          is_active: boolean
+          issued_by: string | null
+          total_codes: number
+          updated_at: string
+        }
+        Insert: {
+          batch_name: string
+          created_at?: string
+          description?: string | null
+          expire_at: string
+          id?: string
+          is_active?: boolean
+          issued_by?: string | null
+          total_codes?: number
+          updated_at?: string
+        }
+        Update: {
+          batch_name?: string
+          created_at?: string
+          description?: string | null
+          expire_at?: string
+          id?: string
+          is_active?: boolean
+          issued_by?: string | null
+          total_codes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      treasure_codes: {
+        Row: {
+          batch_id: string
+          code: string
+          created_at: string
+          expire_at: string
+          id: string
+          is_active: boolean
+          max_usage: number
+          updated_at: string
+          usage_count: number
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          batch_id: string
+          code: string
+          created_at?: string
+          expire_at: string
+          id?: string
+          is_active?: boolean
+          max_usage?: number
+          updated_at?: string
+          usage_count?: number
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          batch_id?: string
+          code?: string
+          created_at?: string
+          expire_at?: string
+          id?: string
+          is_active?: boolean
+          max_usage?: number
+          updated_at?: string
+          usage_count?: number
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treasure_codes_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "treasure_code_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

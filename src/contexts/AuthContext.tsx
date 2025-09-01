@@ -66,9 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        // Handle specific error cases with user-friendly messages
+        let friendlyMessage = error.message;
+        if (error.message.includes('already registered')) {
+          friendlyMessage = "An account with this email already exists. Try signing in instead.";
+        } else if (error.message.includes('Password')) {
+          friendlyMessage = "Password must be at least 6 characters long and secure.";
+        } else if (error.message.includes('Email')) {
+          friendlyMessage = "Please enter a valid email address.";
+        }
+        
         toast({
           title: "Sign up failed",
-          description: error.message,
+          description: friendlyMessage,
           variant: "destructive",
         });
       } else {
@@ -82,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       toast({
         title: "Sign up failed",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       return { error };
@@ -97,9 +107,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        // Handle specific error cases with user-friendly messages
+        let friendlyMessage = error.message;
+        if (error.message.includes('Invalid login credentials')) {
+          friendlyMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.message.includes('Email not confirmed')) {
+          friendlyMessage = "Please check your email and click the confirmation link before signing in.";
+        } else if (error.message.includes('Too many requests')) {
+          friendlyMessage = "Too many login attempts. Please wait a moment before trying again.";
+        }
+        
         toast({
           title: "Sign in failed",
-          description: error.message,
+          description: friendlyMessage,
           variant: "destructive",
         });
       } else {
@@ -113,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       toast({
         title: "Sign in failed",
-        description: error.message,
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       return { error };

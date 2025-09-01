@@ -11,7 +11,7 @@ import BotBuilder from "./pages/BotBuilder";
 import VoiceTraining from "./pages/VoiceTraining";
 import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
-import Auth from "./pages/Auth";
+import EnhancedAuth from "./components/auth/EnhancedAuth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,7 +25,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<EnhancedAuth />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/builder" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
             <Route path="/builder/:id" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
