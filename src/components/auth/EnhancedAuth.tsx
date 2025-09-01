@@ -6,23 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Mail, Lock, User, Users, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle, ShieldCheck, RefreshCw, Gem } from "lucide-react";
-import { supabase } from '@/integrations/supabase/client';
+import { Brain, Mail, Lock, User, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 
 const EnhancedAuth = () => {
-  console.log('EnhancedAuth component rendering');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
   const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
-  const [canResendEmail, setCanResendEmail] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
   const [authErrors, setAuthErrors] = useState<string[]>([]);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({
@@ -30,17 +23,10 @@ const EnhancedAuth = () => {
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    parentEmail: ''
+    confirmPassword: ''
   });
-  const [treasureCode, setTreasureCode] = useState('');
-  const [changePasswordForm, setChangePasswordForm] = useState({
-    newPassword: '',
-    confirmNewPassword: ''
-  });
-  const [newPasswordStrength, setNewPasswordStrength] = useState(0);
   
-  const { user, signIn, signUp, signInWithGoogle, changePassword } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
@@ -49,34 +35,6 @@ const EnhancedAuth = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
-
-  const calculatePasswordStrength = (password: string): number => {
-    let strength = 0;
-    
-    // Length check
-    if (password.length >= 8) strength += 20;
-    if (password.length >= 12) strength += 10;
-    if (password.length >= 16) strength += 10;
-    
-    // Character type checks
-    if (/[a-z]/.test(password)) strength += 15;
-    if (/[A-Z]/.test(password)) strength += 15;
-    if (/[0-9]/.test(password)) strength += 15;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 15;
-    
-    // Bonus for variety
-    const uniqueChars = new Set(password.toLowerCase()).size;
-    if (uniqueChars >= 8) strength += 10;
-    
-    return Math.min(strength, 100);
-  };
-
-  const getPasswordStrengthColor = () => {
-    if (passwordStrength < 30) return 'text-red-500';
-    if (passwordStrength < 60) return 'text-yellow-500';
-    if (passwordStrength < 80) return 'text-orange-500';
-    return 'text-green-500';
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +66,6 @@ const EnhancedAuth = () => {
       } else if (errorMessage.includes('email not confirmed')) {
         userFriendlyMessage = 'Please check your email and click the confirmation link before signing in.';
         setEmailConfirmationSent(true);
-        setCanResendEmail(true);
       } else if (errorMessage.includes('too many requests')) {
         userFriendlyMessage = 'Too many login attempts. Please wait a few minutes and try again.';
       } else if (errorMessage.includes('user not found')) {
@@ -152,8 +109,8 @@ const EnhancedAuth = () => {
       return;
     }
     
-    if (passwordStrength < 60) {
-      setAuthErrors(['Please create a stronger password (at least 60% strength)']);
+    if (signupForm.password.length < 8) {
+      setAuthErrors(['Password must be at least 8 characters long']);
       return;
     }
     
@@ -168,8 +125,7 @@ const EnhancedAuth = () => {
       signupForm.email,
       signupForm.password,
       signupForm.firstName,
-      signupForm.lastName,
-      signupForm.parentEmail || undefined
+      signupForm.lastName
     );
     setIsLoading(false);
     
@@ -194,9 +150,6 @@ const EnhancedAuth = () => {
       });
     } else {
       setEmailConfirmationSent(true);
-      setCanResendEmail(false);
-      setResendCooldown(60); // 60 second cooldown
-      
       toast({
         title: "Account Created!",
         description: "Please check your email to confirm your account before signing in.",
@@ -232,147 +185,12 @@ const EnhancedAuth = () => {
     }
   };
 
-  const handleTreasureCode = async () => {
-    if (!treasureCode || treasureCode.length !== 5 || !/^\d{5}$/.test(treasureCode)) {
-      toast({
-        title: "Invalid treasure code",
-        description: "Please enter a 5-digit treasure code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-treasure-code', {
-        body: { code: treasureCode }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.success && data.session) {
-        // Set the session manually
-        await supabase.auth.setSession(data.session);
-        
-        toast({
-          title: "Welcome, Treasure Hunter! 🏴‍☠️",
-          description: `${data.message} Your access expires on ${new Date(data.expires_at).toLocaleDateString()}`,
-        });
-        
-        navigate('/dashboard');
-      } else {
-        throw new Error(data.error || 'Invalid treasure code');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Treasure hunt failed",
-        description: error.message || "Invalid or expired treasure code. Check your code and try again!",
-        variant: "destructive",
-      });
-    }
-    setIsLoading(false);
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthErrors([]);
-    
-    if (!changePasswordForm.newPassword || !changePasswordForm.confirmNewPassword) {
-      setAuthErrors(['Please fill in all required fields']);
-      return;
-    }
-    
-    if (changePasswordForm.newPassword !== changePasswordForm.confirmNewPassword) {
-      setAuthErrors(['Passwords do not match']);
-      return;
-    }
-    
-    if (newPasswordStrength < 60) {
-      setAuthErrors(['Please create a stronger password (at least 60% strength)']);
-      return;
-    }
-    
-    setIsLoading(true);
-    const { error } = await changePassword(changePasswordForm.newPassword);
-    setIsLoading(false);
-    
-    if (error) {
-      console.error('Change password error:', error);
-      const errorMessage = error.message.toLowerCase();
-      
-      let userFriendlyMessage = 'Failed to change password. Please try again.';
-      if (errorMessage.includes('same password')) {
-        userFriendlyMessage = 'New password must be different from your current password.';
-      } else if (errorMessage.includes('weak')) {
-        userFriendlyMessage = 'Password is too weak. Please use a stronger password.';
-      }
-      
-      setAuthErrors([userFriendlyMessage]);
-      toast({
-        title: "Password Change Failed",
-        description: userFriendlyMessage,
-        variant: "destructive",
-      });
-    } else {
-      setChangePasswordForm({ newPassword: '', confirmNewPassword: '' });
-      toast({
-        title: "Password Changed Successfully",
-        description: "Your password has been updated.",
-      });
-    }
-  };
-
-  const handleResendConfirmation = async () => {
-    if (!canResendEmail || resendCooldown > 0) return;
-    
-    setIsLoading(true);
-    // This would typically call a resend confirmation email function
-    // For now, we'll simulate it
-    setTimeout(() => {
-      setIsLoading(false);
-      setCanResendEmail(false);
-      setResendCooldown(60);
-      toast({
-        title: "Confirmation Email Sent",
-        description: "Please check your email inbox and spam folder.",
-      });
-    }, 1000);
-  };
-
-  // Handle resend cooldown
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => {
-        setResendCooldown(prev => {
-          const newValue = prev - 1;
-          if (newValue === 0) {
-            setCanResendEmail(true);
-          }
-          return newValue;
-        });
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
-
-  // Update password strength when password changes
-  useEffect(() => {
-    setPasswordStrength(calculatePasswordStrength(signupForm.password));
-  }, [signupForm.password]);
-
-  // Update new password strength when change password form changes
-  useEffect(() => {
-    setNewPasswordStrength(calculatePasswordStrength(changePasswordForm.newPassword));
-  }, [changePasswordForm.newPassword]);
-
   // Email confirmation message
   if (emailConfirmationSent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <Card className="glassmorphism shadow-xl">
+          <Card className="shadow-xl">
             <CardHeader className="text-center space-y-4">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                 <Mail className="h-8 w-8 text-primary" />
@@ -390,36 +208,13 @@ const EnhancedAuth = () => {
                 </AlertDescription>
               </Alert>
               
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={handleResendConfirmation}
-                  disabled={!canResendEmail || resendCooldown > 0 || isLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : resendCooldown > 0 ? (
-                    `Resend in ${resendCooldown}s`
-                  ) : (
-                    <>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Resend Confirmation Email
-                    </>
-                  )}
-                </Button>
-                
-                <Button
-                  onClick={() => setEmailConfirmationSent(false)}
-                  variant="ghost"
-                  className="w-full"
-                >
-                  Back to Sign In
-                </Button>
-              </div>
+              <Button
+                onClick={() => setEmailConfirmationSent(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -438,7 +233,7 @@ const EnhancedAuth = () => {
           </Link>
           
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Brain className="h-12 w-12 text-primary animate-glow-pulse" />
+            <Brain className="h-12 w-12 text-primary" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-yellow-500 to-red-500 bg-clip-text text-transparent">
               Artechtist AI
             </h1>
@@ -451,49 +246,20 @@ const EnhancedAuth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6 p-1 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 backdrop-blur-sm border border-border/50">
-            <TabsTrigger 
-              value="login" 
-              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
-            >
-              <div className="relative z-10 flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Sign In
-              </div>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="login" className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Sign In
             </TabsTrigger>
-            <TabsTrigger 
-              value="signup"
-              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
-            >
-              <div className="relative z-10 flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Sign Up
-              </div>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="treasure"
-              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg"
-            >
-              <div className="relative z-10 flex items-center gap-2">
-                <Gem className="h-4 w-4" />
-                <span className="hidden sm:inline">Treasure</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="changepassword" 
-              disabled={!user}
-              className="relative overflow-hidden transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg disabled:opacity-50"
-            >
-              <div className="relative z-10 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">Password</span>
-              </div>
+            <TabsTrigger value="signup" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Sign Up
             </TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
           <TabsContent value="login">
-            <Card className="border-border/50 shadow-lg glassmorphism">
+            <Card className="border-border/50 shadow-lg">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Welcome back!</CardTitle>
                 <CardDescription>
@@ -501,9 +267,9 @@ const EnhancedAuth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                  {/* Error Display */}
+                {/* Error Display */}
                 {authErrors.length > 0 && (
-                  <Alert variant="destructive" className="mb-4 animate-fade-in">
+                  <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       <ul className="list-disc list-inside space-y-1">
@@ -511,60 +277,9 @@ const EnhancedAuth = () => {
                           <li key={index}>{error}</li>
                         ))}
                       </ul>
-                      {authErrors.some(error => 
-                        error.toLowerCase().includes('invalid') || 
-                        error.toLowerCase().includes('password') ||
-                        error.toLowerCase().includes('credentials')
-                      ) && (
-                        <div className="mt-3 pt-3 border-t border-destructive/20">
-                          <p className="text-sm mb-2">Forgot your password?</p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const email = loginForm.email;
-                              if (!email) {
-                                toast({
-                                  title: "Email Required",
-                                  description: "Please enter your email address first.",
-                                  variant: "destructive",
-                                });
-                                return;
-                              }
-                              
-                              supabase.auth.resetPasswordForEmail(email, {
-                                redirectTo: `${window.location.origin}/auth?tab=changepassword`
-                              }).then(({ error }) => {
-                                if (error) {
-                                  toast({
-                                    title: "Reset Failed",
-                                    description: error.message,
-                                    variant: "destructive",
-                                  });
-                                } else {
-                                  toast({
-                                    title: "Reset Email Sent",
-                                    description: "Check your email for password reset instructions.",
-                                  });
-                                }
-                              });
-                            }}
-                            className="text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                          >
-                            <RefreshCw className="h-3 w-3 mr-2" />
-                            Reset Password
-                          </Button>
-                        </div>
-                      )}
                     </AlertDescription>
                   </Alert>
                 )}
-
-                {/* Security Badge */}
-                <div className="flex items-center gap-2 mb-4">
-                  <ShieldCheck className="h-4 w-4 text-green-600" />
-                  <span className="text-xs text-muted-foreground">Your data is protected with bank-level security</span>
-                </div>
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
@@ -608,7 +323,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -627,7 +342,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent transition-all duration-300"
+                    className="w-full mt-4"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
@@ -658,7 +373,7 @@ const EnhancedAuth = () => {
 
           {/* Signup Form */}
           <TabsContent value="signup">
-            <Card className="border-border/50 shadow-lg glassmorphism">
+            <Card className="border-border/50 shadow-lg">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                 <CardDescription>
@@ -668,7 +383,7 @@ const EnhancedAuth = () => {
               <CardContent>
                 {/* Error Display */}
                 {authErrors.length > 0 && (
-                  <Alert variant="destructive" className="mb-4 animate-fade-in">
+                  <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       <ul className="list-disc list-inside space-y-1">
@@ -752,56 +467,6 @@ const EnhancedAuth = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    
-                    {/* Enhanced Password Strength Indicator */}
-                    {signupForm.password && (
-                      <div className="space-y-2 animate-fade-in">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Password Strength</span>
-                          <Badge 
-                            variant={passwordStrength >= 80 ? "default" : passwordStrength >= 60 ? "secondary" : "destructive"}
-                            className="text-xs"
-                          >
-                            {passwordStrength >= 80 ? 'Strong' : passwordStrength >= 60 ? 'Good' : passwordStrength >= 40 ? 'Fair' : 'Weak'}
-                          </Badge>
-                        </div>
-                        <Progress value={passwordStrength} className="h-2" />
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <div className="flex items-center gap-2">
-                            {signupForm.password.length >= 8 ? (
-                              <CheckCircle className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <X className="h-3 w-3 text-red-500" />
-                            )}
-                            <span>At least 8 characters</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/[A-Z]/.test(signupForm.password) && /[a-z]/.test(signupForm.password) ? (
-                              <CheckCircle className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <X className="h-3 w-3 text-red-500" />
-                            )}
-                            <span>Upper & lowercase letters</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/[0-9]/.test(signupForm.password) ? (
-                              <CheckCircle className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <X className="h-3 w-3 text-red-500" />
-                            )}
-                            <span>At least one number</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/[^A-Za-z0-9]/.test(signupForm.password) ? (
-                              <CheckCircle className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <X className="h-3 w-3 text-red-500" />
-                            )}
-                            <span>Special character (!@#$%^&*)</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -828,7 +493,7 @@ const EnhancedAuth = () => {
                     
                     {/* Password Match Indicator */}
                     {signupForm.confirmPassword && (
-                      <div className="flex items-center gap-2 text-sm animate-fade-in">
+                      <div className="flex items-center gap-2 text-sm">
                         {signupForm.password === signupForm.confirmPassword ? (
                           <>
                             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -844,28 +509,10 @@ const EnhancedAuth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="parent-email">Parent/Guardian Email</Label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="parent-email"
-                        type="email"
-                        placeholder="parent@example.com (optional)"
-                        className="pl-10"
-                        value={signupForm.parentEmail}
-                        onChange={(e) => setSignupForm(prev => ({ ...prev, parentEmail: e.target.value }))}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Recommended for learners under 16 years old
-                    </p>
-                  </div>
-
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
-                    disabled={isLoading || passwordStrength < 60}
+                    className="w-full"
+                    disabled={isLoading}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
@@ -883,7 +530,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent transition-all duration-300"
+                    className="w-full mt-4"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
@@ -912,192 +559,6 @@ const EnhancedAuth = () => {
                 <p className="mt-6 text-xs text-center text-muted-foreground">
                   By signing up, you agree to our Terms of Service and Privacy Policy
                 </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="treasure">
-            <Card className="border-2 border-gradient-to-r from-amber-500/50 to-orange-500/50 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20">
-              <CardHeader className="text-center space-y-4">
-                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <Gem className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                  Treasure Hunt Access
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Enter your 5-digit treasure code to unlock your adventure! 🏴‍☠️
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="treasureCode" className="text-base font-medium">
-                    Treasure Code
-                  </Label>
-                  <Input
-                    id="treasureCode"
-                    type="text"
-                    placeholder="Enter 5-digit code (e.g., 12345)"
-                    value={treasureCode}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-                      setTreasureCode(value);
-                    }}
-                    className="text-center text-2xl font-mono tracking-widest border-2 border-amber-300 focus:border-amber-500 dark:border-amber-700 dark:focus:border-amber-500"
-                    maxLength={5}
-                  />
-                  <p className="text-sm text-muted-foreground text-center">
-                    This code gives you free access to the app for a limited time
-                  </p>
-                </div>
-
-                <Button 
-                  onClick={handleTreasureCode} 
-                  disabled={isLoading || treasureCode.length !== 5}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 text-lg shadow-lg"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Unlocking treasure...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Gem className="h-5 w-5" />
-                      Start Adventure
-                    </div>
-                  )}
-                </Button>
-
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have a treasure code? Contact your teacher or program coordinator
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Change Password Form */}
-          <TabsContent value="changepassword">
-            <Card className="border-border/50 shadow-lg glassmorphism">
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold">Change Password</CardTitle>
-                <CardDescription>
-                  Update your account password
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Error Display */}
-                {authErrors.length > 0 && (
-                  <Alert variant="destructive" className="mb-4 animate-fade-in">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <ul className="list-disc list-inside space-y-1">
-                        {authErrors.map((error, index) => (
-                          <li key={index}>{error}</li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {user ? (
-                  <form onSubmit={handleChangePassword} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="new-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter new password"
-                          className="pl-10 pr-10"
-                          value={changePasswordForm.newPassword}
-                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                      
-                      {/* Password Strength Indicator */}
-                      {changePasswordForm.newPassword && (
-                        <div className="space-y-2 animate-fade-in">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Password Strength</span>
-                            <Badge 
-                              variant={newPasswordStrength >= 80 ? "default" : newPasswordStrength >= 60 ? "secondary" : "destructive"}
-                              className="text-xs"
-                            >
-                              {newPasswordStrength >= 80 ? 'Strong' : newPasswordStrength >= 60 ? 'Good' : newPasswordStrength >= 40 ? 'Fair' : 'Weak'}
-                            </Badge>
-                          </div>
-                          <Progress value={newPasswordStrength} className="h-2" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="confirm-new-password"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Confirm new password"
-                          className="pl-10 pr-10"
-                          value={changePasswordForm.confirmNewPassword}
-                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                      
-                      {/* Password Match Indicator */}
-                      {changePasswordForm.confirmNewPassword && (
-                        <div className="flex items-center gap-2 text-sm animate-fade-in">
-                          {changePasswordForm.newPassword === changePasswordForm.confirmNewPassword ? (
-                            <>
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-green-600">Passwords match</span>
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-4 w-4 text-red-500" />
-                              <span className="text-red-500">Passwords don't match</span>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
-                      disabled={isLoading || newPasswordStrength < 60 || changePasswordForm.newPassword !== changePasswordForm.confirmNewPassword}
-                    >
-                      {isLoading ? "Changing Password..." : "Change Password"}
-                    </Button>
-                  </form>
-                ) : (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      You need to be signed in to change your password.
-                    </AlertDescription>
-                  </Alert>
-                )}
               </CardContent>
             </Card>
           </TabsContent>
