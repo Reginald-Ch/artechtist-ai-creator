@@ -2,15 +2,63 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap } from "lucide-react";
+import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
+import { FlashcardQuiz } from "@/components/FlashcardQuiz";
 import { comicLessons } from "@/data/comicLessons";
 
 const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [lessonProgress, setLessonProgress] = useState<Record<string, number>>({});
+  const [showFlashcards, setShowFlashcards] = useState(false);
+
+  // AI Flashcard data
+  const flashcardData = [
+    {
+      id: '1',
+      question: 'What does AI stand for?',
+      answer: 'Artificial Intelligence - the simulation of human intelligence in machines',
+      category: 'Basics',
+      difficulty: 'easy' as const
+    },
+    {
+      id: '2',
+      question: 'What are training phrases in chatbots?',
+      answer: 'Different ways users might express the same intent or request to the bot',
+      category: 'Chatbots',
+      difficulty: 'medium' as const
+    },
+    {
+      id: '3',
+      question: 'What is machine learning?',
+      answer: 'A subset of AI where computers learn patterns from data without being explicitly programmed',
+      category: 'ML',
+      difficulty: 'medium' as const
+    },
+    {
+      id: '4',
+      question: 'What is the difference between AI and machine learning?',
+      answer: 'AI is the broader concept of machines thinking like humans, while ML is a specific approach to achieve AI',
+      category: 'Advanced',
+      difficulty: 'hard' as const
+    },
+    {
+      id: '5',
+      question: 'What is natural language processing (NLP)?',
+      answer: 'The branch of AI that helps computers understand, interpret, and generate human language',
+      category: 'NLP',
+      difficulty: 'medium' as const
+    },
+    {
+      id: '6',
+      question: 'Why are intents important in chatbots?',
+      answer: 'Intents help the bot understand what the user wants to accomplish or achieve',
+      category: 'Chatbots',
+      difficulty: 'easy' as const
+    }
+  ];
 
   const handleLessonComplete = (lessonId: string, score: number) => {
     setCompletedLessons(prev => new Set([...prev, lessonId]));
@@ -119,7 +167,7 @@ const AILessons = () => {
             Meet diverse African characters and explore the amazing world of artificial intelligence.
           </p>
           
-          <div className="flex justify-center gap-4 mt-6">
+          <div className="flex justify-center gap-4 mt-6 flex-wrap">
             <Badge className="font-comic text-sm px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
               <Sparkles className="h-4 w-4 mr-1" />
               Learn AI Concepts
@@ -132,6 +180,13 @@ const AILessons = () => {
               <Star className="h-4 w-4 mr-1" />
               Kid-Friendly
             </Badge>
+            <Button
+              onClick={() => setShowFlashcards(true)}
+              className="font-comic text-sm px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-full"
+            >
+              <GraduationCap className="h-4 w-4 mr-1" />
+              Quiz Mode 🧠
+            </Button>
           </div>
         </div>
 
@@ -369,6 +424,18 @@ const AILessons = () => {
           </div>
         )}
       </div>
+
+      {/* Flashcard Quiz Modal */}
+      {showFlashcards && (
+        <FlashcardQuiz
+          cards={flashcardData}
+          onComplete={(score) => {
+            console.log('Quiz completed with score:', score);
+            setShowFlashcards(false);
+          }}
+          onClose={() => setShowFlashcards(false)}
+        />
+      )}
     </div>
   );
 };

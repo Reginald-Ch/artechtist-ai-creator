@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
@@ -497,7 +497,7 @@ const BotBuilder = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Bot className="h-5 w-5 text-primary" />
-                          Intent: {selectedNode.data.label as string}
+                          Intent Properties
                         </CardTitle>
                         {!selectedNode.data.isDefault && (
                           <Button 
@@ -510,8 +510,133 @@ const BotBuilder = () => {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-muted-foreground">Configure your intent properties below</p>
+                    <CardContent className="p-4 space-y-6">
+                      {/* Intent Name */}
+                      <div className="space-y-2">
+                        <Label htmlFor="intent-name">Intent Name</Label>
+                        <Input
+                          id="intent-name"
+                          value={selectedNode.data.label as string}
+                          onChange={(e) => updateSelectedNode('label', e.target.value)}
+                          placeholder="Enter intent name"
+                        />
+                      </div>
+
+                      {/* Training Phrases */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Training Phrases</Label>
+                          <Badge variant="outline">{(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {(selectedNode.data.trainingPhrases as string[])?.map((phrase, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <Input
+                                value={phrase}
+                                onChange={(e) => {
+                                  const newPhrases = [...(selectedNode.data.trainingPhrases as string[])];
+                                  newPhrases[index] = e.target.value;
+                                  updateSelectedNode('trainingPhrases', newPhrases);
+                                }}
+                                placeholder="Training phrase"
+                                className="flex-1"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newPhrases = (selectedNode.data.trainingPhrases as string[]).filter((_, i) => i !== index);
+                                  updateSelectedNode('trainingPhrases', newPhrases);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentPhrases = (selectedNode.data.trainingPhrases as string[]) || [];
+                              updateSelectedNode('trainingPhrases', [...currentPhrases, '']);
+                            }}
+                            className="w-full"
+                          >
+                            + Add Training Phrase
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Responses */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Bot Responses</Label>
+                          <Badge variant="outline">{(selectedNode.data.responses as string[])?.length || 0} responses</Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {(selectedNode.data.responses as string[])?.map((response, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <Textarea
+                                value={response}
+                                onChange={(e) => {
+                                  const newResponses = [...(selectedNode.data.responses as string[])];
+                                  newResponses[index] = e.target.value;
+                                  updateSelectedNode('responses', newResponses);
+                                }}
+                                placeholder="Bot response"
+                                className="flex-1 min-h-[60px]"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newResponses = (selectedNode.data.responses as string[]).filter((_, i) => i !== index);
+                                  updateSelectedNode('responses', newResponses);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentResponses = (selectedNode.data.responses as string[]) || [];
+                              updateSelectedNode('responses', [...currentResponses, '']);
+                            }}
+                            className="w-full"
+                          >
+                            + Add Response
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="pt-4 border-t space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowVoiceTraining(true)}
+                          className="w-full"
+                        >
+                          <Mic className="h-4 w-4 mr-2" />
+                          Voice Training
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedNode) {
+                              duplicateNode(selectedNode.id);
+                            }
+                          }}
+                          className="w-full"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicate Intent
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

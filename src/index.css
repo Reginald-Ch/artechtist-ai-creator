@@ -359,4 +359,29 @@ All colors MUST be HSL.
     0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
     50% { opacity: 0.5; transform: scale(1.2) rotate(180deg); }
   }
+
+  /* Flashcard animations */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  .flashcard {
+    transition: transform 0.7s ease-in-out;
+  }
+
+  .flashcard-face {
+    transition: all 0.3s ease;
+  }
 }
