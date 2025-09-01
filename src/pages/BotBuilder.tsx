@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload, X, Copy, GraduationCap, BarChart, Database, Globe } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
@@ -36,6 +36,11 @@ import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
 import { SmartSuggestions } from "@/components/enhanced/SmartSuggestions";
 import { PerformanceMetrics } from "@/components/enhanced/PerformanceMetrics";
 import { CollaborationPanel } from "@/components/enhanced/CollaborationPanel";
+import { UseModePanel } from "@/components/learning/UseModePanel";
+import { ModifyModePanel } from "@/components/learning/ModifyModePanel";
+import { DatasetVisualizer } from "@/components/dataset/DatasetVisualizer";
+import { ConversationFlowVisualizer } from "@/components/analytics/ConversationFlowVisualizer";
+import { GoogleAssistantPanel } from "@/components/integration/GoogleAssistantPanel";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -87,6 +92,8 @@ const BotBuilder = () => {
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+  const [learningMode, setLearningMode] = useState<'use' | 'modify' | 'create'>('create');
+  const [activePanel, setActivePanel] = useState<'properties' | 'dataset' | 'analytics' | 'integration'>('properties');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -463,32 +470,92 @@ const BotBuilder = () => {
 
         {/* Enhanced Properties Panel */}
         <div className="w-96 border-l glassmorphism overflow-y-auto">
-          <Tabs defaultValue="properties" className="h-full">
-            <div className="border-b p-4">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="properties" className="text-xs">Properties</TabsTrigger>
-                <TabsTrigger value="suggestions" className="text-xs">AI</TabsTrigger>
-                <TabsTrigger value="metrics" className="text-xs">Metrics</TabsTrigger>
-                <TabsTrigger value="collaborate" className="text-xs">Team</TabsTrigger>
-              </TabsList>
+          {/* Learning Mode Toggle */}
+          <div className="border-b p-4 bg-gradient-to-r from-primary/5 to-primary-glow/5">
+            <div className="flex items-center gap-2 mb-3">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              <h3 className="font-medium">Learning Mode</h3>
             </div>
+            <div className="grid grid-cols-3 gap-1">
+              <Button
+                size="sm"
+                variant={learningMode === 'use' ? 'default' : 'outline'}
+                onClick={() => setLearningMode('use')}
+                className="text-xs"
+              >
+                Use
+              </Button>
+              <Button
+                size="sm"
+                variant={learningMode === 'modify' ? 'default' : 'outline'}
+                onClick={() => setLearningMode('modify')}
+                className="text-xs"
+              >
+                Modify
+              </Button>
+              <Button
+                size="sm"
+                variant={learningMode === 'create' ? 'default' : 'outline'}
+                onClick={() => setLearningMode('create')}
+                className="text-xs"
+              >
+                Create
+              </Button>
+            </div>
+          </div>
 
-            <TabsContent value="properties" className="p-0 mt-0 h-full">
-              <div className="p-4 space-y-4">
-                {/* AI Mascot */}
-                <AIMascot 
-                  currentTopic={selectedConcept}
-                  onTopicChange={setSelectedConcept}
-                />
-                
-                {/* Concept Explainer */}
-                {selectedConcept && (
-                  <ConceptExplainer 
-                    concept={selectedConcept}
-                    onClose={() => setSelectedConcept(null)}
-                  />
-                )}
+          {learningMode === 'use' ? (
+            <UseModePanel
+              onSwitchToModify={() => setLearningMode('modify')}
+              onSwitchToCreate={() => setLearningMode('create')}
+            />
+          ) : learningMode === 'modify' ? (
+            <ModifyModePanel
+              onSwitchToCreate={() => setLearningMode('create')}
+              onApplyChanges={(modifiedBot) => {
+                // Apply the modified bot data to current nodes
+                toast({
+                  title: "Template Applied!",
+                  description: "Modified bot template has been applied to your canvas",
+                });
+                setLearningMode('create');
+              }}
+            />
+          ) : (
+            <Tabs value={activePanel} onValueChange={(value: any) => setActivePanel(value)} className="h-full">
+              <div className="border-b p-4">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="properties" className="text-xs">
+                    <Bot className="h-3 w-3" />
+                  </TabsTrigger>
+                  <TabsTrigger value="dataset" className="text-xs">
+                    <Database className="h-3 w-3" />
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="text-xs">
+                    <BarChart className="h-3 w-3" />
+                  </TabsTrigger>
+                  <TabsTrigger value="integration" className="text-xs">
+                    <Globe className="h-3 w-3" />
+                  </TabsTrigger>
+                </TabsList>
               </div>
+
+              <TabsContent value="properties" className="p-0 mt-0 h-full">
+                <div className="p-4 space-y-4">
+                  {/* AI Mascot */}
+                  <AIMascot 
+                    currentTopic={selectedConcept}
+                    onTopicChange={setSelectedConcept}
+                  />
+                  
+                  {/* Concept Explainer */}
+                  {selectedConcept && (
+                    <ConceptExplainer 
+                      concept={selectedConcept}
+                      onClose={() => setSelectedConcept(null)}
+                    />
+                  )}
+                </div>
           
               {selectedNode ? (
                 <div className="space-y-4">
