@@ -34,8 +34,13 @@ const EnhancedAuth = () => {
     parentEmail: ''
   });
   const [treasureCode, setTreasureCode] = useState('');
+  const [changePasswordForm, setChangePasswordForm] = useState({
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  const [newPasswordStrength, setNewPasswordStrength] = useState(0);
   
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, changePassword } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
@@ -270,6 +275,55 @@ const EnhancedAuth = () => {
     setIsLoading(false);
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthErrors([]);
+    
+    if (!changePasswordForm.newPassword || !changePasswordForm.confirmNewPassword) {
+      setAuthErrors(['Please fill in all required fields']);
+      return;
+    }
+    
+    if (changePasswordForm.newPassword !== changePasswordForm.confirmNewPassword) {
+      setAuthErrors(['Passwords do not match']);
+      return;
+    }
+    
+    if (newPasswordStrength < 60) {
+      setAuthErrors(['Please create a stronger password (at least 60% strength)']);
+      return;
+    }
+    
+    setIsLoading(true);
+    const { error } = await changePassword(changePasswordForm.newPassword);
+    setIsLoading(false);
+    
+    if (error) {
+      console.error('Change password error:', error);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Failed to change password. Please try again.';
+      if (errorMessage.includes('same password')) {
+        userFriendlyMessage = 'New password must be different from your current password.';
+      } else if (errorMessage.includes('weak')) {
+        userFriendlyMessage = 'Password is too weak. Please use a stronger password.';
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Password Change Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    } else {
+      setChangePasswordForm({ newPassword: '', confirmNewPassword: '' });
+      toast({
+        title: "Password Changed Successfully",
+        description: "Your password has been updated.",
+      });
+    }
+  };
+
   const handleResendConfirmation = async () => {
     if (!canResendEmail || resendCooldown > 0) return;
     
@@ -307,6 +361,11 @@ const EnhancedAuth = () => {
   useEffect(() => {
     setPasswordStrength(calculatePasswordStrength(signupForm.password));
   }, [signupForm.password]);
+
+  // Update new password strength when change password form changes
+  useEffect(() => {
+    setNewPasswordStrength(calculatePasswordStrength(changePasswordForm.newPassword));
+  }, [changePasswordForm.newPassword]);
 
   // Email confirmation message
   if (emailConfirmationSent) {
@@ -392,10 +451,11 @@ const EnhancedAuth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
             <TabsTrigger value="treasure">Treasure Hunt</TabsTrigger>
+            <TabsTrigger value="changepassword" disabled={!user}>Change Password</TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
@@ -835,6 +895,131 @@ const EnhancedAuth = () => {
                     Don't have a treasure code? Contact your teacher or program coordinator
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Change Password Form */}
+          <TabsContent value="changepassword">
+            <Card className="border-border/50 shadow-lg glassmorphism">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl font-bold">Change Password</CardTitle>
+                <CardDescription>
+                  Update your account password
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Error Display */}
+                {authErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-4 animate-fade-in">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {authErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {user ? (
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="new-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter new password"
+                          className="pl-10 pr-10"
+                          value={changePasswordForm.newPassword}
+                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      
+                      {/* Password Strength Indicator */}
+                      {changePasswordForm.newPassword && (
+                        <div className="space-y-2 animate-fade-in">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Password Strength</span>
+                            <Badge 
+                              variant={newPasswordStrength >= 80 ? "default" : newPasswordStrength >= 60 ? "secondary" : "destructive"}
+                              className="text-xs"
+                            >
+                              {newPasswordStrength >= 80 ? 'Strong' : newPasswordStrength >= 60 ? 'Good' : newPasswordStrength >= 40 ? 'Fair' : 'Weak'}
+                            </Badge>
+                          </div>
+                          <Progress value={newPasswordStrength} className="h-2" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="confirm-new-password"
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm new password"
+                          className="pl-10 pr-10"
+                          value={changePasswordForm.confirmNewPassword}
+                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      
+                      {/* Password Match Indicator */}
+                      {changePasswordForm.confirmNewPassword && (
+                        <div className="flex items-center gap-2 text-sm animate-fade-in">
+                          {changePasswordForm.newPassword === changePasswordForm.confirmNewPassword ? (
+                            <>
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <span className="text-green-600">Passwords match</span>
+                            </>
+                          ) : (
+                            <>
+                              <X className="h-4 w-4 text-red-500" />
+                              <span className="text-red-500">Passwords don't match</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
+                      disabled={isLoading || newPasswordStrength < 60 || changePasswordForm.newPassword !== changePasswordForm.confirmNewPassword}
+                    >
+                      {isLoading ? "Changing Password..." : "Change Password"}
+                    </Button>
+                  </form>
+                ) : (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      You need to be signed in to change your password.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
