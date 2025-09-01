@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Settings, Mic, Volume2, Palette, HelpCircle, Trash2, Undo, Redo, Download, Upload } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
@@ -32,6 +32,10 @@ import VoiceTrainingPanel from "@/components/VoiceTrainingPanel";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
+import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
+import { SmartSuggestions } from "@/components/enhanced/SmartSuggestions";
+import { PerformanceMetrics } from "@/components/enhanced/PerformanceMetrics";
+import { CollaborationPanel } from "@/components/enhanced/CollaborationPanel";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -299,78 +303,104 @@ const BotBuilder = () => {
     });
   }, [selectedNode, setNodes]);
 
+  const handleExport = () => {
+    const botConfig = {
+      name: botName,
+      avatar: botAvatar,
+      personality: botPersonality,
+      nodes: nodes,
+      edges: edges,
+      version: '1.0',
+      exportedAt: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(botConfig, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${botName.replace(/\s+/g, '_')}_config.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const config = JSON.parse(e.target?.result as string);
+          setBotName(config.name || 'Imported Bot');
+          setBotAvatar(config.avatar || '🤖');
+          setBotPersonality(config.personality || 'helpful and friendly');
+          setNodes(config.nodes || []);
+          setEdges(config.edges || []);
+          toast({
+            title: "Bot Imported Successfully",
+            description: `Loaded configuration for "${config.name}"`,
+          });
+        } catch (error) {
+          toast({
+            title: "Import Failed",
+            description: "Invalid configuration file",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm">← Back</Button>
-            </Link>
-            <div className="flex items-center gap-3">
-              <AvatarSelector 
-                selectedAvatar={botAvatar} 
-                onAvatarChange={(avatar, personality) => {
-                  setBotAvatar(avatar);
-                  setBotPersonality(personality);
-                }} 
-              />
-              <div className="flex items-center gap-2">
-                <Brain className="h-6 w-6 text-orange-500" />
-                <Input 
-                  value={botName} 
-                  onChange={(e) => setBotName(e.target.value)}
-                  className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0"
-                />
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Personality: {botPersonality}
-              </div>
-            </div>
-          </div>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Enhanced Header */}
+      <div className="flex items-center gap-4 p-4 border-b glassmorphism">
+        <Link to="/dashboard">
+          <Button variant="ghost" size="sm" className="hover:bg-muted">← Back</Button>
+        </Link>
+        <div className="flex items-center gap-3">
+          <AvatarSelector 
+            selectedAvatar={botAvatar} 
+            onAvatarChange={(avatar, personality) => {
+              setBotAvatar(avatar);
+              setBotPersonality(personality);
+            }} 
+          />
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleUndo}
-              disabled={!undoRedo.canUndo}
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRedo}
-              disabled={!undoRedo.canRedo}
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowTestPanel(!showTestPanel)}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Test Bot
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowTutorial(true)}
-            >
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Tutorial
-            </Button>
-            <Button size="sm" onClick={handleKeyboardActions.onSave}>
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
+            <Brain className="h-6 w-6 text-primary animate-glow-pulse" />
+            <Input 
+              value={botName} 
+              onChange={(e) => setBotName(e.target.value)}
+              className="text-lg font-semibold border-none bg-transparent px-0 focus-visible:ring-0 max-w-xs"
+            />
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Personality: {botPersonality}
           </div>
         </div>
-      </header>
+      </div>
+
+      {/* Enhanced Toolbar */}
+      <BotBuilderToolbar
+        onTestBot={() => setShowTestPanel(!showTestPanel)}
+        onTutorial={() => setShowTutorial(true)}
+        onSave={handleKeyboardActions.onSave}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onExport={handleExport}
+        onImport={handleImport}
+        onAddIntent={addNewIntent}
+        canUndo={undoRedo.canUndo}
+        canRedo={undoRedo.canRedo}
+        nodeCount={nodes.length}
+      />
 
       <div className="flex-1 flex">
         {/* Flow Builder */}
@@ -395,19 +425,19 @@ const BotBuilder = () => {
             defaultViewport={{ x: 0, y: 0, zoom: 1 }}
             minZoom={0.5}
             maxZoom={2}
-            className="bg-gradient-to-br from-orange-50/30 to-yellow-50/30 dark:from-orange-950/10 dark:to-yellow-950/10"
+            className="bg-gradient-to-br from-primary/5 via-background to-primary-glow/5"
           >
             <Controls 
-              className="bg-background/80 backdrop-blur-sm shadow-lg border border-border rounded-lg" 
+              className="glassmorphism shadow-lg rounded-lg" 
               showInteractive={false}
             />
             <MiniMap 
-              className="bg-background/80 backdrop-blur-sm border border-border rounded-lg"
+              className="glassmorphism rounded-lg"
               nodeColor={(node) => {
-                if (node.data?.isDefault) return '#f97316'; // orange
-                return '#3b82f6'; // blue
+                if (node.data?.isDefault) return 'hsl(var(--primary))';
+                return 'hsl(var(--primary-glow))';
               }}
-              maskColor="rgb(240, 240, 240, 0.8)"
+              maskColor="hsla(var(--background) / 0.8)"
               pannable
               zoomable
             />
@@ -419,142 +449,113 @@ const BotBuilder = () => {
             />
           </ReactFlow>
           
-          {/* Add Intent Button */}
+          {/* Enhanced Add Intent Button */}
           <div className="absolute top-4 left-4">
-            <Button onClick={addNewIntent} className="bg-orange-500 hover:bg-orange-600">
+            <Button 
+              onClick={addNewIntent} 
+              className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300 animate-glow-pulse"
+            >
               <MessageSquare className="h-4 w-4 mr-2" />
               Add Intent
             </Button>
           </div>
         </div>
 
-        {/* Properties Panel */}
-        <div className="w-80 border-l bg-muted/30 overflow-y-auto">
-          <div className="p-4 space-y-4">
-            {/* AI Mascot */}
-            <AIMascot 
-              currentTopic={selectedConcept}
-              onTopicChange={setSelectedConcept}
-            />
-            
-            {/* Concept Explainer */}
-            {selectedConcept && (
-              <ConceptExplainer 
-                concept={selectedConcept}
-                onClose={() => setSelectedConcept(null)}
-              />
-            )}
-          </div>
-          
-          {selectedNode ? (
-            <Card className="border-0 rounded-none h-full">
-              <CardHeader className="bg-orange-50 dark:bg-orange-900/20">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Bot className="h-5 w-5" />
-                    Intent: {selectedNode.data.label as string}
-                    {selectedNode.data.isDefault && (
-                      <Badge variant="secondary" className="text-xs">Default</Badge>
-                    )}
-                  </CardTitle>
-                  {!selectedNode.data.isDefault && (
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={deleteSelectedNode}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 space-y-6">
-                <Tabs defaultValue="training" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="training">Training</TabsTrigger>
-                    <TabsTrigger value="responses">Responses</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="training" className="space-y-4">
-                    <div>
-                  <Label htmlFor="intent-name">Intent Name</Label>
-                  <Input
-                    id="intent-name"
-                    value={selectedNode.data.label as string}
-                    onChange={(e) => updateSelectedNode('label', e.target.value)}
-                    disabled={selectedNode.data.isDefault as boolean}
-                  />
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label>Training Phrases</Label>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          disabled={selectedNode.data.isDefault as boolean}
-                          onClick={() => setShowVoiceTraining(true)}
-                        >
-                          <Mic className="h-4 w-4 mr-1" />
-                          Voice
-                        </Button>
-                      </div>
-                      <Textarea
-                        placeholder="Enter training phrases (one per line)&#10;Example:&#10;hello&#10;hi there&#10;good morning"
-                        value={(selectedNode.data.trainingPhrases as string[])?.join('\n') || ''}
-                        onChange={(e) => updateSelectedNode('trainingPhrases', e.target.value.split('\n').filter(p => p.trim()))}
-                        className="min-h-32"
-                        disabled={selectedNode.data.isDefault as boolean}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases
-                      </p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="responses" className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label>Bot Responses</Label>
-                        <Button size="sm" variant="outline">
-                          <Volume2 className="h-4 w-4 mr-1" />
-                          Preview
-                        </Button>
-                      </div>
-                      <Textarea
-                        placeholder="Enter responses (one per line)&#10;Example:&#10;Hello! How can I help you?&#10;Hi there! What can I do for you?"
-                        value={(selectedNode.data.responses as string[])?.join('\n') || ''}
-                        onChange={(e) => updateSelectedNode('responses', e.target.value.split('\n').filter(r => r.trim()))}
-                        className="min-h-32"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(selectedNode.data.responses as string[])?.length || 0} responses
-                      </p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="settings" className="space-y-4">
-                    <div>
-                      <Label>Voice Settings</Label>
-                      <div className="space-y-2 mt-2">
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Configure Voice
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="p-8 text-center text-muted-foreground">
-              <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Click on an intent node to edit its properties</p>
-              <p className="text-sm mt-2">Or explore AI concepts with AI-ko above!</p>
+        {/* Enhanced Properties Panel */}
+        <div className="w-96 border-l glassmorphism overflow-y-auto">
+          <Tabs defaultValue="properties" className="h-full">
+            <div className="border-b p-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="properties" className="text-xs">Properties</TabsTrigger>
+                <TabsTrigger value="suggestions" className="text-xs">AI</TabsTrigger>
+                <TabsTrigger value="metrics" className="text-xs">Metrics</TabsTrigger>
+                <TabsTrigger value="collaborate" className="text-xs">Team</TabsTrigger>
+              </TabsList>
             </div>
-          )}
+
+            <TabsContent value="properties" className="p-0 mt-0 h-full">
+              <div className="p-4 space-y-4">
+                {/* AI Mascot */}
+                <AIMascot 
+                  currentTopic={selectedConcept}
+                  onTopicChange={setSelectedConcept}
+                />
+                
+                {/* Concept Explainer */}
+                {selectedConcept && (
+                  <ConceptExplainer 
+                    concept={selectedConcept}
+                    onClose={() => setSelectedConcept(null)}
+                  />
+                )}
+              </div>
+          
+              {selectedNode ? (
+                <div className="space-y-4">
+                  <Card className="border-0 rounded-none animate-fade-in">
+                    <CardHeader className="bg-gradient-to-r from-primary/10 to-primary-glow/10 border-b">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Bot className="h-5 w-5 text-primary" />
+                          Intent: {selectedNode.data.label as string}
+                        </CardTitle>
+                        {!selectedNode.data.isDefault && (
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={deleteSelectedNode}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground">Configure your intent properties below</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <div className="p-8 text-center text-muted-foreground animate-fade-in">
+                  <Bot className="h-16 w-16 mx-auto mb-4 opacity-50 animate-bounce" />
+                  <p className="text-lg font-medium mb-2">Select an Intent</p>
+                  <p className="text-sm">Click on any intent node to edit its properties</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="suggestions" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <SmartSuggestions
+                  nodes={nodes}
+                  edges={edges}
+                  selectedNode={selectedNode}
+                  onApplySuggestion={(suggestion) => {
+                    console.log('Applied suggestion:', suggestion);
+                  }}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="metrics" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <PerformanceMetrics
+                  nodes={nodes}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="collaborate" className="p-0 mt-0 h-full">
+              <div className="p-4">
+                <CollaborationPanel
+                  selectedNode={selectedNode}
+                  onAddComment={(comment, nodeId) => {
+                    console.log('Added comment:', comment, 'to node:', nodeId);
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Test Panel */}
