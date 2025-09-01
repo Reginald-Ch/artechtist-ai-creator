@@ -31,6 +31,13 @@ import { EnhancedVoiceTraining } from "@/components/voice/EnhancedVoiceTraining"
 import { GoogleAssistantSDK } from "@/components/device/GoogleAssistantSDK";
 import { DatasetVisualizer } from "@/components/dataset/DatasetVisualizer";
 import { ConversationFlowVisualizer } from "@/components/analytics/ConversationFlowVisualizer";
+import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
+import { UseModePanel } from "@/components/learning/UseModePanel";
+import { ModifyModePanel } from "@/components/learning/ModifyModePanel";
+import { AIMascot } from "@/components/ai-tutor/AIMascot";
+import { ConceptExplainer } from "@/components/ai-tutor/ConceptExplainer";
+import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
+import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
@@ -718,7 +725,7 @@ const BotBuilder = () => {
                     botData={{
                       name: botName,
                       nodes: nodes,
-                      responses: nodes.flatMap(n => n.data.responses || [])
+                      responses: nodes.flatMap(n => (n.data.responses as string[]) || [])
                     }}
                     onDeploy={() => {
                       toast({
