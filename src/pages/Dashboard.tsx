@@ -73,7 +73,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground text-lg">Ready to create amazing AI agents? Let's build something incredible together!</p>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - AMBY Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Link to="/builder">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300">
@@ -81,8 +81,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                   <Plus className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-orange-600">Create New Bot</CardTitle>
-                <CardDescription>Start building your AI agent from scratch</CardDescription>
+                <CardTitle className="text-orange-600">Create New Project</CardTitle>
+                <CardDescription>Build a brand-new conversational agent</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -92,8 +92,8 @@ const Dashboard = () => {
               <div className="mx-auto mb-2 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                 <Star className="h-6 w-6 text-white" />
               </div>
-              <CardTitle className="text-blue-600">Browse Templates</CardTitle>
-              <CardDescription>Get inspired by sample bots and templates</CardDescription>
+              <CardTitle className="text-blue-600">Sample Project</CardTitle>
+              <CardDescription>Explore or tinker with pre-built chatbots to learn</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
               <TemplateGallery onUseTemplate={handleUseTemplate} />
@@ -151,9 +151,9 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bot className="h-5 w-5" />
-                My AI Agents
+                Open Project
               </CardTitle>
-              <CardDescription>Your created bots and their status</CardDescription>
+              <CardDescription>Continue working on previously saved agents</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
