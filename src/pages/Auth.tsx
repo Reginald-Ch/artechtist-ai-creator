@@ -1,4 +1,6 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,19 +11,61 @@ import { Link } from "react-router-dom";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [signupForm, setSignupForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    parentEmail: ''
+  });
+  
+  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!loginForm.email || !loginForm.password) return;
+    
     setIsLoading(true);
-    // TODO: Implement login logic
-    setTimeout(() => setIsLoading(false), 1000);
+    const { error } = await signIn(loginForm.email, loginForm.password);
+    setIsLoading(false);
+    
+    if (!error) {
+      navigate('/dashboard');
+    }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signupForm.email || !signupForm.password || !signupForm.firstName || !signupForm.lastName) return;
+    
     setIsLoading(true);
-    // TODO: Implement signup logic
-    setTimeout(() => setIsLoading(false), 1000);
+    const { error } = await signUp(
+      signupForm.email,
+      signupForm.password,
+      signupForm.firstName,
+      signupForm.lastName,
+      signupForm.parentEmail || undefined
+    );
+    setIsLoading(false);
+    
+    if (!error) {
+      // Note: User will need to confirm email before being redirected
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+    await signInWithGoogle();
+    setIsLoading(false);
   };
 
   return (
@@ -73,6 +117,8 @@ const Auth = () => {
                         type="email"
                         placeholder="your.email@example.com"
                         className="pl-10"
+                        value={loginForm.email}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
                         required
                       />
                     </div>
@@ -87,6 +133,8 @@ const Auth = () => {
                         type="password"
                         placeholder="Enter your password"
                         className="pl-10"
+                        value={loginForm.password}
+                        onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
                     </div>
@@ -114,7 +162,8 @@ const Auth = () => {
                   <Button
                     variant="outline"
                     className="w-full mt-4 border-border hover:bg-accent"
-                    onClick={() => {/* TODO: Google OAuth */}}
+                    onClick={handleGoogleAuth}
+                    disabled={isLoading}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -162,6 +211,8 @@ const Auth = () => {
                           type="text"
                           placeholder="First name"
                           className="pl-10"
+                          value={signupForm.firstName}
+                          onChange={(e) => setSignupForm(prev => ({ ...prev, firstName: e.target.value }))}
                           required
                         />
                       </div>
@@ -176,6 +227,8 @@ const Auth = () => {
                           type="text"
                           placeholder="Last name"
                           className="pl-10"
+                          value={signupForm.lastName}
+                          onChange={(e) => setSignupForm(prev => ({ ...prev, lastName: e.target.value }))}
                           required
                         />
                       </div>
@@ -191,6 +244,8 @@ const Auth = () => {
                         type="email"
                         placeholder="your.email@example.com"
                         className="pl-10"
+                        value={signupForm.email}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
                         required
                       />
                     </div>
@@ -205,6 +260,8 @@ const Auth = () => {
                         type="password"
                         placeholder="Create a strong password"
                         className="pl-10"
+                        value={signupForm.password}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
                     </div>
@@ -217,13 +274,14 @@ const Auth = () => {
                       <Input
                         id="parent-email"
                         type="email"
-                        placeholder="parent@example.com"
+                        placeholder="parent@example.com (optional)"
                         className="pl-10"
-                        required
+                        value={signupForm.parentEmail}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, parentEmail: e.target.value }))}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Required for learners under 16 years old
+                      Recommended for learners under 16 years old
                     </p>
                   </div>
 
@@ -249,7 +307,8 @@ const Auth = () => {
                   <Button
                     variant="outline"
                     className="w-full mt-4 border-border hover:bg-accent"
-                    onClick={() => {/* TODO: Google OAuth */}}
+                    onClick={handleGoogleAuth}
+                    disabled={isLoading}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path

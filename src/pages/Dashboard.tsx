@@ -2,16 +2,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen } from "lucide-react";
+import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
   
   const handleUseTemplate = (template: any) => {
     // Navigate to bot builder with template data
@@ -46,8 +53,14 @@ const Dashboard = () => {
               <Users className="h-4 w-4 mr-2" />
               Community
             </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
             <Avatar>
-              <AvatarFallback className="bg-orange-500 text-white">LN</AvatarFallback>
+              <AvatarFallback className="bg-orange-500 text-white">
+                {user?.email?.substring(0, 2).toUpperCase() || "AI"}
+              </AvatarFallback>
             </Avatar>
           </div>
         </div>
