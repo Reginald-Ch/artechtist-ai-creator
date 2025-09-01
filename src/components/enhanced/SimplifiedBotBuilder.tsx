@@ -37,7 +37,7 @@ const initialNodes: Node[] = [
   {
     id: 'greet',
     type: 'intent',
-    position: { x: 250, y: 50 },
+    position: { x: 300, y: 100 },
     data: {
       label: 'Greet',
       trainingPhrases: ['hello', 'hi', 'hey there', 'good morning'],
@@ -48,7 +48,7 @@ const initialNodes: Node[] = [
   {
     id: 'fallback',
     type: 'intent',
-    position: { x: 250, y: 300 },
+    position: { x: 300, y: 400 },
     data: {
       label: 'Fallback',
       trainingPhrases: [],
@@ -58,7 +58,18 @@ const initialNodes: Node[] = [
   },
 ];
 
-const initialEdges: Edge[] = [];
+const initialEdges: Edge[] = [
+  {
+    id: 'greet-fallback',
+    source: 'greet',
+    target: 'fallback',
+    markerEnd: { type: MarkerType.ArrowClosed },
+    style: { 
+      stroke: 'hsl(var(--foreground))',
+      strokeWidth: 2,
+    }
+  }
+];
 
 interface SimplifiedBotBuilderProps {
   template?: any;
@@ -114,9 +125,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       ...params,
       markerEnd: { type: MarkerType.ArrowClosed },
       style: { 
-        stroke: 'hsl(var(--primary))',
-        strokeWidth: 3,
-        filter: 'drop-shadow(0 2px 4px hsl(var(--primary) / 0.3))'
+        stroke: 'hsl(var(--foreground))',
+        strokeWidth: 2,
       }
     }, eds)),
     [setEdges],
@@ -307,36 +317,25 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             panOnDrag={[1, 2]}
             attributionPosition="bottom-left"
             proOptions={{ hideAttribution: true }}
-            className="bg-gradient-to-br from-primary/5 via-background to-primary-glow/5"
+            className="bg-muted/20"
           >
-            <Controls className="glassmorphism shadow-lg rounded-lg" />
+            <Controls className="shadow-sm" />
             <Background 
               variant={BackgroundVariant.Dots} 
-              gap={20} 
+              gap={24} 
               size={1}
-              className="opacity-30"
+              className="opacity-20"
             />
           </ReactFlow>
           
-          {/* Single Add Intent Button */}
-          <div className="absolute top-4 left-4">
+          {/* Floating Add Intent Button */}
+          <div className="absolute bottom-6 right-6">
             <Button 
               onClick={addNewIntent} 
-              className="bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
+              size="lg"
+              className="rounded-full shadow-lg hover:shadow-xl h-12 w-12 p-0"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Intent
-            </Button>
-          </div>
-
-          {/* Beginner Mode Toggle */}
-          <div className="absolute top-4 right-4">
-            <Button 
-              variant="outline"
-              onClick={() => setBeginnerMode(!beginnerMode)}
-              className="gap-2"
-            >
-              {beginnerMode ? '🎓 Beginner' : '⚡ Advanced'}
+              <Plus className="h-5 w-5" />
             </Button>
           </div>
         </div>

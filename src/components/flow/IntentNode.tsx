@@ -31,37 +31,42 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   const { label, trainingPhrases = [], responses = [], isDefault = false } = data;
   const [isHovered, setIsHovered] = useState(false);
 
+  // Determine status
+  const hasTraining = trainingPhrases.length > 0;
+  const hasResponses = responses.length > 0;
+  const isComplete = hasTraining && hasResponses;
+  
   return (
     <div 
       className={cn(
-        "bg-background border-2 rounded-xl shadow-md min-w-[200px] max-w-[280px] transition-all duration-200 relative group",
-        "hover:shadow-lg hover:scale-[1.02] transform-gpu",
+        "bg-background border rounded-lg shadow-sm min-w-[180px] max-w-[220px] transition-all duration-200 relative group",
+        "hover:shadow-md",
         selected 
-          ? 'border-primary shadow-lg scale-[1.02] ring-2 ring-primary/20' 
+          ? 'border-primary ring-1 ring-primary/20' 
           : isDefault 
-            ? 'border-orange-300 hover:border-orange-400 bg-gradient-to-br from-orange-50/80 to-orange-100/40 dark:from-orange-950/30 dark:to-orange-900/20' 
-            : 'border-blue-300 hover:border-blue-400 bg-gradient-to-br from-blue-50/80 to-blue-100/40 dark:from-blue-950/30 dark:to-blue-900/20',
-        "backdrop-blur-sm"
+            ? 'border-muted-foreground/20' 
+            : 'border-border',
+        "cursor-pointer"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Enhanced Visual Delete Button */}
+      {/* Simple Delete Button */}
       {!isDefault && (isHovered || selected) && (
         <Button
           size="sm"
-          variant="destructive"
-          className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-md hover:shadow-lg z-20 transition-all duration-200 hover:scale-110"
+          variant="ghost"
+          className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-background border border-border shadow-sm hover:shadow-md z-20"
           onClick={(e) => {
             e.stopPropagation();
             onDelete?.(id || '');
           }}
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-3 w-3" />
         </Button>
       )}
       
-      {/* Enhanced Context Menu */}
+      {/* Context Menu */}
       {!isDefault && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -69,110 +74,68 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
               size="sm"
               variant="ghost"
               className={cn(
-                "absolute top-3 right-3 h-6 w-6 p-0 transition-all duration-200 z-20",
-                "opacity-0 group-hover:opacity-100 hover:bg-accent/80 hover:scale-110"
+                "absolute top-2 right-2 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 z-20"
               )}
             >
-              <MoreVertical className="h-3.5 w-3.5" />
+              <MoreVertical className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => onEdit?.(id || '')} className="cursor-pointer">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Intent
+              <Edit className="mr-2 h-3 w-3" />
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDuplicate?.(id || '')} className="cursor-pointer">
-              <Copy className="mr-2 h-4 w-4" />
+              <Copy className="mr-2 h-3 w-3" />
               Duplicate
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => onDelete?.(id || '')}
               className="text-destructive cursor-pointer focus:text-destructive"
             >
-              <X className="mr-2 h-4 w-4" />
+              <X className="mr-2 h-3 w-3" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
       
-      {/* Enhanced Handles */}
+      {/* Clean Handles */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className={cn(
-          "w-3 h-3 border-2 bg-background transition-all duration-200",
-          isDefault ? "border-orange-400" : "border-blue-400",
-          "hover:scale-125 hover:shadow-md"
-        )}
+        className="w-2 h-2 border border-border bg-background"
       />
       
-      {/* Enhanced Header */}
-      <div className={cn(
-        "p-4 rounded-t-xl backdrop-blur-sm",
-        isDefault 
-          ? 'bg-gradient-to-r from-orange-100/90 to-orange-200/60 dark:from-orange-900/40 dark:to-orange-800/20' 
-          : 'bg-gradient-to-r from-blue-100/90 to-blue-200/60 dark:from-blue-900/40 dark:to-blue-800/20'
-      )}>
-        <div className="flex items-center gap-3 mb-2">
+      {/* Simplified Header */}
+      <div className="p-3 border-b border-border/50">
+        <div className="flex items-center gap-2">
           <div className={cn(
-            "p-1.5 rounded-lg",
-            isDefault ? 'bg-orange-500/20 text-orange-600 dark:text-orange-400' : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
-          )}>
-            {isDefault ? <Zap className="h-4 w-4" /> : <Brain className="h-4 w-4" />}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base truncate text-foreground">{label}</h3>
-            {isDefault && (
-              <Badge variant="secondary" className="text-xs mt-1 bg-orange-200/60 text-orange-700 dark:bg-orange-800/40 dark:text-orange-300">
-                Default Intent
-              </Badge>
-            )}
-          </div>
+            "w-2 h-2 rounded-full",
+            isComplete ? "bg-green-500" : hasTraining || hasResponses ? "bg-yellow-500" : "bg-muted-foreground/30"
+          )} />
+          <h3 className="font-medium text-sm truncate flex-1">{label}</h3>
+          {isDefault && (
+            <Badge variant="secondary" className="text-xs py-0 px-1">
+              Default
+            </Badge>
+          )}
         </div>
       </div>
       
-      {/* Enhanced Content */}
-      <div className="p-4 space-y-4">
-        {/* Training Phrases Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-2">
-            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Training</span>
-            <Badge variant="outline" className="text-xs">
-              {trainingPhrases.length}
-            </Badge>
-          </div>
-          
-          {trainingPhrases.length > 0 ? (
-            <div className="bg-muted/40 p-3 rounded-lg border border-border/50">
-              <div className="text-xs font-medium text-foreground/90 leading-relaxed">
-                "{trainingPhrases[0]}"
-              </div>
-              {trainingPhrases.length > 1 && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  +{trainingPhrases.length - 1} more phrase{trainingPhrases.length > 2 ? 's' : ''}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-xs text-muted-foreground/70 italic bg-muted/20 p-2 rounded border border-dashed border-muted-foreground/30">
-              No training phrases added
-            </div>
-          )}
+      {/* Minimal Content */}
+      <div className="p-3 space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Training</span>
+          <Badge variant="outline" className="text-xs h-4">
+            {trainingPhrases.length}
+          </Badge>
         </div>
         
-        {/* Responses Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bot className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Responses</span>
-          </div>
-          <Badge variant={responses.length > 0 ? "default" : "outline"} className="text-xs">
-            {responses.length > 0 
-              ? `${responses.length} response${responses.length !== 1 ? 's' : ''}`
-              : 'None'
-            }
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Responses</span>
+          <Badge variant="outline" className="text-xs h-4">
+            {responses.length}
           </Badge>
         </div>
       </div>
@@ -180,11 +143,7 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className={cn(
-          "w-3 h-3 border-2 bg-background transition-all duration-200",
-          isDefault ? "border-orange-400" : "border-blue-400",
-          "hover:scale-125 hover:shadow-md"
-        )}
+        className="w-2 h-2 border border-border bg-background"
       />
     </div>
   );
