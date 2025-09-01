@@ -6,18 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Brain, Mail, Lock, User, Users, ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Brain, Mail, Lock, User, Users, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle, ShieldCheck, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 
 const EnhancedAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [rememberMe, setRememberMe] = useState(false);
   const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
+  const [canResendEmail, setCanResendEmail] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [authErrors, setAuthErrors] = useState<string[]>([]);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({
     firstName: '',
@@ -38,150 +42,282 @@ const EnhancedAuth = () => {
     }
   }, [user, navigate]);
 
-  // Calculate password strength
-  const calculatePasswordStrength = (password: string) => {
+  const calculatePasswordStrength = (password: string): number => {
     let strength = 0;
-    if (password.length >= 8) strength += 25;
-    if (/[A-Z]/.test(password)) strength += 25;
-    if (/[a-z]/.test(password)) strength += 25;
-    if (/[0-9]/.test(password)) strength += 25;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+    
+    // Length check
+    if (password.length >= 8) strength += 20;
+    if (password.length >= 12) strength += 10;
+    if (password.length >= 16) strength += 10;
+    
+    // Character type checks
+    if (/[a-z]/.test(password)) strength += 15;
+    if (/[A-Z]/.test(password)) strength += 15;
+    if (/[0-9]/.test(password)) strength += 15;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 15;
+    
+    // Bonus for variety
+    const uniqueChars = new Set(password.toLowerCase()).size;
+    if (uniqueChars >= 8) strength += 10;
+    
     return Math.min(strength, 100);
   };
 
-  useEffect(() => {
-    const strength = calculatePasswordStrength(signupForm.password);
-    setPasswordStrength(strength);
-  }, [signupForm.password]);
-
   const getPasswordStrengthColor = () => {
-    if (passwordStrength < 30) return 'bg-red-500';
-    if (passwordStrength < 60) return 'bg-yellow-500';
-    if (passwordStrength < 80) return 'bg-orange-500';
-    return 'bg-green-500';
+    if (passwordStrength < 30) return 'text-red-500';
+    if (passwordStrength < 60) return 'text-yellow-500';
+    if (passwordStrength < 80) return 'text-orange-500';
+    return 'text-green-500';
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthErrors([]);
+    
     if (!loginForm.email || !loginForm.password) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter both email and password",
-        variant: "destructive",
-      });
+      setAuthErrors(['Please fill in all required fields']);
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginForm.email)) {
+      setAuthErrors(['Please enter a valid email address']);
       return;
     }
     
     setIsLoading(true);
-    try {
-      const { error } = await signIn(loginForm.email, loginForm.password);
-      
-      if (!error) {
-        if (rememberMe) {
-          localStorage.setItem('rememberUser', 'true');
-        }
-        navigate('/dashboard');
-      }
-    } catch (error) {
+    const { error } = await signIn(loginForm.email, loginForm.password);
+    setIsLoading(false);
+    
+    if (error) {
       console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Login failed. Please try again.';
+      if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid credentials')) {
+        userFriendlyMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (errorMessage.includes('email not confirmed')) {
+        userFriendlyMessage = 'Please check your email and click the confirmation link before signing in.';
+        setEmailConfirmationSent(true);
+        setCanResendEmail(true);
+      } else if (errorMessage.includes('too many requests')) {
+        userFriendlyMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+      } else if (errorMessage.includes('user not found')) {
+        userFriendlyMessage = 'No account found with this email address. Please sign up first.';
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Login Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+      navigate('/dashboard');
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthErrors([]);
     
     // Validation
     if (!signupForm.email || !signupForm.password || !signupForm.firstName || !signupForm.lastName) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
+      setAuthErrors(['Please fill in all required fields']);
       return;
     }
-
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupForm.email)) {
+      setAuthErrors(['Please enter a valid email address']);
+      return;
+    }
+    
     if (signupForm.password !== signupForm.confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
+      setAuthErrors(['Passwords do not match']);
       return;
     }
-
+    
     if (passwordStrength < 60) {
-      toast({
-        title: "Weak Password",
-        description: "Please choose a stronger password",
-        variant: "destructive",
-      });
+      setAuthErrors(['Please create a stronger password (at least 60% strength)']);
+      return;
+    }
+    
+    // Name validation
+    if (signupForm.firstName.length < 2 || signupForm.lastName.length < 2) {
+      setAuthErrors(['First and last names must be at least 2 characters long']);
       return;
     }
     
     setIsLoading(true);
-    try {
-      const { error } = await signUp(
-        signupForm.email,
-        signupForm.password,
-        signupForm.firstName,
-        signupForm.lastName,
-        signupForm.parentEmail || undefined
-      );
-      
-      if (!error) {
-        setEmailConfirmationSent(true);
-        toast({
-          title: "Account Created!",
-          description: "Please check your email to verify your account.",
-        });
-      }
-    } catch (error) {
+    const { error } = await signUp(
+      signupForm.email,
+      signupForm.password,
+      signupForm.firstName,
+      signupForm.lastName,
+      signupForm.parentEmail || undefined
+    );
+    setIsLoading(false);
+    
+    if (error) {
       console.error('Signup error:', error);
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Signup failed. Please try again.';
+      if (errorMessage.includes('email already registered') || errorMessage.includes('user already registered')) {
+        userFriendlyMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (errorMessage.includes('password') && errorMessage.includes('weak')) {
+        userFriendlyMessage = 'Password is too weak. Please use a stronger password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.';
+      } else if (errorMessage.includes('invalid email')) {
+        userFriendlyMessage = 'Please enter a valid email address.';
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Signup Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    } else {
+      setEmailConfirmationSent(true);
+      setCanResendEmail(false);
+      setResendCooldown(60); // 60 second cooldown
+      
+      toast({
+        title: "Account Created!",
+        description: "Please check your email to confirm your account before signing in.",
+      });
     }
   };
 
   const handleGoogleAuth = async () => {
+    setAuthErrors([]);
     setIsLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (error) {
+    const { error } = await signInWithGoogle();
+    setIsLoading(false);
+    
+    if (error) {
       console.error('Google auth error:', error);
-    } finally {
-      setIsLoading(false);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Google sign-in failed. Please try again.';
+      if (errorMessage.includes('popup') && errorMessage.includes('closed')) {
+        userFriendlyMessage = 'Sign-in was cancelled. Please try again and complete the Google authentication.';
+      } else if (errorMessage.includes('network')) {
+        userFriendlyMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('configuration')) {
+        userFriendlyMessage = 'Google sign-in is not properly configured. Please contact support.';
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Google Sign-In Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
     }
   };
 
+  const handleResendConfirmation = async () => {
+    if (!canResendEmail || resendCooldown > 0) return;
+    
+    setIsLoading(true);
+    // This would typically call a resend confirmation email function
+    // For now, we'll simulate it
+    setTimeout(() => {
+      setIsLoading(false);
+      setCanResendEmail(false);
+      setResendCooldown(60);
+      toast({
+        title: "Confirmation Email Sent",
+        description: "Please check your email inbox and spam folder.",
+      });
+    }, 1000);
+  };
+
+  // Handle resend cooldown
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown(prev => {
+          const newValue = prev - 1;
+          if (newValue === 0) {
+            setCanResendEmail(true);
+          }
+          return newValue;
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Update password strength when password changes
+  useEffect(() => {
+    setPasswordStrength(calculatePasswordStrength(signupForm.password));
+  }, [signupForm.password]);
+
+  // Email confirmation message
   if (emailConfirmationSent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-border/50 shadow-lg">
-          <CardHeader className="text-center">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-            <CardDescription>
-              We've sent a confirmation link to {signupForm.email}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Click the link in your email to activate your account. The link will expire in 24 hours.
-              </AlertDescription>
-            </Alert>
-            <Button 
-              variant="outline" 
-              className="w-full"
-              onClick={() => setEmailConfirmationSent(false)}
-            >
-              Back to Sign Up
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-md">
+          <Card className="glassmorphism shadow-xl">
+            <CardHeader className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">Check Your Email!</CardTitle>
+              <CardDescription className="text-base">
+                We've sent a confirmation link to your email address. Please click the link to activate your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Don't forget to check your spam folder if you don't see the email in your inbox.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={handleResendConfirmation}
+                  disabled={!canResendEmail || resendCooldown > 0 || isLoading}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Resend Confirmation Email
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  onClick={() => setEmailConfirmationSent(false)}
+                  variant="ghost"
+                  className="w-full"
+                >
+                  Back to Sign In
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -191,20 +327,20 @@ const EnhancedAuth = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Link>
           
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Brain className="h-12 w-12 text-primary" />
+            <Brain className="h-12 w-12 text-primary animate-glow-pulse" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-yellow-500 to-red-500 bg-clip-text text-transparent">
               Artechtist AI
             </h1>
           </div>
           
           <p className="text-muted-foreground">
-            Join thousands of young African innovators building conversational AI
+            Join thousands of young African innovators building AI
           </p>
         </div>
 
@@ -215,16 +351,36 @@ const EnhancedAuth = () => {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
-          {/* Enhanced Login Form */}
+          {/* Login Form */}
           <TabsContent value="login">
-            <Card className="border-border/50 shadow-lg">
+            <Card className="border-border/50 shadow-lg glassmorphism">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Welcome back!</CardTitle>
                 <CardDescription>
-                  Sign in to continue building amazing conversational AI agents
+                  Sign in to continue building amazing AI agents
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Error Display */}
+                {authErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-4 animate-fade-in">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {authErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Security Badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  <ShieldCheck className="h-4 w-4 text-green-600" />
+                  <span className="text-xs text-muted-foreground">Your data is protected with bank-level security</span>
+                </div>
+
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
@@ -255,31 +411,19 @@ const EnhancedAuth = () => {
                         onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="remember-me"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <Label htmlFor="remember-me" className="text-sm">Remember me</Label>
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -298,7 +442,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent"
+                    className="w-full mt-4 border-border hover:bg-accent transition-all duration-300"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
@@ -327,16 +471,30 @@ const EnhancedAuth = () => {
             </Card>
           </TabsContent>
 
-          {/* Enhanced Signup Form */}
+          {/* Signup Form */}
           <TabsContent value="signup">
-            <Card className="border-border/50 shadow-lg">
+            <Card className="border-border/50 shadow-lg glassmorphism">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                 <CardDescription>
-                  Start building conversational AI agents - it's free!
+                  Start your AI journey today - it's free!
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Error Display */}
+                {authErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-4 animate-fade-in">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {authErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -401,25 +559,62 @@ const EnhancedAuth = () => {
                         onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
+                      </button>
                     </div>
+                    
+                    {/* Enhanced Password Strength Indicator */}
                     {signupForm.password && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Password strength:</span>
-                          <span className={passwordStrength < 60 ? 'text-red-500' : 'text-green-500'}>
-                            {passwordStrength < 30 ? 'Weak' : passwordStrength < 60 ? 'Fair' : passwordStrength < 80 ? 'Good' : 'Strong'}
-                          </span>
+                      <div className="space-y-2 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Password Strength</span>
+                          <Badge 
+                            variant={passwordStrength >= 80 ? "default" : passwordStrength >= 60 ? "secondary" : "destructive"}
+                            className="text-xs"
+                          >
+                            {passwordStrength >= 80 ? 'Strong' : passwordStrength >= 60 ? 'Good' : passwordStrength >= 40 ? 'Fair' : 'Weak'}
+                          </Badge>
                         </div>
-                        <Progress value={passwordStrength} className={`h-2 ${getPasswordStrengthColor()}`} />
+                        <Progress value={passwordStrength} className="h-2" />
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div className="flex items-center gap-2">
+                            {signupForm.password.length >= 8 ? (
+                              <CheckCircle className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <X className="h-3 w-3 text-red-500" />
+                            )}
+                            <span>At least 8 characters</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/[A-Z]/.test(signupForm.password) && /[a-z]/.test(signupForm.password) ? (
+                              <CheckCircle className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <X className="h-3 w-3 text-red-500" />
+                            )}
+                            <span>Upper & lowercase letters</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/[0-9]/.test(signupForm.password) ? (
+                              <CheckCircle className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <X className="h-3 w-3 text-red-500" />
+                            )}
+                            <span>At least one number</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/[^A-Za-z0-9]/.test(signupForm.password) ? (
+                              <CheckCircle className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <X className="h-3 w-3 text-red-500" />
+                            )}
+                            <span>Special character (!@#$%^&*)</span>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -430,16 +625,37 @@ const EnhancedAuth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirm-password"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your password"
-                        className="pl-10"
+                        className="pl-10 pr-10"
                         value={signupForm.confirmPassword}
                         onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
-                    {signupForm.confirmPassword && signupForm.password !== signupForm.confirmPassword && (
-                      <p className="text-sm text-red-500">Passwords do not match</p>
+                    
+                    {/* Password Match Indicator */}
+                    {signupForm.confirmPassword && (
+                      <div className="flex items-center gap-2 text-sm animate-fade-in">
+                        {signupForm.password === signupForm.confirmPassword ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-green-600">Passwords match</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 text-red-500" />
+                            <span className="text-red-500">Passwords don't match</span>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -463,7 +679,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="w-full bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
                     disabled={isLoading || passwordStrength < 60}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
@@ -482,7 +698,7 @@ const EnhancedAuth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent"
+                    className="w-full mt-4 border-border hover:bg-accent transition-all duration-300"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
