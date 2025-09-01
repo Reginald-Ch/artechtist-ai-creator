@@ -124,7 +124,7 @@ const GoogleSpeakerIntegration: React.FC<GoogleSpeakerIntegrationProps> = ({
       },
       webhooks: {
         webhook: {
-          url: `${supabase.supabaseUrl}/functions/v1/google-assistant-webhook`
+          url: `https://sukjhodekowdfmqimiyo.supabase.co/functions/v1/google-assistant-webhook`
         }
       }
     };
