@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen, LogOut } from "lucide-react";
+import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen, LogOut, Settings, Radio } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import TemplateGallery from "@/components/TemplateGallery";
@@ -10,12 +10,18 @@ import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { AgentCreationDialog } from "@/components/AgentCreationDialog";
 
+// Lazy load performance-heavy components
+const GoogleAssistantIntegration = lazy(() => import("@/components/enhanced/GoogleAssistantIntegration").then(module => ({ default: module.GoogleAssistantIntegration })));
+const PerformanceOptimizer = lazy(() => import("@/components/enhanced/PerformanceOptimizer").then(module => ({ default: module.PerformanceOptimizer })));
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   const [showAgentCreation, setShowAgentCreation] = useState(false);
+  const [showGoogleAssistant, setShowGoogleAssistant] = useState(false);
+  const [showPerformanceTools, setShowPerformanceTools] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -138,6 +144,32 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           </Link>
+
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer border-red-200 hover:border-red-300"
+            onClick={() => setShowGoogleAssistant(true)}
+          >
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                <Radio className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-red-600">Google Assistant</CardTitle>
+              <CardDescription>Connect your bots with Google Assistant</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 hover:border-slate-300"
+            onClick={() => setShowPerformanceTools(true)}
+          >
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-slate-500 rounded-full flex items-center justify-center">
+                <Settings className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-slate-600">Performance Tools</CardTitle>
+              <CardDescription>Optimize app performance & offline features</CardDescription>
+            </CardHeader>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -247,6 +279,60 @@ const Dashboard = () => {
           open={showAgentCreation}
           onOpenChange={setShowAgentCreation}
         />
+
+        {/* Google Assistant Integration Modal */}
+        {showGoogleAssistant && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Google Assistant Integration</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowGoogleAssistant(false)}>
+                  ✕
+                </Button>
+              </div>
+              <div className="p-4">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Loading Google Assistant...</span>
+                  </div>
+                }>
+                  <GoogleAssistantIntegration 
+                    nodes={[]}
+                    edges={[]}
+                    onIntentMatch={(intent, confidence) => {
+                      console.log('Intent matched:', intent, confidence);
+                    }}
+                  />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Performance Tools Modal */}
+        {showPerformanceTools && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Performance Optimization Tools</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowPerformanceTools(false)}>
+                  ✕
+                </Button>
+              </div>
+              <div className="p-4">
+                <Suspense fallback={
+                  <div className="flex items-center justify-center p-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Loading Performance Tools...</span>
+                  </div>
+                }>
+                  <PerformanceOptimizer />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
