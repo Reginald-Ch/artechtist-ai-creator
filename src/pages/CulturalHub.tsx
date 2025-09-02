@@ -279,6 +279,11 @@ const CulturalHub = () => {
           <p className="text-muted-foreground text-lg">Learn how AI works through the wisdom of African traditions</p>
         </div>
 
+        {/* ML Games Collection */}
+        <div className="mb-8">
+          <MLGames />
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* AI Tic-Tac-Toe Game */}
           <div className="lg:col-span-2">

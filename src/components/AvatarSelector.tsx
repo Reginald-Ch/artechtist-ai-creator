@@ -35,7 +35,7 @@ const AvatarSelector = ({ selectedAvatar, onAvatarChange }: AvatarSelectorProps)
       personality: 'caring and professional medical assistant',
       description: 'Helpful medical knowledge companion',
       traits: ['Caring', 'Professional', 'Knowledgeable'],
-      color: 'bg-blue-100 text-blue-700',
+      color: 'bg-blue-50 text-blue-600 border-blue-200',
       category: 'educational'
     },
     { 
@@ -44,7 +44,7 @@ const AvatarSelector = ({ selectedAvatar, onAvatarChange }: AvatarSelectorProps)
       personality: 'patient and educational mentor',
       description: 'Loves teaching and explaining concepts',
       traits: ['Patient', 'Educational', 'Supportive'],
-      color: 'bg-green-100 text-green-700',
+      color: 'bg-green-50 text-green-600 border-green-200',
       category: 'educational'
     },
     { 
