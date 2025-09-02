@@ -67,17 +67,6 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Connection Handles with improved visibility */}
-      <div className={cn(
-        "absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20",
-        "hover:bg-primary/90",
-        isHovered && "bg-primary/80"
-      )} />
-      <div className={cn(
-        "absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20",
-        "hover:bg-primary/90", 
-        isHovered && "bg-primary/80"
-      )} />
       
       {/* Main Card - Exact match to reference */}
       <div 
@@ -171,16 +160,18 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
         )}
       </div>
 
-      {/* React Flow Handles - Hidden but functional */}
+      {/* React Flow Handles - Properly visible and functional */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="opacity-0 w-1 h-1"
+        className="!w-3 !h-3 !bg-primary !border-2 !border-background !shadow-lg !-top-1.5 !left-1/2 !-translate-x-1/2"
+        style={{ zIndex: 10 }}
       />
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className="opacity-0 w-1 h-1"
+        className="!w-3 !h-3 !bg-primary !border-2 !border-background !shadow-lg !-bottom-1.5 !left-1/2 !-translate-x-1/2"
+        style={{ zIndex: 10 }}
       />
     </div>
   );

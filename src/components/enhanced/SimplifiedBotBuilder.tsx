@@ -170,21 +170,22 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [template, setNodes]);
   
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({
+  const onConnect = useCallback((params: Connection) => 
+    setEdges((eds) => addEdge({
       ...params,
+      id: `e${params.source}-${params.target}`,
       markerEnd: { type: MarkerType.ArrowClosed },
       style: { 
         stroke: 'hsl(var(--foreground))',
         strokeWidth: 2,
       }
     }, eds)),
-    [setEdges],
+    [setEdges]
   );
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     event.stopPropagation();
-    setSelectedNode(node);
+    setSelectedNode(prev => prev?.id === node.id ? null : node);
   }, []);
 
   const addNewIntent = () => {
