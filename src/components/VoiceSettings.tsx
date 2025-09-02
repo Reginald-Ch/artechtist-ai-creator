@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { Play, Volume2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface VoiceSettingsProps {
   open: boolean;
@@ -50,22 +51,60 @@ const VoiceSettings = ({ open, onOpenChange }: VoiceSettingsProps) => {
   };
 
   const handleTestVoice = () => {
-    // Implement voice testing logic here
-    console.log('Testing voice with settings:', {
-      voiceGender,
-      pitch: pitch[0],
-      speakingSpeed: speakingSpeed[0],
-    });
+    const testMessage = "Hello! This is how I will sound when I speak to users.";
+    
+    if ('speechSynthesis' in window) {
+      // Stop any current speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(testMessage);
+      
+      // Apply current settings
+      utterance.pitch = pitch[0];
+      utterance.rate = speakingSpeed[0];
+      utterance.volume = 0.8;
+      
+      // Set voice gender preference
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice = voices.find(voice => 
+        voice.lang.includes('en') && 
+        (voiceGender === 'female' ? voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman') : 
+         voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+      ) || voices.find(voice => voice.lang.includes('en'));
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.log('Testing voice with settings:', {
+        voiceGender,
+        pitch: pitch[0],
+        speakingSpeed: speakingSpeed[0],
+      });
+    }
   };
 
   const handleSaveSettings = () => {
-    // Implement save logic here
-    console.log('Saving voice settings:', {
+    const voiceSettings = {
       voiceGender,
       pitch: pitch[0],
       speakingSpeed: speakingSpeed[0],
       preset: selectedPreset,
+      savedAt: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    localStorage.setItem('aiAgentVoiceSettings', JSON.stringify(voiceSettings));
+    
+    console.log('Saved voice settings:', voiceSettings);
+    
+    toast({
+      title: "Voice settings saved",
+      description: "Your voice preferences have been saved successfully",
     });
+    
     onOpenChange(false);
   };
 
