@@ -31,6 +31,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
+import VoiceSettings from "@/components/VoiceSettings";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { toast } from "@/hooks/use-toast";
 
@@ -88,6 +89,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botAvatar, setBotAvatar] = useState("🤖");
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   
@@ -461,7 +463,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 text-muted-foreground"
+              onClick={() => setShowVoiceSettings(true)}
+            >
               <Mic className="h-4 w-4" />
               Voice Settings
             </Button>
@@ -473,8 +480,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
         <div className="flex-1 flex">
-          {/* Left Panel - Conversation Flow */}
-          <div className="w-80 border-r bg-background p-4">
+          {/* Left Panel - Conversation Flow - More Space */}
+          <div className="w-96 border-r bg-background p-4">
             <div className="mb-4">
               <h2 className="text-lg font-semibold mb-2">Conversation Flow</h2>
               <div className="flex items-center gap-4 mb-4">
@@ -762,6 +769,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             </div>
           </div>
         </div>
+
+        {/* Voice Settings Dialog */}
+        <VoiceSettings 
+          open={showVoiceSettings} 
+          onOpenChange={setShowVoiceSettings} 
+        />
       </div>
     </TooltipProvider>
   );

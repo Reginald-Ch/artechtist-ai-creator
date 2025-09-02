@@ -36,114 +36,131 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   const hasResponses = responses.length > 0;
   const isComplete = hasTraining && hasResponses;
   
+  // Get icon and example based on intent
+  const getIntentIcon = () => {
+    if (label.toLowerCase().includes('greet') || label.toLowerCase().includes('hello')) return '👋';
+    if (label.toLowerCase().includes('fallback') || label.toLowerCase().includes('default')) return '❓';
+    return '💬';
+  };
+
+  const getExamplePhrase = () => {
+    if (trainingPhrases.length > 0) return trainingPhrases[0];
+    if (label.toLowerCase().includes('greet')) return '"Hello"';
+    return 'No training';
+  };
+
+  const getStatusInfo = () => {
+    if (isComplete) return { color: 'text-green-600', text: 'Ready', icon: '✓' };
+    if (!hasTraining) return { color: 'text-orange-500', text: 'No training', icon: '⚠' };
+    if (!hasResponses) return { color: 'text-orange-500', text: 'No responses', icon: '⚠' };
+    return { color: 'text-muted-foreground', text: 'Incomplete', icon: '○' };
+  };
+
+  const statusInfo = getStatusInfo();
+  
   return (
     <div 
       className={cn(
-        "bg-background border rounded-lg shadow-sm min-w-[180px] max-w-[220px] transition-all duration-200 relative group",
-        "hover:shadow-md",
-        selected 
-          ? 'border-primary ring-1 ring-primary/20' 
-          : isDefault 
-            ? 'border-muted-foreground/20' 
-            : 'border-border',
-        "cursor-pointer"
+        "relative group transition-all duration-200 cursor-pointer",
+        "min-w-[200px] max-w-[240px]"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Simple Delete Button */}
-      {!isDefault && (isHovered || selected) && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-background border border-border shadow-sm hover:shadow-md z-20"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete?.(id || '');
-          }}
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      )}
+      {/* Connection Handles - Match reference design exactly */}
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10" />
+      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10" />
       
-      {/* Context Menu */}
-      {!isDefault && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+      {/* Main Card - Exact match to reference */}
+      <div 
+        className={cn(
+          "bg-white border-2 rounded-xl shadow-sm p-4 space-y-3",
+          selected 
+            ? 'border-blue-500 shadow-lg' 
+            : isDefault 
+              ? 'border-blue-400' 
+              : 'border-orange-400',
+          "hover:shadow-md"
+        )}
+      >
+        {/* Header with Icon and Title */}
+        <div className="flex items-center gap-3">
+          <span className="text-xl">{getIntentIcon()}</span>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-800">{label} Intent</h3>
+            {isDefault && (
+              <Badge className="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 font-medium">
+                Default
+              </Badge>
+            )}
+          </div>
+          {/* Edit Button - only show on hover/selection */}
+          {(isHovered || selected) && (
             <Button
               size="sm"
-              variant="ghost"
-              className={cn(
-                "absolute top-2 right-2 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 z-20"
-              )}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(id || '');
+              }}
             >
-              <MoreVertical className="h-3 w-3" />
+              Editing
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => onEdit?.(id || '')} className="cursor-pointer">
-              <Edit className="mr-2 h-3 w-3" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDuplicate?.(id || '')} className="cursor-pointer">
-              <Copy className="mr-2 h-3 w-3" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => onDelete?.(id || '')}
-              className="text-destructive cursor-pointer focus:text-destructive"
-            >
-              <X className="mr-2 h-3 w-3" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      
-      {/* Clean Handles */}
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <MessageSquare className="h-4 w-4" />
+            <span>{trainingPhrases.length} phrases</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Bot className="h-4 w-4" />
+            <span>{responses.length} responses</span>
+          </div>
+        </div>
+
+        {/* Example */}
+        <div className="text-xs text-gray-500">
+          <span className="font-medium">Example: </span>
+          <span className="italic">{getExamplePhrase()}</span>
+        </div>
+
+        {/* Status */}
+        <div className="flex items-center justify-between">
+          <div className={cn("flex items-center gap-1 text-sm font-medium", statusInfo.color)}>
+            <span>{statusInfo.icon}</span>
+            <span>{statusInfo.text}</span>
+          </div>
+        </div>
+
+        {/* Delete button for non-default nodes */}
+        {!isDefault && (isHovered || selected) && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-red-50 hover:border-red-200 z-20"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(id || '');
+            }}
+          >
+            <X className="h-3 w-3 text-gray-500 hover:text-red-500" />
+          </Button>
+        )}
+      </div>
+
+      {/* React Flow Handles - Hidden but functional */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="w-2 h-2 border border-border bg-background"
+        className="opacity-0 w-1 h-1"
       />
-      
-      {/* Simplified Header */}
-      <div className="p-3 border-b border-border/50">
-        <div className="flex items-center gap-2">
-          <div className={cn(
-            "w-2 h-2 rounded-full",
-            isComplete ? "bg-green-500" : hasTraining || hasResponses ? "bg-yellow-500" : "bg-muted-foreground/30"
-          )} />
-          <h3 className="font-medium text-sm truncate flex-1">{label}</h3>
-          {isDefault && (
-            <Badge variant="secondary" className="text-xs py-0 px-1">
-              Default
-            </Badge>
-          )}
-        </div>
-      </div>
-      
-      {/* Minimal Content */}
-      <div className="p-3 space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Training</span>
-          <Badge variant="outline" className="text-xs h-4">
-            {trainingPhrases.length}
-          </Badge>
-        </div>
-        
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Responses</span>
-          <Badge variant="outline" className="text-xs h-4">
-            {responses.length}
-          </Badge>
-        </div>
-      </div>
-      
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className="w-2 h-2 border border-border bg-background"
+        className="opacity-0 w-1 h-1"
       />
     </div>
   );
