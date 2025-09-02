@@ -61,7 +61,7 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   return (
     <div 
       className={cn(
-        "relative group transition-all duration-200 cursor-pointer",
+        "relative group cursor-pointer",
         "min-w-[200px] max-w-[240px]"
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -69,27 +69,26 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
     >
       {/* Connection Handles with improved visibility */}
       <div className={cn(
-        "absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20 transition-all duration-200",
-        "hover:scale-125 hover:shadow-xl hover:bg-primary/90",
-        isHovered && "scale-110 bg-primary/80"
+        "absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20",
+        "hover:bg-primary/90",
+        isHovered && "bg-primary/80"
       )} />
       <div className={cn(
-        "absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20 transition-all duration-200",
-        "hover:scale-125 hover:shadow-xl hover:bg-primary/90",
-        isHovered && "scale-110 bg-primary/80"
+        "absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20",
+        "hover:bg-primary/90", 
+        isHovered && "bg-primary/80"
       )} />
       
       {/* Main Card - Exact match to reference */}
       <div 
         className={cn(
-          "bg-background border-2 rounded-xl shadow-sm p-4 space-y-3 transition-all duration-200",
+          "bg-background border-2 rounded-xl shadow-sm p-4 space-y-3",
           selected 
             ? 'border-primary shadow-lg ring-2 ring-primary/20' 
             : isDefault 
               ? 'border-primary/60' 
               : 'border-accent',
-          "hover:shadow-lg hover:border-primary/80",
-          isHovered && "shadow-md"
+          "hover:shadow-lg hover:border-primary/80"
         )}
       >
         {/* Header with Icon and Title */}
@@ -114,7 +113,7 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
               size="sm"
               variant={selected ? "default" : "outline"}
               className={cn(
-                "px-3 py-1 text-xs font-medium transition-all duration-200",
+                "px-3 py-1 text-xs font-medium",
                 selected ? "bg-primary text-primary-foreground" : "hover:bg-primary hover:text-primary-foreground"
               )}
               onClick={(e) => {
@@ -159,7 +158,7 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           <Button
             size="sm"
             variant="outline"
-            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:shadow-xl hover:bg-destructive/90 hover:scale-110 transition-all duration-200 z-30"
+            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
