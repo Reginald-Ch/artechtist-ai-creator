@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Mic, MicOff, Play, Volume2, Settings, Star, Trophy, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import VoiceTrainingStats from './VoiceTrainingStats';
+import ElevenLabsVoiceTraining from './ElevenLabsVoiceTraining';
+import { useVoiceTrainingProgress } from '@/hooks/useVoiceTrainingProgress';
 
 // African languages support
 const AFRICAN_LANGUAGES = [
@@ -75,7 +78,9 @@ const EnhancedVoiceTraining: React.FC<EnhancedVoiceTrainingProps> = ({ className
   const [score, setScore] = useState(0);
   const [achievements, setAchievements] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('overview');
   
+  const { stats, loading, updateProgress } = useVoiceTrainingProgress();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const { toast } = useToast();
 
@@ -248,12 +253,24 @@ const EnhancedVoiceTraining: React.FC<EnhancedVoiceTrainingProps> = ({ className
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <Tabs defaultValue="training" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="training">Voice Training</TabsTrigger>
           <TabsTrigger value="exercises">Exercises</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <VoiceTrainingStats
+            totalExercises={stats.totalExercises}
+            completedExercises={stats.completedExercises}
+            averageScore={stats.averageScore}
+            totalPracticeTime={stats.totalPracticeTime}
+            streakDays={stats.streakDays}
+            achievements={stats.achievements}
+          />
+        </TabsContent>
 
         <TabsContent value="training" className="space-y-4">
           {!hasApiKey && (
