@@ -199,8 +199,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   };
 
   const deleteNode = useCallback((nodeId: string) => {
+    console.log('deleteNode called with nodeId:', nodeId);
+    console.log('Current nodes:', nodes.map(n => ({ id: n.id, label: n.data.label, isDefault: n.data.isDefault })));
+    
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete) {
+      console.error('Node not found:', nodeId);
       toast({ 
         title: "Node not found", 
         description: "The intent could not be found",
@@ -209,7 +213,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       return;
     }
     
+    console.log('Node to delete:', nodeToDelete);
+    
     if (nodeToDelete.data.isDefault) {
+      console.log('Cannot delete default node');
       toast({ 
         title: "Cannot delete", 
         description: "Default intents cannot be deleted",
@@ -218,14 +225,25 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       return;
     }
 
+    console.log('Opening delete dialog for node:', nodeId);
     setDeleteDialog({open: true, nodeId});
   }, [nodes]);
 
   const confirmDelete = useCallback(() => {
-    if (!deleteDialog.nodeId) return;
+    console.log('confirmDelete called with nodeId:', deleteDialog.nodeId);
+    
+    if (!deleteDialog.nodeId) {
+      console.error('No nodeId in deleteDialog');
+      return;
+    }
     
     const nodeToDelete = nodes.find(n => n.id === deleteDialog.nodeId);
-    if (!nodeToDelete) return;
+    if (!nodeToDelete) {
+      console.error('Node not found for deletion:', deleteDialog.nodeId);
+      return;
+    }
+
+    console.log('Deleting node:', nodeToDelete);
 
     // Save state before deletion for undo
     undoRedo.saveState(nodes, edges);
@@ -234,6 +252,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newEdges = edges.filter((edge) => 
       edge.source !== deleteDialog.nodeId && edge.target !== deleteDialog.nodeId
     );
+    
+    console.log('New nodes after deletion:', newNodes.length);
+    console.log('New edges after deletion:', newEdges.length);
     
     setNodes(newNodes);
     setEdges(newEdges);
@@ -637,7 +658,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
-                nodeTypes={nodeTypes}
+                nodeTypes={memoizedNodeTypes}
                 fitView
                 minZoom={0.3}
                 maxZoom={1.5}

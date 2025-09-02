@@ -141,12 +141,20 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           <Button
             size="sm"
             variant="ghost"
-            className="absolute -top-3 -right-3 h-7 w-7 p-0 rounded-full bg-red-500 border-2 border-white shadow-lg hover:shadow-xl hover:bg-red-600 hover:scale-110 transition-all duration-200 z-30"
+            className="absolute -top-3 -right-3 h-8 w-8 p-0 rounded-full bg-red-500 border-2 border-white shadow-lg hover:shadow-xl hover:bg-red-600 hover:scale-110 transition-all duration-200 z-50"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
-              onDelete?.(id || '');
+              console.log('Delete button clicked for node:', id);
+              console.log('onDelete function exists:', !!onDelete);
+              if (onDelete && id) {
+                onDelete(id);
+              } else {
+                console.error('Delete function or ID missing:', { onDelete: !!onDelete, id });
+              }
             }}
             title="Delete intent"
+            data-testid={`delete-button-${id}`}
           >
             <X className="h-4 w-4 text-white" />
           </Button>
