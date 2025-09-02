@@ -14,12 +14,6 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
   const location = useLocation();
   const { signOut } = useAuth();
 
-  const navigationItems = [
-    { path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/ai-lessons', icon: BookOpen, label: 'AI Lessons' },
-    { path: '/voice-training', icon: Mic, label: 'Voice Training' },
-    { path: '/cultural-hub', icon: Users, label: 'Cultural Hub' },
-  ];
 
   const handleBack = () => {
     if (location.pathname === '/ai-lessons') {
@@ -50,24 +44,6 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
             )}
           </div>
 
-          <div className="hidden md:flex items-center space-x-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Button
-                  key={item.path}
-                  variant={isActive ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => navigate(item.path)}
-                  className="flex items-center space-x-1"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </Button>
-              );
-            })}
-          </div>
 
           <Button 
             variant="outline" 
