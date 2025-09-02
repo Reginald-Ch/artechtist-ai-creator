@@ -26,7 +26,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
@@ -41,6 +41,7 @@ import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
+import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerIntegration";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -442,9 +443,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     <div className="w-80 border-l bg-background overflow-y-auto">
       <Tabs defaultValue="build" className="h-full">
         <div className="border-b p-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="build">Build</TabsTrigger>
             <TabsTrigger value="test">Test</TabsTrigger>
+            <TabsTrigger value="speaker">Speaker</TabsTrigger>
           </TabsList>
         </div>
 
@@ -583,6 +585,18 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               nodes={nodes}
               botName={botName}
               botAvatar={botAvatar}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="speaker" className="p-0 mt-0 h-full">
+          <div className="p-4 h-full overflow-y-auto">
+            <GoogleSpeakerIntegration
+              botNodes={nodes}
+              botEdges={edges}
+              onConnectionChange={(isConnected) => {
+                console.log('Google Speaker connection changed:', isConnected);
+              }}
             />
           </div>
         </TabsContent>

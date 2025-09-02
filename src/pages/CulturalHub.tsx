@@ -261,9 +261,9 @@ const CulturalHub = () => {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Globe className="h-8 w-8 text-orange-500" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
-              Cultural Hub
+            <Brain className="h-8 w-8 text-purple-500" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
+              ML Playground
             </h1>
           </div>
           <Link to="/dashboard">
@@ -275,8 +275,8 @@ const CulturalHub = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold mb-2">Explore African Stories, Languages & AI! 🌍</h2>
-          <p className="text-muted-foreground text-lg">Learn how AI works through the wisdom of African traditions</p>
+          <h2 className="text-3xl font-bold mb-2">Interactive Machine Learning Playground 🤖</h2>
+          <p className="text-muted-foreground text-lg">Learn AI concepts through hands-on games and interactive experiences</p>
         </div>
 
         {/* ML Games Collection */}
