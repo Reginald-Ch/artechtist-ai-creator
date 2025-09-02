@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
-import { Brain, BookOpen, MessageCircle, Database, Shield, Bot, Play, Trophy, Star } from 'lucide-react';
+import { Brain, BookOpen, MessageCircle, Database, Shield, Bot, Play, Trophy, Star, Volume2, VolumeX, Square } from 'lucide-react';
+import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { toast } from 'sonner';
 
 const AILessons = () => {
@@ -228,6 +229,7 @@ const LessonView = ({ lesson, onComplete, onBack }: {
 }) => {
   const [currentPanel, setCurrentPanel] = useState(0);
   const [showFlashcards, setShowFlashcards] = useState(false);
+  const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
 
   if (showFlashcards) {
     return (
@@ -260,6 +262,15 @@ const LessonView = ({ lesson, onComplete, onBack }: {
   }
 
   const currentPanelData = lesson.panels[currentPanel];
+
+  const handlePlayAudio = () => {
+    if (isPlaying) {
+      stop();
+    } else {
+      const textToSpeak = `${currentPanelData.character}: ${currentPanelData.dialogue}`;
+      speak(textToSpeak);
+    }
+  };
   
   return (
     <Card className="max-w-4xl mx-auto">
@@ -269,9 +280,25 @@ const LessonView = ({ lesson, onComplete, onBack }: {
             <CardTitle>{lesson.title}</CardTitle>
             <CardDescription>Panel {currentPanel + 1} of {lesson.panels.length}</CardDescription>
           </div>
-          <Button variant="outline" onClick={onBack}>
-            Back to Topics
-          </Button>
+          <div className="flex items-center gap-2">
+            {isSupported && (
+              <>
+                <Button variant="outline" size="sm" onClick={handlePlayAudio}>
+                  {isPlaying ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                  {isPlaying ? 'Pause' : 'Listen'}
+                </Button>
+                {isPlaying && (
+                  <Button variant="outline" size="sm" onClick={stop}>
+                    <Square className="w-4 h-4 mr-2" />
+                    Stop
+                  </Button>
+                )}
+              </>
+            )}
+            <Button variant="outline" onClick={onBack}>
+              Back to Topics
+            </Button>
+          </div>
         </div>
         <Progress value={(currentPanel + 1) / lesson.panels.length * 100} className="h-2" />
       </CardHeader>
