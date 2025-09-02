@@ -754,6 +754,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 edges={edges}
                 isActive={showTestPanel}
                 onToggle={() => setShowTestPanel(!showTestPanel)}
+                selectedAvatar={botAvatar}
+                botPersonality={botPersonality}
               />
             </div>
           </div>

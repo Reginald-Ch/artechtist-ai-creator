@@ -20,9 +20,11 @@ interface TestChatInterfaceProps {
   edges: Edge[];
   isActive: boolean;
   onToggle: () => void;
+  selectedAvatar?: string;
+  botPersonality?: string;
 }
 
-export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChatInterfaceProps) => {
+export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAvatar = '🤖', botPersonality = 'friendly and helpful' }: TestChatInterfaceProps) => {
   const [messages, setMessages] = useState<TestMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +32,14 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  const conversationEngine = useConversationEngine(nodes, edges, "friendly and helpful");
+  const conversationEngine = useConversationEngine(nodes, edges, botPersonality);
+  const speechSynthRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthRef.current = window.speechSynthesis;
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,6 +62,20 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
     }
   }, [isActive]);
 
+  const speakText = (text: string) => {
+    if (speechSynthRef.current && 'speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      speechSynthRef.current.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      speechSynthRef.current.speak(utterance);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!input.trim() || !isActive) return;
 
@@ -64,11 +87,15 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input;
     setInput('');
     setIsLoading(true);
 
+    // Auto-speak user message
+    speakText(messageText);
+
     try {
-      const result = await conversationEngine.processUserInput(input);
+      const result = await conversationEngine.processUserInput(messageText);
       
       const botMessage: TestMessage = {
         id: `bot-${Date.now()}`,
@@ -82,6 +109,8 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
       setTimeout(() => {
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
+        // Auto-speak bot response
+        speakText(result.response);
       }, 500); // Simulate typing delay
     } catch (error) {
       const errorMessage: TestMessage = {
@@ -161,7 +190,7 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Bot className="h-4 w-4" />
+            <div className="text-lg">{selectedAvatar}</div>
             Chat Test
           </CardTitle>
           <div className="flex gap-1">
@@ -196,7 +225,7 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
                     ? 'bg-primary text-primary-foreground' 
                     : 'bg-muted text-muted-foreground'
                 }`}>
-                  {message.isUser ? <User className="h-3 w-3" /> : <Bot className="h-3 w-3" />}
+                  {message.isUser ? <User className="h-3 w-3" /> : selectedAvatar}
                 </div>
                 <div className={`rounded-lg px-3 py-2 text-sm ${
                   message.isUser 
@@ -221,7 +250,7 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
             <div className="flex justify-start">
               <div className="flex items-start gap-2">
                 <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs">
-                  <Bot className="h-3 w-3" />
+                  {selectedAvatar}
                 </div>
                 <div className="bg-muted text-foreground rounded-lg px-3 py-2 text-sm">
                   <div className="flex space-x-1">

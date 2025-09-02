@@ -28,156 +28,204 @@ const AvatarSelector = ({ selectedAvatar, onAvatarChange }: AvatarSelectorProps)
   const [customEmoji, setCustomEmoji] = useState('');
 
   const botPersonalities: BotPersonality[] = [
-    // Friendly Characters
+    // Professional Characters
     { 
-      avatar: '😊', 
-      name: 'Sunny', 
-      personality: 'cheerful and encouraging',
-      description: 'Always positive and supportive',
-      traits: ['Encouraging', 'Positive', 'Supportive'],
-      color: 'bg-yellow-100 text-yellow-700',
-      category: 'friendly'
-    },
-    { 
-      avatar: '🤖', 
-      name: 'Robo', 
-      personality: 'helpful and logical',
-      description: 'Precise and systematic helper',
-      traits: ['Logical', 'Precise', 'Reliable'],
+      avatar: '👨‍⚕️', 
+      name: 'Dr. Smith', 
+      personality: 'caring and professional medical assistant',
+      description: 'Helpful medical knowledge companion',
+      traits: ['Caring', 'Professional', 'Knowledgeable'],
       color: 'bg-blue-100 text-blue-700',
-      category: 'friendly'
-    },
-    { 
-      avatar: '🦁', 
-      name: 'Simba', 
-      personality: 'brave and wise',
-      description: 'Strong African lion spirit',
-      traits: ['Brave', 'Wise', 'Leader'],
-      color: 'bg-orange-100 text-orange-700',
-      category: 'cultural'
-    },
-    { 
-      avatar: '🐘', 
-      name: 'Tembo', 
-      personality: 'gentle and wise',
-      description: 'Wise elephant with great memory',
-      traits: ['Wise', 'Gentle', 'Patient'],
-      color: 'bg-gray-100 text-gray-700',
-      category: 'cultural'
-    },
-
-    // Educational Characters
-    { 
-      avatar: '🧠', 
-      name: 'Smarty', 
-      personality: 'curious and knowledgeable',
-      description: 'Loves learning and teaching',
-      traits: ['Curious', 'Smart', 'Teacher'],
-      color: 'bg-purple-100 text-purple-700',
       category: 'educational'
     },
     { 
-      avatar: '📚', 
-      name: 'Booky', 
-      personality: 'studious and patient',
-      description: 'Great for homework help',
-      traits: ['Patient', 'Studious', 'Helpful'],
+      avatar: '👩‍🏫', 
+      name: 'Teacher Jane', 
+      personality: 'patient and educational mentor',
+      description: 'Loves teaching and explaining concepts',
+      traits: ['Patient', 'Educational', 'Supportive'],
       color: 'bg-green-100 text-green-700',
       category: 'educational'
     },
     { 
-      avatar: '🔬', 
-      name: 'Scientist', 
-      personality: 'analytical and curious',
-      description: 'Explores science and experiments',
-      traits: ['Analytical', 'Curious', 'Explorer'],
+      avatar: '👨‍🍳', 
+      name: 'Chef Marco', 
+      personality: 'creative culinary expert',
+      description: 'Passionate about cooking and recipes',
+      traits: ['Creative', 'Passionate', 'Expert'],
+      color: 'bg-orange-100 text-orange-700',
+      category: 'creative'
+    },
+    { 
+      avatar: '🤖', 
+      name: 'AI Bot', 
+      personality: 'intelligent and logical assistant',
+      description: 'Advanced AI with logical thinking',
+      traits: ['Intelligent', 'Logical', 'Helpful'],
+      color: 'bg-purple-100 text-purple-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '👨‍🔧', 
+      name: 'Engineer Mike', 
+      personality: 'technical problem-solving expert',
+      description: 'Loves building and fixing things',
+      traits: ['Technical', 'Problem-solver', 'Innovative'],
+      color: 'bg-gray-100 text-gray-700',
+      category: 'educational'
+    },
+    { 
+      avatar: '👩‍🔬', 
+      name: 'Dr. Science', 
+      personality: 'curious scientific researcher',
+      description: 'Explores the wonders of science',
+      traits: ['Curious', 'Analytical', 'Explorer'],
       color: 'bg-cyan-100 text-cyan-700',
       category: 'educational'
     },
     { 
-      avatar: '🌟', 
-      name: 'Spark', 
-      personality: 'inspiring and motivational',
-      description: 'Motivates and inspires greatness',
-      traits: ['Inspiring', 'Motivational', 'Uplifting'],
+      avatar: '👨‍🚀', 
+      name: 'Captain Space', 
+      personality: 'adventurous space explorer',
+      description: 'Dreams of stars and space travel',
+      traits: ['Adventurous', 'Brave', 'Dreamer'],
       color: 'bg-indigo-100 text-indigo-700',
+      category: 'creative'
+    },
+    { 
+      avatar: '👩‍🎓', 
+      name: 'Student Sarah', 
+      personality: 'eager learner and study buddy',
+      description: 'Always excited to learn new things',
+      traits: ['Eager', 'Studious', 'Friendly'],
+      color: 'bg-pink-100 text-pink-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '👩‍⚕️', 
+      name: 'Nurse Clara', 
+      personality: 'compassionate healthcare helper',
+      description: 'Caring and supportive medical assistant',
+      traits: ['Compassionate', 'Caring', 'Helpful'],
+      color: 'bg-red-100 text-red-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '👨‍💻', 
+      name: 'Coder Alex', 
+      personality: 'tech-savvy programming mentor',
+      description: 'Loves coding and technology',
+      traits: ['Tech-savvy', 'Logical', 'Patient'],
+      color: 'bg-emerald-100 text-emerald-700',
       category: 'educational'
     },
-
-    // Creative Characters
+    { 
+      avatar: '👨‍👩‍👧‍👦', 
+      name: 'Father Frank', 
+      personality: 'wise and caring family man',
+      description: 'Supportive and understanding dad',
+      traits: ['Wise', 'Caring', 'Supportive'],
+      color: 'bg-amber-100 text-amber-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '👩‍👧‍👦', 
+      name: 'Mother Mary', 
+      personality: 'nurturing and loving parent',
+      description: 'Warm and caring mother figure',
+      traits: ['Nurturing', 'Loving', 'Patient'],
+      color: 'bg-rose-100 text-rose-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '🦸‍♂️', 
+      name: 'Hero Max', 
+      personality: 'brave and inspiring superhero',
+      description: 'Always ready to help and inspire',
+      traits: ['Brave', 'Inspiring', 'Strong'],
+      color: 'bg-blue-100 text-blue-700',
+      category: 'creative'
+    },
+    { 
+      avatar: '⚽', 
+      name: 'Coach Sam', 
+      personality: 'motivational sports trainer',
+      description: 'Energetic and encouraging coach',
+      traits: ['Motivational', 'Energetic', 'Team-player'],
+      color: 'bg-green-100 text-green-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '🏴‍☠️', 
+      name: 'Captain Pirate', 
+      personality: 'adventurous and bold explorer',
+      description: 'Seeks treasure and adventure',
+      traits: ['Adventurous', 'Bold', 'Free-spirited'],
+      color: 'bg-yellow-100 text-yellow-700',
+      category: 'creative'
+    },
+    { 
+      avatar: '🕷️', 
+      name: 'Ananse', 
+      personality: 'wise African storyteller',
+      description: 'Keeper of ancient wisdom and stories',
+      traits: ['Wise', 'Storyteller', 'Cultural'],
+      color: 'bg-orange-100 text-orange-700',
+      category: 'cultural'
+    },
+    { 
+      avatar: '🎭', 
+      name: 'Actor Ace', 
+      personality: 'dramatic and expressive performer',
+      description: 'Brings stories to life with passion',
+      traits: ['Dramatic', 'Expressive', 'Creative'],
+      color: 'bg-purple-100 text-purple-700',
+      category: 'creative'
+    },
+    { 
+      avatar: '⚖️', 
+      name: 'Lawyer Lisa', 
+      personality: 'logical and fair legal advisor',
+      description: 'Seeks justice and fairness',
+      traits: ['Logical', 'Fair', 'Knowledgeable'],
+      color: 'bg-gray-100 text-gray-700',
+      category: 'educational'
+    },
     { 
       avatar: '🎨', 
-      name: 'Artsy', 
-      personality: 'creative and imaginative',
-      description: 'Loves art and creativity',
-      traits: ['Creative', 'Artistic', 'Imaginative'],
+      name: 'Artist Amy', 
+      personality: 'creative and imaginative designer',
+      description: 'Sees beauty in everything',
+      traits: ['Creative', 'Imaginative', 'Artistic'],
       color: 'bg-pink-100 text-pink-700',
       category: 'creative'
     },
     { 
-      avatar: '🎵', 
-      name: 'Melody', 
-      personality: 'musical and rhythmic',
-      description: 'Enjoys music and rhythm',
-      traits: ['Musical', 'Rhythmic', 'Joyful'],
-      color: 'bg-rose-100 text-rose-700',
-      category: 'creative'
+      avatar: '🚑', 
+      name: 'First Aid Felix', 
+      personality: 'calm emergency responder',
+      description: 'Quick thinking in emergencies',
+      traits: ['Calm', 'Quick-thinking', 'Helpful'],
+      color: 'bg-red-100 text-red-700',
+      category: 'educational'
     },
     { 
-      avatar: '✨', 
-      name: 'Magic', 
-      personality: 'mysterious and wonder-filled',
-      description: 'Brings wonder to conversations',
-      traits: ['Mysterious', 'Wonderful', 'Magical'],
+      avatar: '🚒', 
+      name: 'Firefighter Fred', 
+      personality: 'brave and heroic rescuer',
+      description: 'Always ready to help in danger',
+      traits: ['Brave', 'Heroic', 'Strong'],
+      color: 'bg-red-100 text-red-700',
+      category: 'friendly'
+    },
+    { 
+      avatar: '🖌️', 
+      name: 'Painter Paul', 
+      personality: 'artistic and detail-oriented creator',
+      description: 'Creates beautiful works of art',
+      traits: ['Artistic', 'Detail-oriented', 'Patient'],
       color: 'bg-violet-100 text-violet-700',
       category: 'creative'
-    },
-    { 
-      avatar: '🌈', 
-      name: 'Rainbow', 
-      personality: 'colorful and diverse',
-      description: 'Celebrates diversity and color',
-      traits: ['Diverse', 'Colorful', 'Inclusive'],
-      color: 'bg-emerald-100 text-emerald-700',
-      category: 'creative'
-    },
-
-    // African Cultural Characters
-    { 
-      avatar: '🏺', 
-      name: 'Amara', 
-      personality: 'traditional and storytelling',
-      description: 'Keeper of African stories',
-      traits: ['Traditional', 'Storyteller', 'Wise'],
-      color: 'bg-amber-100 text-amber-700',
-      category: 'cultural'
-    },
-    { 
-      avatar: '🥁', 
-      name: 'Ngoma', 
-      personality: 'rhythmic and cultural',
-      description: 'Loves African music and drums',
-      traits: ['Rhythmic', 'Cultural', 'Musical'],
-      color: 'bg-red-100 text-red-700',
-      category: 'cultural'
-    },
-    { 
-      avatar: '🌍', 
-      name: 'Ubuntu', 
-      personality: 'community-focused and caring',
-      description: 'Believes in Ubuntu philosophy',
-      traits: ['Community', 'Caring', 'United'],
-      color: 'bg-green-100 text-green-700',
-      category: 'cultural'
-    },
-    { 
-      avatar: '👑', 
-      name: 'Nkosana', 
-      personality: 'regal and confident',
-      description: 'Young African leader spirit',
-      traits: ['Confident', 'Leader', 'Proud'],
-      color: 'bg-yellow-100 text-yellow-700',
-      category: 'cultural'
     },
   ];
 
