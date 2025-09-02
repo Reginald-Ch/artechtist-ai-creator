@@ -85,8 +85,8 @@ const AILessons = () => {
   ], []);
 
   // Get lesson details
-  const getLessonById = (id: string): Lesson | undefined => 
-    enhancedComicLessons[id as keyof typeof enhancedComicLessons];
+  const getLessonById = (id: string) => 
+    enhancedComicLessons[id as keyof typeof enhancedComicLessons] as any;
 
   // Calculate progress
   const totalLessons = Object.keys(enhancedComicLessons).length;
@@ -315,7 +315,7 @@ const AILessons = () => {
 
             <TabsContent value="search" className="space-y-6">
               <SearchInterface 
-                lessons={enhancedComicLessons}
+                lessons={enhancedComicLessons as Record<string, any>}
                 onSelectResult={handleSearchResult}
                 isLoading={isLoading}
               />

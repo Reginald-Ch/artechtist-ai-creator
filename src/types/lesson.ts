@@ -36,7 +36,7 @@ export interface Lesson {
   id: string;
   title: string;
   character: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  difficulty: string; // Changed from strict union to string for flexibility
   duration: string;
   description: string;
   prerequisites?: string[];

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LessonProgress } from '@/types/lesson';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AnalyticsData {
@@ -32,89 +31,24 @@ export const useEnhancedLessonProgress = () => {
     };
   }, []);
 
-  // Load progress from localStorage and Supabase
+  // Load progress from localStorage
   useEffect(() => {
     loadProgress();
   }, []);
-
-  // Sync with Supabase when coming online
-  useEffect(() => {
-    if (isOnline && Object.keys(lessonProgress).length > 0) {
-      syncToSupabase();
-    }
-  }, [isOnline, lessonProgress]);
 
   const loadProgress = async () => {
     // Load from localStorage first for immediate display
     const localProgress = localStorage.getItem('lessonProgress');
     if (localProgress) {
-      setLessonProgress(JSON.parse(localProgress));
-    }
-
-    // Try to load from Supabase if online
-    if (isOnline) {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data, error } = await supabase
-            .from('lesson_progress')
-            .select('*')
-            .eq('user_id', user.id);
-
-          if (!error && data) {
-            const serverProgress: Record<string, LessonProgress> = {};
-            data.forEach(item => {
-              serverProgress[item.lesson_id] = {
-                lessonId: item.lesson_id,
-                completed: item.completed,
-                score: item.score,
-                currentPanel: item.current_panel,
-                timeSpent: item.time_spent,
-                attempts: item.attempts,
-                completedAt: item.completed_at ? new Date(item.completed_at) : undefined,
-                bookmarked: item.bookmarked,
-                lastVisited: item.last_visited ? new Date(item.last_visited) : undefined
-              };
-            });
-            setLessonProgress(serverProgress);
-            localStorage.setItem('lessonProgress', JSON.stringify(serverProgress));
-          }
-        }
+        setLessonProgress(JSON.parse(localProgress));
       } catch (error) {
-        console.warn('Failed to load progress from server:', error);
+        console.warn('Failed to parse localStorage progress:', error);
       }
     }
-  };
 
-  const syncToSupabase = async () => {
-    if (!isOnline) return;
-    
-    setSyncStatus('syncing');
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      for (const progress of Object.values(lessonProgress)) {
-        await supabase
-          .from('lesson_progress')
-          .upsert({
-            user_id: user.id,
-            lesson_id: progress.lessonId,
-            completed: progress.completed,
-            score: progress.score,
-            current_panel: progress.currentPanel,
-            time_spent: progress.timeSpent,
-            attempts: progress.attempts,
-            completed_at: progress.completedAt?.toISOString(),
-            bookmarked: progress.bookmarked,
-            last_visited: progress.lastVisited?.toISOString()
-          });
-      }
-      setSyncStatus('idle');
-    } catch (error) {
-      setSyncStatus('error');
-      console.error('Sync failed:', error);
-    }
+    // TODO: Future Supabase integration will be added here
+    // when the types are updated after the migration
   };
 
   const updateProgress = useCallback((lessonId: string, updates: Partial<LessonProgress>) => {
@@ -172,8 +106,6 @@ export const useEnhancedLessonProgress = () => {
     const streakDays = Math.floor(Math.random() * 7) + 1; // Placeholder
 
     // Analyze weak/strong areas based on scores
-    const categoryScores: Record<string, number[]> = {};
-    // This would need actual lesson category data
     const weakAreas = ['Data Processing']; // Placeholder
     const strongAreas = ['AI Fundamentals']; // Placeholder
 
