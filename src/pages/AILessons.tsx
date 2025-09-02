@@ -9,6 +9,7 @@ import { FlashcardQuiz } from "@/components/FlashcardQuiz";
 import { InteractiveQuiz } from "@/components/ai-tutor/InteractiveQuiz";
 import { enhancedComicLessons } from "@/data/enhancedComicLessons";
 import MLGames from "@/components/enhanced/MLGames";
+import { useToast } from "@/hooks/use-toast";
 
 const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
@@ -17,6 +18,7 @@ const AILessons = () => {
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showInteractiveQuiz, setShowInteractiveQuiz] = useState(false);
   const [currentFlashcardSet, setCurrentFlashcardSet] = useState<any[]>([]);
+  const { toast } = useToast();
 
   // Enhanced AI Learning Data
   const aiTopics = [
@@ -330,19 +332,31 @@ const AILessons = () => {
                   {currentLessonData?.flashcards && currentLessonData.flashcards.length > 0 && (
                     <Button 
                       onClick={() => {
+                        console.log('Starting flashcard study...');
                         setCurrentFlashcardSet(currentLessonData.flashcards || []);
                         setShowFlashcards(true);
                       }}
-                      className="w-full"
+                      className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      onDoubleClick={(e) => e.preventDefault()}
                     >
                       Start Flashcard Study ({currentLessonData.flashcards.length} cards)
                     </Button>
                   )}
                   
                   <Button 
-                    variant="outline" 
-                    onClick={() => setSelectedLesson(null)}
-                    className="w-full"
+                    onClick={() => {
+                      console.log('Returning to lesson selection...');
+                      setSelectedLesson(null);
+                      // Scroll to top with smooth behavior
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      // Show feedback toast
+                      toast({
+                        title: "Returned to lesson selection",
+                        description: "Choose another lesson to continue learning!",
+                      });
+                    }}
+                    variant="secondary"
+                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   >
                     Choose Another Lesson
                   </Button>
@@ -362,9 +376,13 @@ const AILessons = () => {
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button 
-                    onClick={() => setShowInteractiveQuiz(true)}
-                    className="w-full"
+                    onClick={() => {
+                      console.log('Starting interactive quiz...');
+                      setShowInteractiveQuiz(true);
+                    }}
+                    className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     variant="secondary"
+                    onDoubleClick={(e) => e.preventDefault()}
                   >
                     Take Interactive Quiz ({quizQuestions.length} questions)
                   </Button>
@@ -706,20 +724,16 @@ const AILessons = () => {
         )}
       </div>
 
-      {/* Flashcard Quiz Modal */}
+      {/* Lesson-specific Flashcard Quiz Modal - Component has internal modal structure */}
       {showFlashcards && currentFlashcardSet.length > 0 && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <FlashcardQuiz
-              cards={currentFlashcardSet}
-              onComplete={(score) => {
-                console.log('Flashcard quiz completed with score:', score);
-                handleFlashcardsClose();
-              }}
-              onClose={handleFlashcardsClose}
-            />
-          </div>
-        </div>
+        <FlashcardQuiz
+          cards={currentFlashcardSet}
+          onComplete={(score) => {
+            console.log('Flashcard quiz completed with score:', score);
+            handleFlashcardsClose();
+          }}
+          onClose={handleFlashcardsClose}
+        />
       )}
 
       {/* Global Flashcard Quiz Modal */}
@@ -740,21 +754,17 @@ const AILessons = () => {
         />
       )}
 
-      {/* Interactive Quiz Modal */}
+      {/* Interactive Quiz Modal - Component has internal modal structure */}
       {showInteractiveQuiz && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <InteractiveQuiz
-              title="AI Learning Quiz"
-              questions={quizQuestions}
-              onComplete={(score, results) => {
-                console.log('Interactive quiz completed:', { score, results });
-                handleQuizClose();
-              }}
-              onClose={handleQuizClose}
-            />
-          </div>
-        </div>
+        <InteractiveQuiz
+          title="AI Learning Quiz"
+          questions={quizQuestions}
+          onComplete={(score, totalTime) => {
+            console.log('Interactive quiz completed:', { score, totalTime });
+            handleQuizClose();
+          }}
+          onClose={handleQuizClose}
+        />
       )}
 
       {/* ML Games Component */}
