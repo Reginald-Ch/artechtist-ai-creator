@@ -45,9 +45,10 @@ import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerI
 import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 
-  const nodeTypes = useMemo(() => ({
-    intent: IntentNode,
-  }), []);
+// Define nodeTypes outside component to prevent re-creation
+const nodeTypes = {
+  intent: IntentNode,
+};
 
 const initialNodes: Node[] = [
   {
