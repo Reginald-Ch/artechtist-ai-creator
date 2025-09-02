@@ -42,6 +42,8 @@ import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
 import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerIntegration";
+import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
+import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 
 const nodeTypes = {
   intent: IntentNode,
@@ -105,6 +107,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialCompleted, setTutorialCompleted] = useState(false);
   
   // Voice settings state
   const [voiceApiKey, setVoiceApiKey] = useState("");
@@ -611,7 +615,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* Enhanced Header with BotBuilderToolbar */}
         <BotBuilderToolbar
           onTestBot={() => setShowTestPanel(!showTestPanel)}
-          onTutorial={() => toast({ title: "Tutorial", description: "Tutorial coming soon!" })}
+          onTutorial={() => setShowTutorial(true)}
           onSave={handleSave}
           onUndo={handleUndo}
           onRedo={handleRedo}
@@ -914,6 +918,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           cancelText="Keep Intent"
           onConfirm={confirmDelete}
           destructive
+        />
+
+        {/* Tutorial Overlay */}
+        <TutorialOverlay
+          isOpen={showTutorial}
+          onClose={() => setShowTutorial(false)}
+          onComplete={() => {
+            setTutorialCompleted(true);
+            toast({ title: "Tutorial completed!", description: "You're ready to build amazing bots!" });
+          }}
         />
         </div>
       </TooltipProvider>

@@ -67,21 +67,29 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Connection Handles with animation */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10 transition-all duration-200 hover:scale-110 hover:border-blue-500" />
-      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10 transition-all duration-200 hover:scale-110 hover:border-blue-500" />
+      {/* Connection Handles with improved visibility */}
+      <div className={cn(
+        "absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20 transition-all duration-200",
+        "hover:scale-125 hover:shadow-xl hover:bg-primary/90",
+        isHovered && "scale-110 bg-primary/80"
+      )} />
+      <div className={cn(
+        "absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-primary border-2 border-white shadow-lg z-20 transition-all duration-200",
+        "hover:scale-125 hover:shadow-xl hover:bg-primary/90",
+        isHovered && "scale-110 bg-primary/80"
+      )} />
       
       {/* Main Card - Exact match to reference */}
       <div 
         className={cn(
-          "bg-white border-2 rounded-xl shadow-sm p-4 space-y-3 transition-all duration-300",
+          "bg-background border-2 rounded-xl shadow-sm p-4 space-y-3 transition-all duration-200",
           selected 
-            ? 'border-blue-500 shadow-lg transform scale-105' 
+            ? 'border-primary shadow-lg ring-2 ring-primary/20' 
             : isDefault 
-              ? 'border-blue-400' 
-              : 'border-orange-400',
-          "hover:shadow-lg hover:transform hover:scale-102",
-          isHovered && "shadow-md border-opacity-80"
+              ? 'border-primary/60' 
+              : 'border-accent',
+          "hover:shadow-lg hover:border-primary/80",
+          isHovered && "shadow-md"
         )}
       >
         {/* Header with Icon and Title */}
@@ -95,19 +103,29 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
               </Badge>
             )}
           </div>
-          {/* Edit Button - only show on hover/selection */}
-          {(isHovered || selected) && (
+          {/* Edit Button - improved UX */}
+          <div className="flex items-center gap-1">
+            {selected && (
+              <Badge variant="secondary" className="text-xs">
+                Selected
+              </Badge>
+            )}
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs font-medium"
+              variant={selected ? "default" : "outline"}
+              className={cn(
+                "px-3 py-1 text-xs font-medium transition-all duration-200",
+                selected ? "bg-primary text-primary-foreground" : "hover:bg-primary hover:text-primary-foreground"
+              )}
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit?.(id || '');
               }}
             >
-              Editing
+              <Edit className="h-3 w-3 mr-1" />
+              {selected ? 'Editing' : 'Edit'}
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Stats */}
@@ -136,27 +154,20 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           </div>
         </div>
 
-        {/* Delete button for non-default nodes - enhanced visibility */}
-        {!isDefault && (
+        {/* Delete button for non-default nodes - improved positioning */}
+        {!isDefault && (isHovered || selected) && (
           <Button
             size="sm"
-            variant="ghost"
-            className="absolute -top-3 -right-3 h-8 w-8 p-0 rounded-full bg-red-500 border-2 border-white shadow-lg hover:shadow-xl hover:bg-red-600 hover:scale-110 transition-all duration-200 z-50"
+            variant="outline"
+            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:shadow-xl hover:bg-destructive/90 hover:scale-110 transition-all duration-200 z-30"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('Delete button clicked for node:', id);
-              console.log('onDelete function exists:', !!onDelete);
-              if (onDelete && id) {
-                onDelete(id);
-              } else {
-                console.error('Delete function or ID missing:', { onDelete: !!onDelete, id });
-              }
+              onDelete?.(id || '');
             }}
             title="Delete intent"
-            data-testid={`delete-button-${id}`}
           >
-            <X className="h-4 w-4 text-white" />
+            <X className="h-3 w-3 text-destructive-foreground" />
           </Button>
         )}
       </div>
