@@ -110,21 +110,21 @@ export const enhancedComicLessons = {
   'intro-to-ai-ml': {
     id: 'intro-to-ai-ml',
     title: 'AI and Machine Learning Fundamentals',
-    character: 'Dr. Science',
+    character: 'Context Manager',
     difficulty: 'Beginner',
-    duration: '6 min',
+    duration: '8 min',
     description: 'Understanding the relationship between AI and ML with practical examples.',
     panels: [
       {
         id: 'panel-1',
-        character: 'Dr. Science',
+        character: 'Context Manager',
         dialogue: 'Think of AI as a big umbrella, and Machine Learning is one of the most important tools under that umbrella.',
         background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         animation: 'fadeIn'
       },
       {
         id: 'panel-2',
-        character: 'Engineer Mike',
+        character: 'Data Detective',
         dialogue: 'Machine Learning is like teaching a child to recognize animals by showing them thousands of pictures, instead of programming every detail.',
         background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
         animation: 'slideLeft'
@@ -133,8 +133,71 @@ export const enhancedComicLessons = {
         id: 'panel-3',
         character: 'Student Sarah',
         dialogue: 'So instead of writing code for every possible scenario, we let the computer figure out patterns from examples?',
-        background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
-        animation: 'slideRight',
+        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-4',
+        character: 'Context Manager',
+        dialogue: 'Exactly! There are three main types: Supervised Learning uses labeled examples, like showing photos labeled "cat" or "dog".',
+        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-5',
+        character: 'Data Detective',
+        dialogue: 'Unsupervised Learning finds hidden patterns without labels - like grouping customers by shopping habits without knowing what groups to look for.',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-6',
+        character: 'AI Assistant',
+        dialogue: 'And Reinforcement Learning learns through trial and error, like how you learned to ride a bike - getting better through practice and feedback!',
+        background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-7',
+        character: 'Student Sarah',
+        dialogue: 'What about Deep Learning? I keep hearing that term everywhere!',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-8',
+        character: 'Neural Navigator',
+        dialogue: 'Deep Learning uses artificial neural networks inspired by the human brain. Multiple layers of neurons process information step by step.',
+        background: 'linear-gradient(135deg, #fef7cd 0%, #fde68a 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-9',
+        character: 'Context Manager',
+        dialogue: 'Neural networks excel at recognizing complex patterns in images, understanding speech, and generating human-like text.',
+        background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-10',
+        character: 'Data Detective',
+        dialogue: 'The key is data quality and quantity. More diverse, high-quality data usually leads to better AI performance.',
+        background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-11',
+        character: 'AI Assistant',
+        dialogue: 'Remember: AI models need training time, computational power, and careful evaluation to ensure they work correctly.',
+        background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-12',
+        character: 'Student Sarah',
+        dialogue: 'Amazing! Now I understand how machines can learn from data. Ready to dive deeper into this fascinating world!',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
+        animation: 'celebration',
         interactiveElement: {
           type: 'question',
           content: 'What are the three main types of machine learning?',
@@ -165,21 +228,21 @@ export const enhancedComicLessons = {
   'intro-to-data': {
     id: 'intro-to-data',
     title: 'Understanding Data in AI',
-    character: 'Scientist Sarah',
+    character: 'Data Detective',
     difficulty: 'Beginner',
-    duration: '5 min',
+    duration: '8 min',
     description: 'Learn why data is the fuel that powers AI systems.',
     panels: [
       {
         id: 'panel-1',
-        character: 'Data Analyst David',
+        character: 'Data Detective',
         dialogue: 'Data is everywhere! Every click, every photo, every sensor reading is data that can teach AI systems.',
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
         animation: 'fadeIn'
       },
       {
         id: 'panel-2',
-        character: 'AI-ko',
+        character: 'AI Assistant',
         dialogue: 'Think of data as ingredients for cooking. The quality and variety of ingredients determine how good your meal will be!',
         background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         animation: 'slideLeft'
@@ -189,7 +252,70 @@ export const enhancedComicLessons = {
         character: 'Chef Marco',
         dialogue: 'Exactly! Just like I need fresh vegetables for a good soup, AI needs quality data to make good predictions.',
         background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
-        animation: 'slideRight',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-4',
+        character: 'Student Tech',
+        dialogue: 'What kinds of data can AI actually work with? Is it just numbers and text?',
+        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-5',
+        character: 'Data Detective',
+        dialogue: 'AI can work with text, images, audio, video, sensor data, location data, and even biometric data like heartbeats!',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-6',
+        character: 'Pattern Pioneer',
+        dialogue: 'There are two main types: Structured data (organized in tables) and Unstructured data (like social media posts or photos).',
+        background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-7',
+        character: 'AI Assistant',
+        dialogue: 'Before feeding data to AI, we need to clean it - removing errors, filling missing values, and formatting consistently.',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-8',
+        character: 'Data Detective',
+        dialogue: 'Big Data refers to datasets so large they need special tools to process - think billions of social media posts or sensor readings.',
+        background: 'linear-gradient(135deg, #fef7cd 0%, #fde68a 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-9',
+        character: 'Ethics Guardian',
+        dialogue: 'Remember: data privacy is crucial! We must protect personal information and use data responsibly.',
+        background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-10',
+        character: 'Pattern Pioneer',
+        dialogue: 'Quality over quantity! Better to have 1000 high-quality examples than 10,000 messy, biased ones.',
+        background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-11',
+        character: 'AI Assistant',
+        dialogue: 'Data labeling is when humans add meaningful tags to data - like marking which photos contain cats or dogs.',
+        background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-12',
+        character: 'Student Tech',
+        dialogue: 'Now I see why data scientists spend so much time preparing data before training AI models!',
+        background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
+        animation: 'celebration',
         interactiveElement: {
           type: 'question',
           content: 'What types of data can AI work with?',

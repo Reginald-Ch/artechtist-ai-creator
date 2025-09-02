@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
 import { Brain, BookOpen, MessageCircle, Database, Shield, Bot, Play, Trophy, Star, Volume2, VolumeX, Square } from 'lucide-react';
+import { AnimatedCharacter } from '@/components/AnimatedCharacter';
+import { EncouragingAI } from '@/components/EncouragingAI';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { toast } from 'sonner';
 
@@ -106,6 +108,7 @@ const AILessons = () => {
         {selectedLesson ? (
           <LessonView 
             lesson={getLessonById(selectedLesson)!} 
+            completedLessons={completedLessons}
             onComplete={() => handleCompleteLesson(selectedLesson)}
             onBack={() => setSelectedLesson(null)}
           />
@@ -222,8 +225,9 @@ const AILessons = () => {
 };
 
 // Simple lesson viewer component
-const LessonView = ({ lesson, onComplete, onBack }: {
+const LessonView = ({ lesson, completedLessons, onComplete, onBack }: {
   lesson: any;
+  completedLessons: Set<string>;
   onComplete: () => void;
   onBack: () => void;
 }) => {
@@ -306,17 +310,19 @@ const LessonView = ({ lesson, onComplete, onBack }: {
         {/* Character & Dialogue */}
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="character-avatar">
-              {currentPanelData.character[0]}
-            </div>
+            <AnimatedCharacter 
+              character={currentPanelData.character} 
+              size="lg" 
+              isActive={isPlaying}
+            />
             <div>
-              <h3 className="font-semibold">{currentPanelData.character}</h3>
+              <h3 className="font-semibold text-lg">{currentPanelData.character}</h3>
               <p className="text-sm text-muted-foreground">{currentPanelData.action}</p>
             </div>
           </div>
           
-          <div className="speech-bubble">
-            <p className="leading-relaxed">{currentPanelData.dialogue}</p>
+          <div className="speech-bubble bg-gradient-to-r from-background to-muted/20 p-6 rounded-2xl border shadow-sm">
+            <p className="leading-relaxed text-base">{currentPanelData.dialogue}</p>
           </div>
         </div>
 
@@ -377,6 +383,14 @@ const LessonView = ({ lesson, onComplete, onBack }: {
           </div>
         </div>
       </CardContent>
+      
+      {/* Encouraging AI Component */}
+      <EncouragingAI 
+        completedLessons={completedLessons.size}
+        currentPanel={currentPanel}
+        totalPanels={lesson.panels.length}
+        onPanelComplete={currentPanel > 0 ? () => {} : undefined}
+      />
     </Card>
   );
 };
