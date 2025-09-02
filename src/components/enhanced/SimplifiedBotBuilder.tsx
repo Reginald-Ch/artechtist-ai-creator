@@ -34,9 +34,11 @@ import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
 import VoiceSettings from "@/components/VoiceSettings";
 import { TestChatInterface } from "@/components/TestChatInterface";
+import { VoiceEnhancedChat } from "@/components/enhanced/VoiceEnhancedChat";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
+import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -97,6 +99,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [autoSave, setAutoSave] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const [isListening, setIsListening] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
   
   const isMobile = useIsMobile();
 
@@ -185,12 +188,29 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
     if (!nodeToDelete || nodeToDelete.data.isDefault) return;
 
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setDeleteDialog({open: true, nodeId});
+  };
+
+  const confirmDelete = () => {
+    if (!deleteDialog.nodeId) return;
+    
+    const nodeToDelete = nodes.find(n => n.id === deleteDialog.nodeId);
+    if (!nodeToDelete) return;
+
+    // Save state before deletion for undo
+    undoRedo.saveState(nodes, edges);
+
+    setNodes((nds) => nds.filter((node) => node.id !== deleteDialog.nodeId));
     setEdges((eds) => eds.filter((edge) => 
-      edge.source !== nodeId && edge.target !== nodeId
+      edge.source !== deleteDialog.nodeId && edge.target !== deleteDialog.nodeId
     ));
     setSelectedNode(null);
-    toast({ title: "Intent deleted", description: `"${nodeToDelete.data.label}" has been removed` });
+    setDeleteDialog({open: false, nodeId: null});
+    
+    toast({ 
+      title: "Intent deleted", 
+      description: `"${nodeToDelete.data.label}" has been removed`
+    });
   };
 
   const duplicateNode = (nodeId: string) => {
@@ -440,11 +460,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </TabsContent>
 
         <TabsContent value="test" className="p-0 mt-0 h-full">
-          <div className="p-4">
-            <TestPanel
+          <div className="p-4 h-full">
+            <VoiceEnhancedChat
               nodes={nodes}
               botName={botName}
-              onClose={() => setShowTestPanel(false)}
+              botAvatar={botAvatar}
             />
           </div>
         </TabsContent>
@@ -765,6 +785,18 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         <VoiceSettings 
           open={showVoiceSettings} 
           onOpenChange={setShowVoiceSettings} 
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmationDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog({open, nodeId: null})}
+          title="Delete Intent"
+          description={`Are you sure you want to delete "${nodes.find(n => n.id === deleteDialog.nodeId)?.data.label}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={confirmDelete}
+          destructive
         />
       </div>
     </TooltipProvider>

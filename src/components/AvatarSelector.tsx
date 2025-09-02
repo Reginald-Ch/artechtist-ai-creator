@@ -252,12 +252,12 @@ const AvatarSelector = ({ selectedAvatar, onAvatarChange }: AvatarSelectorProps)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-16 w-16 text-2xl p-0">
-          {selectedAvatar || '🤖'}
+        <Button variant="outline" className="h-16 w-16 text-2xl p-0 relative z-10">
+          <span className="text-2xl">{selectedAvatar || '🤖'}</span>
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto z-[100]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-orange-500" />
