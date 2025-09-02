@@ -14,6 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
+      bot_performance_metrics: {
+        Row: {
+          bot_id: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          recorded_at: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          bot_id: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          recorded_at?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          bot_id?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          recorded_at?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversation_messages: {
+        Row: {
+          confidence_score: number | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          intent_matched: string | null
+          language_detected: string | null
+          message_type: string
+          metadata: Json | null
+          processing_time_ms: number | null
+          user_id: string
+          voice_enabled: boolean | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          intent_matched?: string | null
+          language_detected?: string | null
+          message_type: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          user_id: string
+          voice_enabled?: boolean | null
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          intent_matched?: string | null
+          language_detected?: string | null
+          message_type?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          user_id?: string
+          voice_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          average_confidence: number | null
+          created_at: string
+          id: string
+          language_code: string | null
+          metadata: Json | null
+          session_id: string
+          status: string | null
+          title: string | null
+          total_messages: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_confidence?: number | null
+          created_at?: string
+          id?: string
+          language_code?: string | null
+          metadata?: Json | null
+          session_id: string
+          status?: string | null
+          title?: string | null
+          total_messages?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_confidence?: number | null
+          created_at?: string
+          id?: string
+          language_code?: string | null
+          metadata?: Json | null
+          session_id?: string
+          status?: string | null
+          title?: string | null
+          total_messages?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           attempts: number
@@ -89,6 +217,39 @@ export type Database = {
           parent_email?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      rate_limiting: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: unknown | null
+          request_count: number | null
+          user_id: string | null
+          window_start: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: unknown | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: unknown | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string
         }
         Relationships: []
       }
@@ -177,6 +338,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_analytics: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          page_url: string | null
+          processed: boolean | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          processed?: boolean | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          processed?: boolean | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       voice_training_progress: {
         Row: {
