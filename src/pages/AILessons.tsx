@@ -237,32 +237,70 @@ const AILessons = () => {
     }
   };
 
-  if (selectedLesson && enhancedComicLessons[selectedLesson as keyof typeof enhancedComicLessons]) {
+  if (selectedLesson) {
+    // Check if the lesson exists in enhancedComicLessons
     const lesson = enhancedComicLessons[selectedLesson as keyof typeof enhancedComicLessons];
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedLesson(null)}
-              className="mb-4"
-            >
-              ← Back to Lessons
-            </Button>
+    
+    if (lesson && lesson.panels && lesson.panels.length > 0) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedLesson(null)}
+                className="mb-4"
+              >
+                ← Back to Lessons
+              </Button>
+            </div>
+            
+            <ComicLesson
+              lessonId={lesson.id}
+              title={lesson.title}
+              character={lesson.character}
+              panels={lesson.panels}
+              onComplete={handleLessonComplete}
+              onProgress={handleLessonProgress}
+            />
           </div>
-          
-          <ComicLesson
-            lessonId={lesson.id}
-            title={lesson.title}
-            character={lesson.character}
-            panels={lesson.panels}
-            onComplete={handleLessonComplete}
-            onProgress={handleLessonProgress}
-          />
         </div>
-      </div>
-    );
+      );
+    } else {
+      // Handle case where lesson data is missing or incomplete
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setSelectedLesson(null)}
+                className="mb-4"
+              >
+                ← Back to Lessons
+              </Button>
+            </div>
+            
+            <Card className="max-w-md mx-auto">
+              <CardHeader className="text-center">
+                <CardTitle className="text-red-600">Lesson Not Available</CardTitle>
+                <CardDescription>
+                  This lesson is currently being updated with new content.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Please try another lesson or come back later.
+                </p>
+                <Button onClick={() => setSelectedLesson(null)}>
+                  Choose Another Lesson
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (

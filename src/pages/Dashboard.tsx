@@ -8,12 +8,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
+import { AgentCreationDialog } from "@/components/AgentCreationDialog";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+  const [showAgentCreation, setShowAgentCreation] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -75,17 +77,18 @@ const Dashboard = () => {
 
         {/* Quick Actions - AMBY Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link to="/builder">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-                  <Plus className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-orange-600">Create New Project</CardTitle>
-                <CardDescription>Build a brand-new conversational agent</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300"
+            onClick={() => setShowAgentCreation(true)}
+          >
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                <Plus className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-orange-600">Create New Project</CardTitle>
+              <CardDescription>Build a brand-new conversational agent</CardDescription>
+            </CardHeader>
+          </Card>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer border-blue-200 hover:border-blue-300">
             <CardHeader className="text-center">
@@ -238,6 +241,12 @@ const Dashboard = () => {
             }}
           />
         )}
+
+        {/* Agent Creation Dialog */}
+        <AgentCreationDialog 
+          open={showAgentCreation}
+          onOpenChange={setShowAgentCreation}
+        />
       </div>
     </div>
   );
