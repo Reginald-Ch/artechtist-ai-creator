@@ -16,6 +16,7 @@ const AILessons = () => {
   const [lessonProgress, setLessonProgress] = useState<Record<string, number>>({});
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showInteractiveQuiz, setShowInteractiveQuiz] = useState(false);
+  const [currentFlashcardSet, setCurrentFlashcardSet] = useState<any[]>([]);
 
   // Enhanced AI Learning Data
   const aiTopics = [
@@ -237,6 +238,17 @@ const AILessons = () => {
     }
   };
 
+  // Handle when flashcards modal closes
+  const handleFlashcardsClose = () => {
+    setShowFlashcards(false);
+    setCurrentFlashcardSet([]);
+  };
+
+  // Handle when quiz modal closes
+  const handleQuizClose = () => {
+    setShowInteractiveQuiz(false);
+  };
+
   if (selectedLesson) {
     // Map lesson IDs to available lessons
     const lessonMap: Record<string, keyof typeof enhancedComicLessons> = {
@@ -317,7 +329,10 @@ const AILessons = () => {
                   
                   {currentLessonData?.flashcards && currentLessonData.flashcards.length > 0 && (
                     <Button 
-                      onClick={() => setShowFlashcards(true)}
+                      onClick={() => {
+                        setCurrentFlashcardSet(currentLessonData.flashcards || []);
+                        setShowFlashcards(true);
+                      }}
                       className="w-full"
                     >
                       Start Flashcard Study ({currentLessonData.flashcards.length} cards)
@@ -351,7 +366,7 @@ const AILessons = () => {
                     className="w-full"
                     variant="secondary"
                   >
-                    Take Interactive Quiz
+                    Take Interactive Quiz ({quizQuestions.length} questions)
                   </Button>
                 </CardContent>
               </Card>
@@ -692,7 +707,23 @@ const AILessons = () => {
       </div>
 
       {/* Flashcard Quiz Modal */}
-      {showFlashcards && (
+      {showFlashcards && currentFlashcardSet.length > 0 && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <FlashcardQuiz
+              cards={currentFlashcardSet}
+              onComplete={(score) => {
+                console.log('Flashcard quiz completed with score:', score);
+                handleFlashcardsClose();
+              }}
+              onClose={handleFlashcardsClose}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Global Flashcard Quiz Modal */}
+      {showFlashcards && currentFlashcardSet.length === 0 && (
         <FlashcardQuiz
           cards={aiLessonsData.flatMap(lesson => lesson.flashcards.map(card => ({
             id: card.question,
@@ -711,16 +742,25 @@ const AILessons = () => {
 
       {/* Interactive Quiz Modal */}
       {showInteractiveQuiz && (
-        <InteractiveQuiz
-          title="AI Learning Quiz"
-          questions={quizQuestions}
-          onComplete={(score) => {
-            console.log('Interactive quiz completed with score:', score);
-            setShowInteractiveQuiz(false);
-          }}
-          onClose={() => setShowInteractiveQuiz(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <InteractiveQuiz
+              title="AI Learning Quiz"
+              questions={quizQuestions}
+              onComplete={(score, results) => {
+                console.log('Interactive quiz completed:', { score, results });
+                handleQuizClose();
+              }}
+              onClose={handleQuizClose}
+            />
+          </div>
+        </div>
       )}
+
+      {/* ML Games Component */}
+      <div className="mt-16">
+        <MLGames />
+      </div>
     </div>
   );
 };
