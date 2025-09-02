@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
 import { FlashcardQuiz } from "@/components/FlashcardQuiz";
 import { InteractiveQuiz } from "@/components/ai-tutor/InteractiveQuiz";
-import { comicLessons } from "@/data/comicLessons";
+import { enhancedComicLessons } from "@/data/enhancedComicLessons";
 
 const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
@@ -236,8 +236,8 @@ const AILessons = () => {
     }
   };
 
-  if (selectedLesson && comicLessons[selectedLesson as keyof typeof comicLessons]) {
-    const lesson = comicLessons[selectedLesson as keyof typeof comicLessons];
+  if (selectedLesson && enhancedComicLessons[selectedLesson as keyof typeof enhancedComicLessons]) {
+    const lesson = enhancedComicLessons[selectedLesson as keyof typeof enhancedComicLessons];
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
         <div className="container mx-auto px-4 py-8">
@@ -387,14 +387,14 @@ const AILessons = () => {
             </div>
             <div className="text-center group">
               <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
-                <div className="text-4xl font-bold font-fredoka text-purple-600 group-hover:scale-110 transition-transform">{Object.keys(comicLessons).length}</div>
+                <div className="text-4xl font-bold font-fredoka text-purple-600 group-hover:scale-110 transition-transform">{Object.keys(enhancedComicLessons).length}</div>
                 <div className="text-sm font-comic text-muted-foreground">Total Adventures</div>
               </div>
             </div>
             <div className="text-center group">
               <div className="comic-card rounded-2xl p-6 h-24 flex flex-col justify-center hover:scale-105 transition-all duration-300 cursor-pointer group-hover:shadow-xl">
                 <div className="text-4xl font-bold font-fredoka text-green-600 group-hover:scale-110 transition-transform">
-                  {Math.round((completedLessons.size / Object.keys(comicLessons).length) * 100)}%
+                  {Math.round((completedLessons.size / Object.keys(enhancedComicLessons).length) * 100)}%
                 </div>
                 <div className="text-sm font-comic text-muted-foreground">Progress Made</div>
               </div>
@@ -432,10 +432,10 @@ const AILessons = () => {
 
         {/* Adventures Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Object.entries(comicLessons).map(([lessonId, lesson], index) => {
+          {Object.entries(enhancedComicLessons).map(([lessonId, lesson], index) => {
             const isCompleted = completedLessons.has(lessonId);
             const progress = lessonProgress[lessonId] || 0;
-            const totalPanels = lesson.panels.length;
+            const totalPanels = lesson.panels?.length || 0;
             
             return (
               <Card 
@@ -488,13 +488,13 @@ const AILessons = () => {
                       {lesson.duration}
                     </Badge>
                     <Badge variant="outline" className="font-comic px-3 py-1">
-                      📖 {lesson.panels.length} panels
+                      📖 {totalPanels} panels
                     </Badge>
                   </div>
                 </CardHeader>
                 
                 <CardContent className="p-6 pt-0">
-                  {progress > 0 && !isCompleted && (
+                  {progress > 0 && !isCompleted && totalPanels > 0 && (
                     <div className="mb-6 comic-card rounded-2xl p-4">
                       <div className="flex justify-between text-sm font-comic text-muted-foreground mb-2">
                         <span>Adventure Progress</span>
@@ -558,11 +558,11 @@ const AILessons = () => {
                 </div>
                 <h3 className="text-4xl font-fredoka font-bold mb-4">Awesome Progress! 🎊</h3>
                 <p className="text-xl font-comic opacity-95 mb-6 max-w-2xl mx-auto">
-                  Amazing work! You've completed <strong>{completedLessons.size}</strong> out of <strong>{Object.keys(comicLessons).length}</strong> AI adventures. 
+                  Amazing work! You've completed <strong>{completedLessons.size}</strong> out of <strong>{Object.keys(enhancedComicLessons).length}</strong> AI adventures. 
                   Keep exploring the fascinating world of artificial intelligence!
                 </p>
                 
-                {completedLessons.size === Object.keys(comicLessons).length && (
+                {completedLessons.size === Object.keys(enhancedComicLessons).length && (
                   <div className="comic-bounce">
                     <div className="speech-bubble bg-white text-purple-600 font-comic text-xl font-bold mb-6 inline-block">
                       🏆 Congratulations! You're now an AI Master! 🏆

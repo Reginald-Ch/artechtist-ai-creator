@@ -252,7 +252,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         onEdit={editNode}
       />
     ),
-  }), []);
+  }), [deleteNode, duplicateNode, editNode]);
 
   const updateSelectedNode = useCallback((field: string, value: any) => {
     if (!selectedNode) return;
@@ -576,7 +576,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
-                nodeTypes={memoizedNodeTypes}
+                nodeTypes={nodeTypes}
                 fitView
                 minZoom={0.3}
                 maxZoom={1.5}
