@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo, Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap, GraduationCap, Volume2 } from "lucide-react";
+import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap, GraduationCap, Volume2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
 import { FlashcardQuiz } from "@/components/FlashcardQuiz";
@@ -10,6 +10,23 @@ import { InteractiveQuiz } from "@/components/ai-tutor/InteractiveQuiz";
 import { enhancedComicLessons } from "@/data/enhancedComicLessons";
 import MLGames from "@/components/enhanced/MLGames";
 import { useToast } from "@/hooks/use-toast";
+import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
+
+// Lazy load heavy components for better performance
+const LazyInteractiveQuiz = lazy(() => import("@/components/ai-tutor/InteractiveQuiz").then(module => ({ default: module.InteractiveQuiz })));
+const LazyFlashcardQuiz = lazy(() => import("@/components/FlashcardQuiz").then(module => ({ default: module.FlashcardQuiz })));
+
+// Loading spinner component
+const LoadingSpinner = ({ message = "Loading..." }: { message?: string }) => (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <Card className="p-6 min-w-[200px]">
+      <div className="flex flex-col items-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+    </Card>
+  </div>
+);
 
 const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
@@ -18,7 +35,18 @@ const AILessons = () => {
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showInteractiveQuiz, setShowInteractiveQuiz] = useState(false);
   const [currentFlashcardSet, setCurrentFlashcardSet] = useState<any[]>([]);
+  const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
+  const [isLoadingFlashcards, setIsLoadingFlashcards] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const { toast } = useToast();
+
+  // Debug logging function
+  const logDebug = useCallback((message: string, data?: any) => {
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] ${message}`;
+    console.log(logEntry, data || '');
+    setDebugLogs(prev => [...prev.slice(-9), logEntry]); // Keep last 10 logs
+  }, []);
 
   // Enhanced AI Learning Data
   const aiTopics = [
@@ -35,16 +63,18 @@ const AILessons = () => {
     'Design thinking'
   ];
 
-  // Enhanced AI Lessons with flashcards for each topic
-  const aiLessonsData = aiTopics.map((topic, index) => ({
-    id: `lesson-${index + 1}`,
-    title: topic,
-    description: getTopicDescription(topic),
-    flashcards: getFlashcardsForTopic(topic),
-    duration: '10-15 mins',
-    difficulty: index < 3 ? 'Beginner' : index < 7 ? 'Intermediate' : 'Advanced',
-    isComplete: completedLessons.has(`lesson-${index + 1}`)
-  }));
+  // Memoized AI Lessons data for performance
+  const aiLessonsData = useMemo(() => 
+    aiTopics.map((topic, index) => ({
+      id: `lesson-${index + 1}`,
+      title: topic,
+      description: getTopicDescription(topic),
+      flashcards: getFlashcardsForTopic(topic),
+      duration: '10-15 mins',
+      difficulty: index < 3 ? 'Beginner' : index < 7 ? 'Intermediate' : 'Advanced',
+      isComplete: completedLessons.has(`lesson-${index + 1}`)
+    })), [completedLessons]
+  );
 
   function getTopicDescription(topic: string): string {
     const descriptions: Record<string, string> = {
@@ -240,16 +270,64 @@ const AILessons = () => {
     }
   };
 
-  // Handle when flashcards modal closes
-  const handleFlashcardsClose = () => {
+  // Enhanced modal close handlers with debugging
+  const handleFlashcardsClose = useCallback(() => {
+    logDebug('Flashcards modal closing');
+    setIsLoadingFlashcards(false);
     setShowFlashcards(false);
     setCurrentFlashcardSet([]);
-  };
+  }, [logDebug]);
 
-  // Handle when quiz modal closes
-  const handleQuizClose = () => {
+  const handleQuizClose = useCallback(() => {
+    logDebug('Interactive quiz modal closing');
+    setIsLoadingQuiz(false);
     setShowInteractiveQuiz(false);
-  };
+  }, [logDebug]);
+
+  // Enhanced flashcard starter with loading state
+  const startFlashcards = useCallback(async (cards: any[]) => {
+    try {
+      logDebug('Starting flashcards', { cardCount: cards.length });
+      setIsLoadingFlashcards(true);
+      setCurrentFlashcardSet(cards);
+      
+      // Simulate brief loading for smooth UX
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      setShowFlashcards(true);
+    } catch (error) {
+      logDebug('Error starting flashcards', error);
+      toast({
+        title: "Error",
+        description: "Failed to load flashcards. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingFlashcards(false);
+    }
+  }, [logDebug, toast]);
+
+  // Enhanced quiz starter with loading state
+  const startInteractiveQuiz = useCallback(async () => {
+    try {
+      logDebug('Starting interactive quiz');
+      setIsLoadingQuiz(true);
+      
+      // Simulate brief loading for smooth UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setShowInteractiveQuiz(true);
+    } catch (error) {
+      logDebug('Error starting quiz', error);
+      toast({
+        title: "Error",
+        description: "Failed to load quiz. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingQuiz(false);
+    }
+  }, [logDebug, toast]);
 
   if (selectedLesson) {
     // Map lesson IDs to available lessons
@@ -333,13 +411,20 @@ const AILessons = () => {
                     <Button 
                       onClick={() => {
                         console.log('Starting flashcard study...');
-                        setCurrentFlashcardSet(currentLessonData.flashcards || []);
-                        setShowFlashcards(true);
+                        startFlashcards(currentLessonData.flashcards || []);
                       }}
                       className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       onDoubleClick={(e) => e.preventDefault()}
+                      disabled={isLoadingFlashcards}
                     >
-                      Start Flashcard Study ({currentLessonData.flashcards.length} cards)
+                      {isLoadingFlashcards ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        `Start Flashcard Study (${currentLessonData.flashcards.length} cards)`
+                      )}
                     </Button>
                   )}
                   
@@ -378,13 +463,21 @@ const AILessons = () => {
                   <Button 
                     onClick={() => {
                       console.log('Starting interactive quiz...');
-                      setShowInteractiveQuiz(true);
+                      startInteractiveQuiz();
                     }}
                     className="w-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     variant="secondary"
                     onDoubleClick={(e) => e.preventDefault()}
+                    disabled={isLoadingQuiz}
                   >
-                    Take Interactive Quiz ({quizQuestions.length} questions)
+                    {isLoadingQuiz ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Loading Quiz...
+                      </>
+                    ) : (
+                      `Take Interactive Quiz (${quizQuestions.length} questions)`
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -724,16 +817,40 @@ const AILessons = () => {
         )}
       </div>
 
-      {/* Lesson-specific Flashcard Quiz Modal - Component has internal modal structure */}
+      {/* Loading States */}
+      {isLoadingFlashcards && <LoadingSpinner message="Loading flashcards..." />}
+      {isLoadingQuiz && <LoadingSpinner message="Preparing interactive quiz..." />}
+
+      {/* Error Boundary wrapped quiz modals */}
       {showFlashcards && currentFlashcardSet.length > 0 && (
-        <FlashcardQuiz
-          cards={currentFlashcardSet}
-          onComplete={(score) => {
-            console.log('Flashcard quiz completed with score:', score);
-            handleFlashcardsClose();
-          }}
-          onClose={handleFlashcardsClose}
-        />
+        <ErrorBoundary
+          onError={(error) => logDebug('Flashcard quiz error', error)}
+          fallback={
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="p-6 max-w-md">
+                <div className="text-center space-y-4">
+                  <p className="text-destructive">Failed to load flashcards</p>
+                  <Button onClick={handleFlashcardsClose}>Close</Button>
+                </div>
+              </Card>
+            </div>
+          }
+        >
+          <Suspense fallback={<LoadingSpinner message="Loading flashcards..." />}>
+            <LazyFlashcardQuiz
+              cards={currentFlashcardSet}
+              onComplete={(score) => {
+                logDebug('Flashcard quiz completed', { score });
+                handleFlashcardsClose();
+                toast({
+                  title: "Flashcards completed!",
+                  description: `You scored ${score}% - Keep up the great work!`,
+                });
+              }}
+              onClose={handleFlashcardsClose}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       {/* Global Flashcard Quiz Modal */}
@@ -754,23 +871,59 @@ const AILessons = () => {
         />
       )}
 
-      {/* Interactive Quiz Modal - Component has internal modal structure */}
+      {/* Interactive Quiz Modal with Error Boundary and Lazy Loading */}
       {showInteractiveQuiz && (
-        <InteractiveQuiz
-          title="AI Learning Quiz"
-          questions={quizQuestions}
-          onComplete={(score, totalTime) => {
-            console.log('Interactive quiz completed:', { score, totalTime });
-            handleQuizClose();
-          }}
-          onClose={handleQuizClose}
-        />
+        <ErrorBoundary
+          onError={(error) => logDebug('Interactive quiz error', error)}
+          fallback={
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <Card className="p-6 max-w-md">
+                <div className="text-center space-y-4">
+                  <p className="text-destructive">Failed to load interactive quiz</p>
+                  <Button onClick={handleQuizClose}>Close</Button>
+                </div>
+              </Card>
+            </div>
+          }
+        >
+          <Suspense fallback={<LoadingSpinner message="Loading interactive quiz..." />}>
+            <LazyInteractiveQuiz
+              title="AI Learning Quiz"
+              questions={quizQuestions}
+              onComplete={(score, totalTime) => {
+                logDebug('Interactive quiz completed', { score, totalTime });
+                handleQuizClose();
+                toast({
+                  title: "Quiz completed! 🏆",
+                  description: `You scored ${score}/${quizQuestions.length} in ${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`,
+                });
+              }}
+              onClose={handleQuizClose}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
 
-      {/* ML Games Component */}
+      {/* ML Games Component with Error Boundary */}
       <div className="mt-16">
-        <MLGames />
+        <ErrorBoundary
+          onError={(error) => logDebug('ML Games error', error)}
+        >
+          <MLGames />
+        </ErrorBoundary>
       </div>
+
+      {/* Debug Panel (only in development) */}
+      {process.env.NODE_ENV === 'development' && debugLogs.length > 0 && (
+        <div className="fixed bottom-4 right-4 bg-background border rounded-lg p-4 max-w-sm max-h-48 overflow-y-auto z-40">
+          <h4 className="text-sm font-semibold mb-2">Debug Logs</h4>
+          <div className="text-xs space-y-1">
+            {debugLogs.map((log, index) => (
+              <div key={index} className="text-muted-foreground">{log}</div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
