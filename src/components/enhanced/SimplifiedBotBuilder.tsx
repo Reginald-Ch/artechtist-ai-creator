@@ -108,7 +108,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
   const [showTutorial, setShowTutorial] = useState(false);
   const [showHelpMascot, setShowHelpMascot] = useState(false);
-  const [showMascot, setShowMascot] = useState(true);
+  const [showMascot, setShowMascot] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
   
   // Voice settings state
@@ -611,7 +611,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* Enhanced Header with BotBuilderToolbar */}
         <BotBuilderToolbar
           onTestBot={() => setShowTestPanel(!showTestPanel)}
-          onTutorial={() => setShowTutorial(true)}
+          onTutorial={() => {
+            setShowTutorial(true);
+            setShowMascot(true);
+          }}
           onSave={handleSave}
           onUndo={handleUndo}
           onRedo={handleRedo}
@@ -926,7 +929,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* AI Mascot */}
         {showMascot && (
           <AIMascot 
-            onStartTutorial={() => setShowTutorial(true)}
+            onStartTutorial={() => {
+              setShowTutorial(true);
+              setShowMascot(false);
+            }}
+            onClose={() => setShowMascot(false)}
             mood="helpful"
           />
         )}
