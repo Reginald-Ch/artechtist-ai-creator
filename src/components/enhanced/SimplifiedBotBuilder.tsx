@@ -25,14 +25,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import AvatarSelector from "@/components/AvatarSelector";
 import VoiceSettings from "@/components/VoiceSettings";
+import { TestChatInterface } from "@/components/TestChatInterface";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 
 const nodeTypes = {
@@ -480,103 +482,87 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
         <div className="flex-1 flex">
-          {/* Left Panel - Conversation Flow - More Space */}
-          <div className="w-96 border-r bg-background p-4">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold mb-2">Conversation Flow</h2>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Layout className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">Visual</span>
-                </div>
-                <span className="text-sm text-muted-foreground">List</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Drag and drop nodes to design your flow
-              </p>
-              
-              <div className="flex gap-2 mb-6">
-                <Button onClick={addNewIntent} className="flex-1 gap-2">
-                  <Plus className="h-4 w-4" />
+          {/* Left Panel - Flow Canvas with ReactFlow */}
+          <div className="w-[500px] border-r bg-background">
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-semibold text-foreground">Conversation Flow</h2>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addNewIntent}
+                  className="text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
                   Add Intent
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Save className="h-4 w-4" />
-                  Save Layout
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={autoLayoutNodes}
+                  className="text-xs"
+                >
+                  <Layout className="h-3 w-3 mr-1" />
+                  Auto Layout
                 </Button>
               </div>
             </div>
-
-            {/* Node Cards - Match AMBY style exactly */}
-            <div className="space-y-4">
-              {nodes.map((node) => (
-                <div
-                  key={node.id}
-                  onClick={() => setSelectedNode(node)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedNode?.id === node.id 
-                      ? 'border-primary bg-primary/5' 
-                      : node.data.isDefault && node.data.label === 'Fallback'
-                        ? 'border-orange-200 bg-orange-50/50'
-                        : 'border-blue-200 bg-blue-50/50 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="text-lg">
-                      {node.data.label === 'Fallback' ? '⚠️' : '👋'}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-sm">{String(node.data.label)}</h3>
-                      {node.data.isDefault && (
-                        <Badge variant="secondary" className="text-xs mt-1">
-                          Default
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                    <span>📝 {(node.data.trainingPhrases as string[])?.length || 0} phrases</span>
-                    <span>💬 {(node.data.responses as string[])?.length || 0} responses</span>
-                  </div>
-                  
-                  {(node.data.trainingPhrases as string[])?.[0] && (
-                    <div className="text-xs text-muted-foreground">
-                      <span className="font-medium">Example:</span> {(node.data.trainingPhrases as string[])[0]}
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <Badge 
-                      variant={
-                        (node.data.trainingPhrases as string[])?.length > 0 && 
-                        (node.data.responses as string[])?.length > 0 
-                          ? "default" : "outline"
-                      }
-                      className="text-xs"
-                    >
-                      {(node.data.trainingPhrases as string[])?.length > 0 && 
-                       (node.data.responses as string[])?.length > 0 
-                        ? "Ready" : node.data.label === 'Fallback' && !(node.data.trainingPhrases as string[])?.length
-                        ? "No training" : "Editing"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Flow Builder Tips */}
-            <div className="mt-8 p-3 bg-blue-50/50 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Flow Builder Tips</span>
-              </div>
-              <ul className="text-xs text-blue-800 space-y-1">
-                <li>• Drag nodes to rearrange your conversation flow</li>
-                <li>• Click nodes to edit intents and responses</li>
-                <li>• Connect nodes by dragging connection points</li>
-                <li>• Use the minimap to navigate large flows</li>
-              </ul>
+            <div className="h-[calc(100vh-14rem)]">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onNodeClick={onNodeClick}
+                nodeTypes={memoizedNodeTypes}
+                fitView
+                minZoom={0.3}
+                maxZoom={1.5}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+                proOptions={{ hideAttribution: true }}
+                className="bg-muted/20"
+                nodesDraggable={true}
+                nodesConnectable={true}
+                elementsSelectable={true}
+                connectionLineStyle={{ 
+                  stroke: '#3b82f6', 
+                  strokeWidth: 3,
+                  strokeDasharray: '8,4',
+                  animation: 'dash 1s linear infinite'
+                }}
+                connectionMode={"loose" as any}
+                snapToGrid={true}
+                snapGrid={[15, 15]}
+                onConnectStart={() => console.log('Connection started')}
+                onConnectEnd={() => console.log('Connection ended')}
+              >
+                <Background 
+                  variant={BackgroundVariant.Dots} 
+                  gap={20} 
+                  size={1.5} 
+                  color="#e2e8f0"
+                  className="opacity-40"
+                />
+                <MiniMap 
+                  nodeColor={(node) => {
+                    if (node.data.isDefault && node.data.label === 'Fallback') return '#f97316';
+                    if (node.data.isDefault) return '#3b82f6';
+                    return '#6366f1';
+                  }}
+                  className="bg-background border border-border rounded-lg shadow-lg"
+                  style={{ width: 160, height: 100 }}
+                  position="bottom-right"
+                  pannable
+                  zoomable
+                />
+                <Controls 
+                  className="bg-background border border-border rounded-lg shadow-lg" 
+                  showZoom={true}
+                  showFitView={true}
+                  showInteractive={true}
+                />
+              </ReactFlow>
             </div>
           </div>
 
@@ -710,63 +696,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
 
           {/* Right Panel - Test Chat */}
-          <div className="w-80 border-l bg-background flex flex-col">
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold">Test Your Chatbot</h2>
-                <Button variant="ghost" size="sm">
-                  <Mic className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">Try talking to your chatbot</p>
-            </div>
-
-            <div className="flex-1 p-4">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <span className="text-sm font-medium text-primary">Live Chat Test</span>
-                  <Button variant="ghost" size="sm" className="ml-auto">
-                    <Undo className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-4">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-muted p-3 rounded-lg">
-                      <p className="text-sm">Chat cleared! Try typing something to test me out!</p>
-                    </div>
-                    <span className="text-xs text-muted-foreground mt-1 block">22:31:31</span>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-auto">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Type your message..."
-                    className="flex-1"
-                  />
-                  <Button size="sm">
-                    <Play className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Press Enter to send • Click mic for voice • 
-                  <Button variant="link" className="p-0 h-auto text-xs">
-                    Edit with Lovable
-                  </Button>
-                </p>
-              </div>
-            </div>
+          <div className="w-80 border-l bg-background">
+            <TestChatInterface
+              nodes={nodes}
+              edges={edges}
+              isActive={showTestPanel}
+              onToggle={() => setShowTestPanel(!showTestPanel)}
+            />
           </div>
         </div>
 

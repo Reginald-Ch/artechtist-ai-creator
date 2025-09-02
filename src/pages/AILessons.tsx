@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap, GraduationCap } from "lucide-react";
+import { Brain, BookOpen, Play, CheckCircle, Clock, Star, Sparkles, Zap, GraduationCap, Volume2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
 import { FlashcardQuiz } from "@/components/FlashcardQuiz";
+import { InteractiveQuiz } from "@/components/ai-tutor/InteractiveQuiz";
 import { comicLessons } from "@/data/comicLessons";
 
 const AILessons = () => {
@@ -13,6 +14,22 @@ const AILessons = () => {
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [lessonProgress, setLessonProgress] = useState<Record<string, number>>({});
   const [showFlashcards, setShowFlashcards] = useState(false);
+  const [showInteractiveQuiz, setShowInteractiveQuiz] = useState(false);
+
+  // Enhanced AI Learning Data
+  const aiTopics = [
+    'Intro to AI',
+    'Intro to AI and ML', 
+    'Intro to Data',
+    'Intro to Bias',
+    'Intro to Chatbots',
+    'Intro to Intents',
+    'Intro to Special-intents',
+    'Intro to Follow-Up intents',
+    'Conversational design',
+    'Chatbot personality design',
+    'Design thinking'
+  ];
 
   // AI Flashcard data
   const flashcardData = [
@@ -57,6 +74,128 @@ const AILessons = () => {
       answer: 'Intents help the bot understand what the user wants to accomplish or achieve',
       category: 'Chatbots',
       difficulty: 'easy' as const
+    },
+    {
+      id: '7',
+      question: 'What is bias in AI systems?',
+      answer: 'Systematic errors or unfairness in AI decisions due to prejudiced training data or algorithms',
+      category: 'Ethics',
+      difficulty: 'hard' as const
+    },
+    {
+      id: '8',
+      question: 'What are special intents in chatbots?',
+      answer: 'Pre-built intents for common functions like greetings, cancellation, and help requests',
+      category: 'Chatbots',
+      difficulty: 'medium' as const
+    },
+    {
+      id: '9',
+      question: 'What is conversational design?',
+      answer: 'The practice of designing intuitive, human-like interactions between users and chatbots',
+      category: 'Design',
+      difficulty: 'medium' as const
+    },
+    {
+      id: '10',
+      question: 'What are follow-up intents?',
+      answer: 'Intents that are triggered based on the context of previous user interactions',
+      category: 'Chatbots',
+      difficulty: 'hard' as const
+    }
+  ];
+
+  // Interactive Quiz Questions (Kahoot-style)
+  const quizQuestions = [
+    {
+      id: '1',
+      question: 'What does AI stand for?',
+      options: ['Automated Intelligence', 'Artificial Intelligence', 'Advanced Interface', 'Algorithmic Integration'],
+      correctAnswer: 1,
+      explanation: 'AI stands for Artificial Intelligence - the simulation of human intelligence processes by machines.',
+      difficulty: 'easy' as const,
+      points: 10
+    },
+    {
+      id: '2',
+      question: 'Which of these is NOT a type of machine learning?',
+      options: ['Supervised Learning', 'Unsupervised Learning', 'Reinforcement Learning', 'Emotional Learning'],
+      correctAnswer: 3,
+      explanation: 'Emotional Learning is not a recognized type of machine learning. The three main types are supervised, unsupervised, and reinforcement learning.',
+      difficulty: 'medium' as const,
+      points: 15
+    },
+    {
+      id: '3',
+      question: 'What is the main purpose of training data in machine learning?',
+      options: ['To confuse the algorithm', 'To teach the algorithm patterns', 'To slow down processing', 'To increase storage needs'],
+      correctAnswer: 1,
+      explanation: 'Training data is used to teach machine learning algorithms to recognize patterns and make predictions.',
+      difficulty: 'easy' as const,
+      points: 10
+    },
+    {
+      id: '4',
+      question: 'Which of these is an example of AI bias?',
+      options: ['A chatbot that works 24/7', 'A facial recognition system that works poorly on darker skin tones', 'An AI that processes data quickly', 'A recommendation system that suggests products'],
+      correctAnswer: 1,
+      explanation: 'AI bias occurs when systems make unfair or discriminatory decisions, often due to biased training data.',
+      difficulty: 'hard' as const,
+      points: 20
+    },
+    {
+      id: '5',
+      question: 'What is an intent in chatbot design?',
+      options: ['A programming language', 'A user\'s goal or purpose', 'A type of database', 'A chatbot personality'],
+      correctAnswer: 1,
+      explanation: 'An intent represents what the user wants to accomplish when they interact with the chatbot.',
+      difficulty: 'medium' as const,
+      points: 15
+    },
+    {
+      id: '6',
+      question: 'What are training phrases in chatbot development?',
+      options: ['Commands for the developer', 'Different ways users might express the same intent', 'Error messages', 'Programming instructions'],
+      correctAnswer: 1,
+      explanation: 'Training phrases are various ways users might express the same intent, helping the chatbot understand different phrasings.',
+      difficulty: 'medium' as const,
+      points: 15
+    },
+    {
+      id: '7',
+      question: 'What is a special intent in chatbots?',
+      options: ['A broken intent', 'A pre-built intent for common functions', 'An intent that costs money', 'An intent only for developers'],
+      correctAnswer: 1,
+      explanation: 'Special intents are pre-built intents that handle common user requests like greetings, help, and cancellation.',
+      difficulty: 'medium' as const,
+      points: 15
+    },
+    {
+      id: '8',
+      question: 'What are follow-up intents used for?',
+      options: ['Ending conversations', 'Continuing conversations based on context', 'Starting new conversations', 'Deleting conversations'],
+      correctAnswer: 1,
+      explanation: 'Follow-up intents allow chatbots to maintain context and continue conversations naturally.',
+      difficulty: 'hard' as const,
+      points: 20
+    },
+    {
+      id: '9',
+      question: 'What is the main goal of conversational design?',
+      options: ['Making conversations longer', 'Creating natural, helpful interactions', 'Using complex vocabulary', 'Avoiding user questions'],
+      correctAnswer: 1,
+      explanation: 'Conversational design aims to create natural, intuitive, and helpful interactions between users and chatbots.',
+      difficulty: 'medium' as const,
+      points: 15
+    },
+    {
+      id: '10',
+      question: 'Why is chatbot personality important?',
+      options: ['It makes chatbots expensive', 'It helps users connect and trust the bot', 'It slows down responses', 'It complicates development'],
+      correctAnswer: 1,
+      explanation: 'A well-designed personality helps users feel more comfortable and builds trust in the chatbot interaction.',
+      difficulty: 'easy' as const,
+      points: 10
     }
   ];
 
@@ -182,10 +321,17 @@ const AILessons = () => {
             </Badge>
             <Button
               onClick={() => setShowFlashcards(true)}
-              className="text-sm px-4 py-2 bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300"
+              className="text-sm px-4 py-2 bg-gradient-to-r from-primary to-primary-glow hover:shadow-lg transition-all duration-300 mr-2"
             >
               <GraduationCap className="h-4 w-4 mr-1" />
-              Quiz Mode 🧠
+              Flashcards 📚
+            </Button>
+            <Button
+              onClick={() => setShowInteractiveQuiz(true)}
+              className="text-sm px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-lg transition-all duration-300"
+            >
+              <Brain className="h-4 w-4 mr-1" />
+              Interactive Quiz 🎯
             </Button>
           </div>
         </div>

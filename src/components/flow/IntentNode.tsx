@@ -67,20 +67,21 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Connection Handles - Match reference design exactly */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10" />
-      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10" />
+      {/* Connection Handles with animation */}
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10 transition-all duration-200 hover:scale-110 hover:border-blue-500" />
+      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-blue-400 bg-white z-10 transition-all duration-200 hover:scale-110 hover:border-blue-500" />
       
       {/* Main Card - Exact match to reference */}
       <div 
         className={cn(
-          "bg-white border-2 rounded-xl shadow-sm p-4 space-y-3",
+          "bg-white border-2 rounded-xl shadow-sm p-4 space-y-3 transition-all duration-300",
           selected 
-            ? 'border-blue-500 shadow-lg' 
+            ? 'border-blue-500 shadow-lg transform scale-105' 
             : isDefault 
               ? 'border-blue-400' 
               : 'border-orange-400',
-          "hover:shadow-md"
+          "hover:shadow-lg hover:transform hover:scale-102",
+          isHovered && "shadow-md border-opacity-80"
         )}
       >
         {/* Header with Icon and Title */}
