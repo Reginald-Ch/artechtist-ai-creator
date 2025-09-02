@@ -45,10 +45,7 @@ import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerI
 import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 
-// Define nodeTypes outside component to prevent re-creation
-const nodeTypes = {
-  intent: IntentNode,
-};
+// Removed duplicate nodeTypes definition
 
 const initialNodes: Node[] = [
   {
@@ -304,16 +301,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   };
 
+  // Optimize nodeTypes with proper dependencies
   const memoizedNodeTypes = useMemo(() => ({
-    intent: (props: any) => (
-      <IntentNode 
-        {...props} 
-        onDelete={deleteNode}
-        onDuplicate={duplicateNode}
-        onEdit={editNode}
-      />
-    ),
-  }), [deleteNode, duplicateNode, editNode]);
+    intent: IntentNode,
+  }), []);
 
   const updateSelectedNode = useCallback((field: string, value: any) => {
     if (!selectedNode) return;

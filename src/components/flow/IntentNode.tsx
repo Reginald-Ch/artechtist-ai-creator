@@ -160,18 +160,16 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
         )}
       </div>
 
-      {/* React Flow Handles - Properly visible and functional */}
+      {/* React Flow Handles - Clean styling without conflicts */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className="!w-3 !h-3 !bg-primary !border-2 !border-background !shadow-lg !-top-1.5 !left-1/2 !-translate-x-1/2"
-        style={{ zIndex: 10 }}
+        className="w-3 h-3 bg-primary border-2 border-background shadow-sm"
       />
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className="!w-3 !h-3 !bg-primary !border-2 !border-background !shadow-lg !-bottom-1.5 !left-1/2 !-translate-x-1/2"
-        style={{ zIndex: 10 }}
+        className="w-3 h-3 bg-primary border-2 border-background shadow-sm"
       />
     </div>
   );
