@@ -35,6 +35,8 @@ import AvatarSelector from "@/components/AvatarSelector";
 import VoiceSettings from "@/components/VoiceSettings";
 import { TestChatInterface } from "@/components/TestChatInterface";
 import { VoiceEnhancedChat } from "@/components/enhanced/VoiceEnhancedChat";
+import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
+import { VoiceSettingsDialog } from "@/components/VoiceSettingsDialog";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
@@ -102,6 +104,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
+  
+  // Voice settings state
+  const [voiceApiKey, setVoiceApiKey] = useState("");
+  const [selectedVoice, setSelectedVoice] = useState("9BWtsMINqrJLrRacOk9x");
+  const [selectedModel, setSelectedModel] = useState("eleven_multilingual_v2");
   
   const isMobile = useIsMobile();
 
@@ -283,8 +290,72 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   }, [selectedNode, setNodes]);
 
   const handleSave = () => {
-    setLastSaved(new Date());
-    toast({ title: "Bot saved", description: "Your bot has been saved successfully" });
+    setIsSaving(true);
+    // Save to localStorage
+    const projectData = {
+      name: projectName,
+      botName,
+      botAvatar,
+      botPersonality,
+      nodes,
+      edges,
+      lastSaved: new Date().toISOString()
+    };
+    localStorage.setItem(`bot-project-${projectName}`, JSON.stringify(projectData));
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      setLastSaved(new Date());
+      toast({ title: "Project saved", description: `"${projectName}" has been saved successfully` });
+    }, 1000);
+  };
+  
+  const handleExport = () => {
+    const projectData = {
+      name: projectName,
+      botName,
+      botAvatar,
+      botPersonality,
+      nodes,
+      edges,
+      exportedAt: new Date().toISOString()
+    };
+    const dataStr = JSON.stringify(projectData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${projectName.replace(/\s+/g, '-').toLowerCase()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+  
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const projectData = JSON.parse(e.target?.result as string);
+            setProjectName(projectData.name || 'Imported Project');
+            setBotName(projectData.botName || 'My AI Assistant');
+            setBotAvatar(projectData.botAvatar || '🤖');
+            setBotPersonality(projectData.botPersonality || 'helpful and friendly');
+            setNodes(projectData.nodes || initialNodes);
+            setEdges(projectData.edges || initialEdges);
+            toast({ title: "Project imported", description: `"${projectData.name}" has been loaded` });
+          } catch (error) {
+            toast({ title: "Import failed", description: "Invalid project file", variant: "destructive" });
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
   };
 
   const handleUndo = () => {
@@ -477,71 +548,34 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   return (
     <TooltipProvider>
       <div className="h-screen flex flex-col bg-background">
-        {/* Header - Match AMBY exactly */}
-        <div className="flex items-center justify-between gap-4 p-4 border-b bg-background">
+        {/* Enhanced Header with BotBuilderToolbar */}
+        <BotBuilderToolbar
+          onTestBot={() => setShowTestPanel(!showTestPanel)}
+          onTutorial={() => toast({ title: "Tutorial", description: "Tutorial coming soon!" })}
+          onSave={handleSave}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onExport={handleExport}
+          onImport={handleImport}
+          onAddIntent={addNewIntent}
+          canUndo={undoRedo.canUndo}
+          canRedo={undoRedo.canRedo}
+          isConnected={false}
+          nodeCount={nodes.length}
+        />
+        
+        {/* Secondary header with navigation and project info */}
+        <div className="flex items-center justify-between gap-4 px-4 py-2 border-b bg-muted/30">
           <div className="flex items-center gap-3">
             <Link to="/dashboard">
               <Button variant="ghost" size="sm" className="hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                Back
               </Button>
             </Link>
             <h1 className="text-xl font-semibold text-foreground">Chatbot Playground</h1>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Dialog open={showAvatarSelector} onOpenChange={setShowAvatarSelector}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  {botAvatar}
-                  Select Avatar
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Create New AI Agent</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <AvatarSelector
-                    selectedAvatar={botAvatar}
-                    onAvatarChange={(avatar, personality) => {
-                      setBotAvatar(avatar);
-                      setBotPersonality(personality);
-                      setShowAvatarSelector(false);
-                    }}
-                  />
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button variant="outline" onClick={() => setShowAvatarSelector(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={() => {
-                    setShowAvatarSelector(false);
-                    toast({ title: "AI Agent Created", description: `Your ${botAvatar} assistant is ready!` });
-                  }}>
-                    Create the AI
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2 text-muted-foreground"
-              onClick={() => setShowVoiceSettings(true)}
-            >
-              <Mic className="h-4 w-4" />
-              Voice Settings
-            </Button>
-            <Button 
-              className="gap-2"
-              onClick={() => setShowTestPanel(!showTestPanel)}
-              variant={showTestPanel ? "default" : "outline"}
-            >
-              <Play className="h-4 w-4" />
-              {showTestPanel ? "Stop Testing" : "Test Chatbot"}
-            </Button>
-          </div>
         </div>
 
         <div className="flex-1 flex">
@@ -782,6 +816,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             </div>
           </div>
         </div>
+
+        {/* Avatar Selector Dialog */}
+        {showAvatarSelector && (
+          <Dialog open={showAvatarSelector} onOpenChange={setShowAvatarSelector}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background/95 backdrop-blur-md border z-50">
+              <DialogHeader>
+                <DialogTitle>Choose Bot Avatar & Personality</DialogTitle>
+              </DialogHeader>
+              <div className="p-4">
+                <AvatarSelector
+                  selectedAvatar={botAvatar}
+                  onAvatarChange={(avatar, personality) => {
+                    setBotAvatar(avatar);
+                    setBotPersonality(personality);
+                    setShowAvatarSelector(false);
+                  }}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Voice Settings Dialog */}
         <VoiceSettings 

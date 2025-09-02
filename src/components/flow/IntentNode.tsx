@@ -136,18 +136,19 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           </div>
         </div>
 
-        {/* Delete button for non-default nodes - always visible for better UX */}
+        {/* Delete button for non-default nodes - enhanced visibility */}
         {!isDefault && (
           <Button
             size="sm"
             variant="ghost"
-            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-red-50 border border-red-200 shadow-sm hover:shadow-md hover:bg-red-100 hover:border-red-300 z-20"
+            className="absolute -top-3 -right-3 h-7 w-7 p-0 rounded-full bg-red-500 border-2 border-white shadow-lg hover:shadow-xl hover:bg-red-600 hover:scale-110 transition-all duration-200 z-30"
             onClick={(e) => {
               e.stopPropagation();
               onDelete?.(id || '');
             }}
+            title="Delete intent"
           >
-            <X className="h-3 w-3 text-red-600 hover:text-red-700" />
+            <X className="h-4 w-4 text-white" />
           </Button>
         )}
       </div>
