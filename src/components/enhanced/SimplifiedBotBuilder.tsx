@@ -107,6 +107,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showHelpMascot, setShowHelpMascot] = useState(false);
   const [showMascot, setShowMascot] = useState(true);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
   

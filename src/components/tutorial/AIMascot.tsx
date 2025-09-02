@@ -18,6 +18,7 @@ import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 
 interface AIMascotProps {
   onStartTutorial?: () => void;
+  onClose?: () => void;
   className?: string;
   mood?: 'excited' | 'helpful' | 'encouraging' | 'celebrating';
 }
@@ -64,7 +65,7 @@ const moodColors = {
   celebrating: 'from-purple-500 to-pink-500'
 };
 
-export const AIMascot = ({ onStartTutorial, className, mood = 'helpful' }: AIMascotProps) => {
+export const AIMascot = ({ onStartTutorial, onClose, className, mood = 'helpful' }: AIMascotProps) => {
   const [currentPhrase, setCurrentPhrase] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [currentMood, setCurrentMood] = useState<keyof typeof mascotPhrases>('helpful');
@@ -119,6 +120,7 @@ export const AIMascot = ({ onStartTutorial, className, mood = 'helpful' }: AIMas
     <motion.div
       initial={{ opacity: 0, y: 50, scale: 0.8 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 50, scale: 0.8 }}
       transition={{ type: "spring", duration: 0.8, bounce: 0.4 }}
       className={cn("fixed bottom-6 right-6 z-50", className)}
     >
@@ -129,6 +131,15 @@ export const AIMascot = ({ onStartTutorial, className, mood = 'helpful' }: AIMas
             "relative p-4 bg-gradient-to-r text-white",
             moodColors[currentMood]
           )}>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="absolute top-2 right-2 text-white/80 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            )}
+            
             <motion.div
               animate={{ 
                 rotate: [0, 5, -5, 0],
@@ -139,7 +150,7 @@ export const AIMascot = ({ onStartTutorial, className, mood = 'helpful' }: AIMas
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="absolute top-2 right-2"
+              className={cn("absolute top-2", onClose ? "right-8" : "right-2")}
             >
               <Sparkles className="h-6 w-6" />
             </motion.div>
