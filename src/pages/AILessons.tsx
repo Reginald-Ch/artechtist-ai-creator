@@ -238,8 +238,23 @@ const AILessons = () => {
   };
 
   if (selectedLesson) {
-    // Check if the lesson exists in enhancedComicLessons
-    const lesson = enhancedComicLessons[selectedLesson as keyof typeof enhancedComicLessons];
+    // Map lesson IDs to available lessons
+    const lessonMap: Record<string, keyof typeof enhancedComicLessons> = {
+      'lesson-1': 'intro-to-ai',
+      'lesson-2': 'intro-to-ai-ml',
+      'lesson-3': 'intro-to-data',
+      'lesson-4': 'intro-to-bias',
+      'lesson-5': 'intro-to-chatbots',
+      'lesson-6': 'intro-to-intents',
+      'lesson-7': 'intro-to-special-intents',
+      'lesson-8': 'intro-to-followup-intents',
+      'lesson-9': 'conversational-design',
+      'lesson-10': 'chatbot-personality-design',
+      'lesson-11': 'design-thinking'
+    };
+
+    const mappedLessonKey = lessonMap[selectedLesson];
+    const lesson = mappedLessonKey ? enhancedComicLessons[mappedLessonKey] : null;
     
     if (lesson && lesson.panels && lesson.panels.length > 0) {
       return (
@@ -267,7 +282,9 @@ const AILessons = () => {
         </div>
       );
     } else {
-      // Handle case where lesson data is missing or incomplete
+      // Enhanced fallback with lesson alternatives
+      const currentLessonData = aiLessonsData.find(l => l.id === selectedLesson);
+      
       return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
           <div className="container mx-auto px-4 py-8">
@@ -281,22 +298,64 @@ const AILessons = () => {
               </Button>
             </div>
             
-            <Card className="max-w-md mx-auto">
-              <CardHeader className="text-center">
-                <CardTitle className="text-red-600">Lesson Not Available</CardTitle>
-                <CardDescription>
-                  This lesson is currently being updated with new content.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Please try another lesson or come back later.
-                </p>
-                <Button onClick={() => setSelectedLesson(null)}>
-                  Choose Another Lesson
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Flashcard Alternative */}
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    {currentLessonData?.title || 'AI Lesson'}
+                  </CardTitle>
+                  <CardDescription>
+                    Interactive flashcards available for this lesson
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {currentLessonData?.description || 'Learn AI concepts through interactive content'}
+                  </p>
+                  
+                  {currentLessonData?.flashcards && currentLessonData.flashcards.length > 0 && (
+                    <Button 
+                      onClick={() => setShowFlashcards(true)}
+                      className="w-full"
+                    >
+                      Start Flashcard Study ({currentLessonData.flashcards.length} cards)
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedLesson(null)}
+                    className="w-full"
+                  >
+                    Choose Another Lesson
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Interactive Quiz Alternative */}
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Quick Quiz
+                  </CardTitle>
+                  <CardDescription>
+                    Test your knowledge with interactive questions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Button 
+                    onClick={() => setShowInteractiveQuiz(true)}
+                    className="w-full"
+                    variant="secondary"
+                  >
+                    Take Interactive Quiz
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       );

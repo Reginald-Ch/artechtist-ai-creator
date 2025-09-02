@@ -31,17 +31,16 @@ import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
-import AvatarSelector from "@/components/AvatarSelector";
-import VoiceSettings from "@/components/VoiceSettings";
+import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
+import { OptimizedVoiceSettings } from "@/components/enhanced/OptimizedVoiceSettings";
 import { TestChatInterface } from "@/components/TestChatInterface";
 import { VoiceEnhancedChat } from "@/components/enhanced/VoiceEnhancedChat";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
-import { VoiceSettingsDialog } from "@/components/VoiceSettingsDialog";
-import { EnhancedVoiceSettings } from "@/components/enhanced/EnhancedVoiceSettings";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
+import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
 
 const nodeTypes = {
   intent: IntentNode,
@@ -136,27 +135,32 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   // Apply template data when component mounts
   useEffect(() => {
     if (template) {
-      setBotName(template.name);
-      setBotAvatar(template.avatar);
-      setBotPersonality(template.description);
+      console.log('Applying template:', template);
+      setBotName(template.name || "My AI Assistant");
+      setBotAvatar(template.avatar || "🤖");
+      setBotPersonality(template.description || "helpful and friendly");
       
-      const templateNodes = template.intents.map((intent: any, index: number) => ({
-        id: intent.name.toLowerCase().replace(/\s+/g, '-'),
+      // Improved template parsing with fallbacks
+      const templateNodes = template.intents?.map((intent: any, index: number) => ({
+        id: intent.name ? intent.name.toLowerCase().replace(/\s+/g, '-') : `intent-${index}`,
         type: 'intent',
         position: { 
           x: 100 + (index % 3) * 300, 
           y: 50 + Math.floor(index / 3) * 200 
         },
         data: {
-          label: intent.name,
-          trainingPhrases: intent.trainingPhrases,
-          responses: intent.responses,
+          label: intent.name || `Intent ${index + 1}`,
+          trainingPhrases: Array.isArray(intent.trainingPhrases) ? intent.trainingPhrases : [],
+          responses: Array.isArray(intent.responses) ? intent.responses : [],
           isDefault: intent.name === 'Greet' || intent.name === 'Fallback',
         },
-      }));
+      })) || initialNodes;
       
       setNodes(templateNodes);
       setEdges([]);
+      
+      // Save template data to localStorage for persistence
+      localStorage.setItem('current-agent-template', JSON.stringify(template));
     }
   }, [template, setNodes]);
   
@@ -196,7 +200,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
   const deleteNode = useCallback((nodeId: string) => {
     const nodeToDelete = nodes.find(n => n.id === nodeId);
-    if (!nodeToDelete || nodeToDelete.data.isDefault) {
+    if (!nodeToDelete) {
+      toast({ 
+        title: "Node not found", 
+        description: "The intent could not be found",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (nodeToDelete.data.isDefault) {
       toast({ 
         title: "Cannot delete", 
         description: "Default intents cannot be deleted",
@@ -557,8 +570,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   );
 
   return (
-    <TooltipProvider>
-      <div className="h-screen flex flex-col bg-background">
+    <ErrorBoundary>
+      <TooltipProvider>
+        <div className="h-screen flex flex-col bg-background">
         {/* Enhanced Header with BotBuilderToolbar */}
         <BotBuilderToolbar
           onTestBot={() => setShowTestPanel(!showTestPanel)}
@@ -836,7 +850,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 <DialogTitle>Choose Bot Avatar & Personality</DialogTitle>
               </DialogHeader>
               <div className="p-4">
-                <AvatarSelector
+                <OptimizedAvatarSelector
                   selectedAvatar={botAvatar}
                   onAvatarChange={(avatar, personality) => {
                     setBotAvatar(avatar);
@@ -849,10 +863,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </Dialog>
         )}
 
-        {/* Enhanced Voice Settings Dialog */}
-        <EnhancedVoiceSettings 
-          open={showVoiceSettings} 
-          onOpenChange={setShowVoiceSettings} 
+        {/* Optimized Voice Settings Dialog */}
+        <OptimizedVoiceSettings
+          open={showVoiceSettings}
+          onOpenChange={setShowVoiceSettings}
         />
 
         {/* Delete Confirmation Dialog */}
@@ -866,8 +880,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           onConfirm={confirmDelete}
           destructive
         />
-      </div>
-    </TooltipProvider>
+        </div>
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 };
 
