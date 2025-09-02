@@ -42,7 +42,8 @@ import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
 import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerIntegration";
-import { TutorialOverlay } from '@/components/tutorial/TutorialOverlay';
+import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
+import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 
 // Removed duplicate nodeTypes definition
@@ -106,6 +107,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showMascot, setShowMascot] = useState(true);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
   
   // Voice settings state
@@ -913,15 +915,20 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           destructive
         />
 
-        {/* Tutorial Overlay */}
-        <TutorialOverlay
+        {/* Tutorial */}
+        <BotBuilderTutorial 
           isOpen={showTutorial}
           onClose={() => setShowTutorial(false)}
-          onComplete={() => {
-            setTutorialCompleted(true);
-            toast({ title: "Tutorial completed!", description: "You're ready to build amazing bots!" });
-          }}
+          onComplete={() => setShowMascot(true)}
         />
+
+        {/* AI Mascot */}
+        {showMascot && (
+          <AIMascot 
+            onStartTutorial={() => setShowTutorial(true)}
+            mood="helpful"
+          />
+        )}
         </div>
       </TooltipProvider>
     </ErrorBoundary>

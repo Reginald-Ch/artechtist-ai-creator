@@ -161,11 +161,11 @@ export const BotBuilderToolbar: React.FC<BotBuilderToolbarProps> = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open('https://docs.elevenlabs.io', '_blank')}
+              onClick={onTutorial}
               className="hover:bg-secondary transition-colors"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
-              Help
+              Tutorial
             </Button>
             
             <Button 
