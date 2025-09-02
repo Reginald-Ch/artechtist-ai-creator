@@ -25,7 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
@@ -90,10 +91,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botName, setBotName] = useState("My AI Assistant");
   const [botAvatar, setBotAvatar] = useState("🤖");
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
-  const [showTestPanel, setShowTestPanel] = useState(false);
+  const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
+  const [isListening, setIsListening] = useState(false);
   
   const isMobile = useIsMobile();
 
@@ -465,6 +468,40 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
 
           <div className="flex items-center gap-2">
+            <Dialog open={showAvatarSelector} onOpenChange={setShowAvatarSelector}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  {botAvatar}
+                  Select Avatar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Create New AI Agent</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <AvatarSelector
+                    selectedAvatar={botAvatar}
+                    onAvatarChange={(avatar, personality) => {
+                      setBotAvatar(avatar);
+                      setBotPersonality(personality);
+                      setShowAvatarSelector(false);
+                    }}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setShowAvatarSelector(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    setShowAvatarSelector(false);
+                    toast({ title: "AI Agent Created", description: `Your ${botAvatar} assistant is ready!` });
+                  }}>
+                    Create the AI
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -474,9 +511,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <Mic className="h-4 w-4" />
               Voice Settings
             </Button>
-            <Button className="gap-2">
+            <Button 
+              className="gap-2"
+              onClick={() => setShowTestPanel(!showTestPanel)}
+              variant={showTestPanel ? "default" : "outline"}
+            >
               <Play className="h-4 w-4" />
-              Test Chatbot
+              {showTestPanel ? "Stop Testing" : "Test Chatbot"}
             </Button>
           </div>
         </div>
@@ -695,14 +736,26 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             )}
           </div>
 
-          {/* Right Panel - Test Chat */}
+          {/* Right Panel - Real-time Testing */}
           <div className="w-80 border-l bg-background">
-            <TestChatInterface
-              nodes={nodes}
-              edges={edges}
-              isActive={showTestPanel}
-              onToggle={() => setShowTestPanel(!showTestPanel)}
-            />
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between">
+              <h2 className="font-semibold text-foreground">Testing Panel</h2>
+              <Badge variant={showTestPanel ? "default" : "secondary"} className="text-xs">
+                {showTestPanel ? "Active" : "Inactive"}
+              </Badge>
+            </div>
+            <div className="p-4 text-sm text-muted-foreground">
+              <p className="mb-2">Real-time test of your chatbot responses.</p>
+              <p>Try typing or using voice-to-text.</p>
+            </div>
+            <div className="h-[calc(100vh-12rem)]">
+              <TestChatInterface
+                nodes={nodes}
+                edges={edges}
+                isActive={showTestPanel}
+                onToggle={() => setShowTestPanel(!showTestPanel)}
+              />
+            </div>
           </div>
         </div>
 

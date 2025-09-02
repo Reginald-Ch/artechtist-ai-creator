@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Bot, User, RotateCcw, Play, Pause } from 'lucide-react';
+import { Send, Bot, User, RotateCcw, Play, Pause, MicIcon, StopCircle } from 'lucide-react';
 import { useConversationEngine } from '@/hooks/useConversationEngine';
 import { Node, Edge } from '@xyflow/react';
 
@@ -26,7 +26,9 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
   const [messages, setMessages] = useState<TestMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const conversationEngine = useConversationEngine(nodes, edges, "friendly and helpful");
 
@@ -110,6 +112,48 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
       };
       setMessages([welcomeMessage]);
     }
+  };
+
+  // Voice-to-text functionality
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Speech recognition not supported in this browser');
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.lang = 'en-US';
+
+    recognitionRef.current.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognitionRef.current.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      setIsListening(false);
+    };
+
+    recognitionRef.current.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.start();
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
   };
 
   return (
@@ -198,7 +242,7 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isActive ? "Type your message..." : "Activate test mode"}
+            placeholder={isActive ? (isListening ? "Listening..." : "Type your message or use voice...") : "Activate test mode"}
             disabled={!isActive || isLoading}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -208,6 +252,15 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle }: TestChat
             }}
             className="text-sm"
           />
+          <Button 
+            size="sm" 
+            variant={isListening ? "destructive" : "outline"}
+            onClick={isListening ? stopListening : startListening}
+            disabled={!isActive || isLoading}
+            className="px-2"
+          >
+            {isListening ? <StopCircle className="h-3 w-3" /> : <MicIcon className="h-3 w-3" />}
+          </Button>
           <Button 
             size="sm" 
             onClick={handleSendMessage}

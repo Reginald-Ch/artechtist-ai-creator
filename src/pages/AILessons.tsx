@@ -31,79 +31,94 @@ const AILessons = () => {
     'Design thinking'
   ];
 
-  // AI Flashcard data
-  const flashcardData = [
-    {
-      id: '1',
-      question: 'What does AI stand for?',
-      answer: 'Artificial Intelligence - the simulation of human intelligence in machines',
-      category: 'Basics',
-      difficulty: 'easy' as const
-    },
-    {
-      id: '2',
-      question: 'What are training phrases in chatbots?',
-      answer: 'Different ways users might express the same intent or request to the bot',
-      category: 'Chatbots',
-      difficulty: 'medium' as const
-    },
-    {
-      id: '3',
-      question: 'What is machine learning?',
-      answer: 'A subset of AI where computers learn patterns from data without being explicitly programmed',
-      category: 'ML',
-      difficulty: 'medium' as const
-    },
-    {
-      id: '4',
-      question: 'What is the difference between AI and machine learning?',
-      answer: 'AI is the broader concept of machines thinking like humans, while ML is a specific approach to achieve AI',
-      category: 'Advanced',
-      difficulty: 'hard' as const
-    },
-    {
-      id: '5',
-      question: 'What is natural language processing (NLP)?',
-      answer: 'The branch of AI that helps computers understand, interpret, and generate human language',
-      category: 'NLP',
-      difficulty: 'medium' as const
-    },
-    {
-      id: '6',
-      question: 'Why are intents important in chatbots?',
-      answer: 'Intents help the bot understand what the user wants to accomplish or achieve',
-      category: 'Chatbots',
-      difficulty: 'easy' as const
-    },
-    {
-      id: '7',
-      question: 'What is bias in AI systems?',
-      answer: 'Systematic errors or unfairness in AI decisions due to prejudiced training data or algorithms',
-      category: 'Ethics',
-      difficulty: 'hard' as const
-    },
-    {
-      id: '8',
-      question: 'What are special intents in chatbots?',
-      answer: 'Pre-built intents for common functions like greetings, cancellation, and help requests',
-      category: 'Chatbots',
-      difficulty: 'medium' as const
-    },
-    {
-      id: '9',
-      question: 'What is conversational design?',
-      answer: 'The practice of designing intuitive, human-like interactions between users and chatbots',
-      category: 'Design',
-      difficulty: 'medium' as const
-    },
-    {
-      id: '10',
-      question: 'What are follow-up intents?',
-      answer: 'Intents that are triggered based on the context of previous user interactions',
-      category: 'Chatbots',
-      difficulty: 'hard' as const
-    }
-  ];
+  // Enhanced AI Lessons with flashcards for each topic
+  const aiLessonsData = aiTopics.map((topic, index) => ({
+    id: `lesson-${index + 1}`,
+    title: topic,
+    description: getTopicDescription(topic),
+    flashcards: getFlashcardsForTopic(topic),
+    duration: '10-15 mins',
+    difficulty: index < 3 ? 'Beginner' : index < 7 ? 'Intermediate' : 'Advanced',
+    isComplete: completedLessons.has(`lesson-${index + 1}`)
+  }));
+
+  function getTopicDescription(topic: string): string {
+    const descriptions: Record<string, string> = {
+      'Intro to AI': 'Learn the fundamentals of artificial intelligence and its applications',
+      'Intro to AI and ML': 'Understand the relationship between AI and machine learning',
+      'Intro to Data': 'Explore how data drives AI systems and decision making',
+      'Intro to Bias': 'Understand bias in AI systems and ethical considerations',
+      'Intro to Chatbots': 'Learn the basics of conversational AI and chatbot technology',
+      'Intro to Intents': 'Master the concept of intents in chatbot development',
+      'Intro to Special-intents': 'Explore special system intents and their purposes',
+      'Intro to Follow-Up intents': 'Learn about context and follow-up conversations',
+      'Conversational design': 'Design natural and engaging chatbot conversations',
+      'Chatbot personality design': 'Create compelling personalities for your AI assistants',
+      'Design thinking': 'Apply design thinking principles to AI development'
+    };
+    return descriptions[topic] || 'Interactive lesson with hands-on examples';
+  }
+
+  function getFlashcardsForTopic(topic: string) {
+    const flashcardSets: Record<string, any[]> = {
+      'Intro to AI': [
+        { question: 'What does AI stand for?', answer: 'Artificial Intelligence - the simulation of human intelligence in machines' },
+        { question: 'Name three types of AI applications', answer: 'Natural language processing, computer vision, and machine learning' },
+        { question: 'What is the goal of AI?', answer: 'To create machines that can think, learn, and make decisions like humans' }
+      ],
+      'Intro to AI and ML': [
+        { question: 'What is machine learning?', answer: 'A subset of AI where computers learn patterns from data without being explicitly programmed' },
+        { question: 'What is the difference between AI and ML?', answer: 'AI is the broader concept of machines thinking like humans, while ML is a specific approach to achieve AI' },
+        { question: 'Name three types of machine learning', answer: 'Supervised learning, unsupervised learning, and reinforcement learning' }
+      ],
+      'Intro to Data': [
+        { question: 'Why is data important for AI?', answer: 'Data provides the information AI systems need to learn patterns and make predictions' },
+        { question: 'What is training data?', answer: 'The dataset used to teach machine learning models how to make decisions' },
+        { question: 'What makes good training data?', answer: 'Large, diverse, accurate, and representative datasets' }
+      ],
+      'Intro to Bias': [
+        { question: 'What is bias in AI systems?', answer: 'Systematic errors or unfairness in AI decisions due to prejudiced training data or algorithms' },
+        { question: 'How can bias be introduced into AI?', answer: 'Through biased training data, algorithm design, or human prejudices in development' },
+        { question: 'Why is addressing bias important?', answer: 'To ensure fair, ethical, and inclusive AI systems for all users' }
+      ],
+      'Intro to Chatbots': [
+        { question: 'What is a chatbot?', answer: 'A computer program designed to simulate conversation with human users' },
+        { question: 'What are training phrases in chatbots?', answer: 'Different ways users might express the same intent or request to the bot' },
+        { question: 'Name two types of chatbots', answer: 'Rule-based chatbots and AI-powered chatbots' }
+      ],
+      'Intro to Intents': [
+        { question: 'What is an intent in chatbots?', answer: 'The goal or purpose behind a user\'s message to the chatbot' },
+        { question: 'Why are intents important?', answer: 'Intents help the bot understand what the user wants to accomplish' },
+        { question: 'Give an example of an intent', answer: 'Booking a flight, checking weather, or asking for help' }
+      ],
+      'Intro to Special-intents': [
+        { question: 'What are special intents?', answer: 'Pre-built intents for common functions like greetings, cancellation, and help requests' },
+        { question: 'Name three special intents', answer: 'Welcome intent, fallback intent, and goodbye intent' },
+        { question: 'When would you use a fallback intent?', answer: 'When the bot doesn\'t understand the user\'s input' }
+      ],
+      'Intro to Follow-Up intents': [
+        { question: 'What are follow-up intents?', answer: 'Intents that maintain context from previous conversation turns' },
+        { question: 'Why are follow-ups important?', answer: 'They enable more natural, contextual conversations' },
+        { question: 'Give an example of a follow-up', answer: 'After asking about pizza size, following up with toppings' }
+      ],
+      'Conversational design': [
+        { question: 'What is conversational design?', answer: 'The practice of designing intuitive, human-like interactions between users and chatbots' },
+        { question: 'What makes good conversation flow?', answer: 'Clear, natural, contextual, and helpful exchanges' },
+        { question: 'Name a key principle of conversational design', answer: 'Keep responses concise and actionable' }
+      ],
+      'Chatbot personality design': [
+        { question: 'Why is personality important for chatbots?', answer: 'It makes interactions more engaging and builds user trust' },
+        { question: 'Name three personality traits for chatbots', answer: 'Helpful, friendly, and professional' },
+        { question: 'How do you maintain consistent personality?', answer: 'Through consistent tone, language, and response style' }
+      ],
+      'Design thinking': [
+        { question: 'What is design thinking?', answer: 'A human-centered approach to innovation and problem solving' },
+        { question: 'Name the five stages of design thinking', answer: 'Empathize, Define, Ideate, Prototype, and Test' },
+        { question: 'How does design thinking apply to AI?', answer: 'It ensures AI solutions are user-focused and solve real problems' }
+      ]
+    };
+    return flashcardSets[topic] || [];
+  }
 
   // Interactive Quiz Questions (Kahoot-style)
   const quizQuestions = [
@@ -574,12 +589,31 @@ const AILessons = () => {
       {/* Flashcard Quiz Modal */}
       {showFlashcards && (
         <FlashcardQuiz
-          cards={flashcardData}
+          cards={aiLessonsData.flatMap(lesson => lesson.flashcards.map(card => ({
+            id: card.question,
+            question: card.question,
+            answer: card.answer,
+            category: lesson.title,
+            difficulty: lesson.difficulty.toLowerCase() as 'easy' | 'medium' | 'hard'
+          })))}
           onComplete={(score) => {
             console.log('Quiz completed with score:', score);
             setShowFlashcards(false);
           }}
           onClose={() => setShowFlashcards(false)}
+        />
+      )}
+
+      {/* Interactive Quiz Modal */}
+      {showInteractiveQuiz && (
+        <InteractiveQuiz
+          title="AI Learning Quiz"
+          questions={quizQuestions}
+          onComplete={(score) => {
+            console.log('Interactive quiz completed with score:', score);
+            setShowInteractiveQuiz(false);
+          }}
+          onClose={() => setShowInteractiveQuiz(false)}
         />
       )}
     </div>
