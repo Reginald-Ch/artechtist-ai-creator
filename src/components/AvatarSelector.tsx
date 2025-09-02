@@ -252,8 +252,8 @@ const AvatarSelector = ({ selectedAvatar, onAvatarChange }: AvatarSelectorProps)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-16 w-16 text-2xl p-0 relative z-10">
-          <span className="text-2xl">{selectedAvatar || '🤖'}</span>
+        <Button variant="outline" className="h-16 w-16 text-2xl p-0 relative z-10 bg-white/90 hover:bg-white border-2">
+          <span className="text-2xl drop-shadow-sm">{selectedAvatar || '🤖'}</span>
         </Button>
       </DialogTrigger>
       

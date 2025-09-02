@@ -98,6 +98,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
+  const [projectName, setProjectName] = useState("Untitled Project");
+  const [isSaving, setIsSaving] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
   

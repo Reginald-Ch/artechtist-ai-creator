@@ -27,18 +27,70 @@ export const enhancedComicLessons = {
         character: 'Student Zara',
         dialogue: 'So AI is like giving computers a brain? But how is that different from regular computer programs?',
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-        animation: 'slideRight',
-        interactiveElement: {
-          type: 'question',
-          content: 'What makes AI different from traditional software?',
-          options: [
-            'AI can learn and adapt from data',
-            'AI runs on more powerful computers',
-            'AI is written in different programming languages',
-            'AI uses more memory'
-          ],
-          correctAnswer: 'AI can learn and adapt from data'
-        }
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-4',
+        character: 'Dr. Amina',
+        dialogue: 'Great question! Traditional programs follow fixed rules, but AI can learn patterns from data and make decisions based on what it learned.',
+        background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-5',
+        character: 'AI-ko',
+        dialogue: 'Think of it like teaching a child. Instead of giving them exact instructions for every situation, you show them examples and they learn to handle new situations.',
+        background: 'linear-gradient(135deg, #fef7cd 0%, #fef3c7 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-6',
+        character: 'Student Zara',
+        dialogue: 'That makes sense! So AI is everywhere around us already?',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-7',
+        character: 'Dr. Amina',
+        dialogue: 'Absolutely! AI helps Netflix recommend movies you might like, helps your phone understand when you say "Hey Siri", and even helps doctors analyze medical images.',
+        background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-8',
+        character: 'AI-ko',
+        dialogue: 'AI also powers the cameras that can detect faces, the apps that translate languages instantly, and the GPS that finds the fastest route to your destination.',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-9',
+        character: 'Student Zara',
+        dialogue: 'Wow! But how do we make sure AI is safe and helpful?',
+        background: 'linear-gradient(135deg, #fef7cd 0%, #fde68a 100%)',
+        animation: 'slideRight'
+      },
+      {
+        id: 'panel-10',
+        character: 'Dr. Amina',
+        dialogue: 'That\'s why we need responsible AI development! We test AI carefully, make sure it\'s fair to everyone, and always keep humans in control of important decisions.',
+        background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+        animation: 'fadeIn'
+      },
+      {
+        id: 'panel-11',
+        character: 'AI-ko',
+        dialogue: 'And that\'s where YOU come in! Young innovators like you will shape the future of AI. By learning these concepts now, you\'re preparing to build amazing things.',
+        background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+        animation: 'slideLeft'
+      },
+      {
+        id: 'panel-12',
+        character: 'Student Zara',
+        dialogue: 'I\'m excited to start creating! Let\'s build something amazing together!',
+        background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)',
+        animation: 'celebration'
       }
     ],
     flashcards: [

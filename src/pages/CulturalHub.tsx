@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import MLGames from '@/components/enhanced/MLGames';
 
 type Player = 'X' | 'O' | null;
 type Board = Player[];
@@ -527,6 +528,11 @@ const CulturalHub = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* ML Games Section */}
+        <div className="mt-12">
+          <MLGames />
         </div>
 
         {/* Quick Links */}

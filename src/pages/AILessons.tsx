@@ -8,6 +8,7 @@ import { ComicLesson } from "@/components/ai-tutor/ComicLesson";
 import { FlashcardQuiz } from "@/components/FlashcardQuiz";
 import { InteractiveQuiz } from "@/components/ai-tutor/InteractiveQuiz";
 import { enhancedComicLessons } from "@/data/enhancedComicLessons";
+import MLGames from "@/components/enhanced/MLGames";
 
 const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
@@ -348,6 +349,13 @@ const AILessons = () => {
               <Brain className="h-4 w-4 mr-1" />
               Interactive Quiz 🎯
             </Button>
+            <Link to="/cultural-hub">
+              <Button
+                className="text-sm px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg transition-all duration-300"
+              >
+                🎮 ML Games
+              </Button>
+            </Link>
           </div>
         </div>
 
