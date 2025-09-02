@@ -178,6 +178,45 @@ export type Database = {
           },
         ]
       }
+      voice_training_progress: {
+        Row: {
+          accuracy_score: number | null
+          achievements: Json | null
+          completed_phrases: number | null
+          created_at: string
+          exercise_id: string
+          id: string
+          language_code: string
+          total_phrases: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          achievements?: Json | null
+          completed_phrases?: number | null
+          created_at?: string
+          exercise_id: string
+          id?: string
+          language_code?: string
+          total_phrases?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          achievements?: Json | null
+          completed_phrases?: number | null
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          language_code?: string
+          total_phrases?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
