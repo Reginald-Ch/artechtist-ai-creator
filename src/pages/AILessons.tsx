@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
+import AppNavigation from '@/components/layout/AppNavigation';
 import { 
   Brain, 
   BookOpen, 
