@@ -31,7 +31,7 @@ import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
-import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
+import AvatarSelector from "@/components/AvatarSelector";
 import { OptimizedVoiceSettings } from "@/components/enhanced/OptimizedVoiceSettings";
 import { TestChatInterface } from "@/components/TestChatInterface";
 import { VoiceEnhancedChat } from "@/components/enhanced/VoiceEnhancedChat";
@@ -99,7 +99,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
-  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  
   const [projectName, setProjectName] = useState("My Project");
   const [autoSave, setAutoSave] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
@@ -549,17 +549,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               </div>
             )}
 
-            {/* Bot Status */}
+            {/* Bot Configuration */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center gap-2">
-                  Bot Status
+                  Bot Configuration
                   <Badge variant={completionPercentage > 80 ? "default" : "secondary"}>
                     {completionPercentage}%
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Bot Avatar & Personality</Label>
+                  <AvatarSelector
+                    selectedAvatar={botAvatar}
+                    onAvatarChange={(avatar, personality) => {
+                      setBotAvatar(avatar);
+                      setBotPersonality(personality);
+                    }}
+                  />
+                </div>
                 <div className="flex justify-between text-sm">
                   <span>Total Intents:</span>
                   <Badge variant="outline">{nodes.length}</Badge>
@@ -880,26 +890,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
         </div>
 
-        {/* Avatar Selector Dialog */}
-        {showAvatarSelector && (
-          <Dialog open={showAvatarSelector} onOpenChange={setShowAvatarSelector}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background/95 backdrop-blur-md border z-50">
-              <DialogHeader>
-                <DialogTitle>Choose Bot Avatar & Personality</DialogTitle>
-              </DialogHeader>
-              <div className="p-4">
-                <OptimizedAvatarSelector
-                  selectedAvatar={botAvatar}
-                  onAvatarChange={(avatar, personality) => {
-                    setBotAvatar(avatar);
-                    setBotPersonality(personality);
-                    setShowAvatarSelector(false);
-                  }}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
 
         {/* Optimized Voice Settings Dialog */}
         <OptimizedVoiceSettings
