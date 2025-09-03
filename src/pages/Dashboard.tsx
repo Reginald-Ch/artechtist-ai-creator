@@ -157,18 +157,6 @@ const Dashboard = () => {
             </Card>
           </Link>
 
-          <Card 
-            className="hover:shadow-lg transition-shadow cursor-pointer border-red-200 hover:border-red-300"
-            onClick={() => setShowGoogleAssistant(true)}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
-                <Radio className="h-6 w-6 text-white" />
-              </div>
-              <CardTitle className="text-red-600">Google Assistant</CardTitle>
-              <CardDescription>Connect your bots with Google Assistant</CardDescription>
-            </CardHeader>
-          </Card>
 
           <Card 
             className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 hover:border-slate-300"
