@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw } from "lucide-react";
+import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw, Brain, Lightbulb, Target } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AIMascot } from "@/components/ai-tutor/AIMascot";
 
 interface MLGame {
   id: string;
@@ -15,25 +16,35 @@ interface MLGame {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   category: 'Vision' | 'Gesture' | 'Creative';
   instructions: string[];
+  aiConcepts: string[];
   gameComponent: () => JSX.Element;
 }
 
-const EmojiPredictorGame = () => {
+interface MLGameWithMascotProps {
+  gameId: string;
+  onConceptExplanation: (concept: string) => void;
+}
+
+const EmojiPredictorGame = ({ gameId, onConceptExplanation }: MLGameWithMascotProps) => {
   const [gameState, setGameState] = useState<'idle' | 'training' | 'playing'>('idle');
   const [score, setScore] = useState(0);
   const [predictions, setPredictions] = useState<string[]>([]);
+  const [showingConcept, setShowingConcept] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const startGame = useCallback(async () => {
     setGameState('training');
+    // Explain concept first
+    onConceptExplanation('Computer Vision - recognizing patterns in images');
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
       toast({
-        title: "Camera activated!",
-        description: "Show different emotions to train the AI"
+        title: "Camera activated! 📸",
+        description: "AI-ko: Computer vision helps computers 'see' and understand images!"
       });
     } catch (error) {
       toast({
@@ -42,7 +53,7 @@ const EmojiPredictorGame = () => {
         variant: "destructive"
       });
     }
-  }, []);
+  }, [onConceptExplanation]);
 
   const simulateEmotion = (emotion: string) => {
     const emojis = {
@@ -53,6 +64,11 @@ const EmojiPredictorGame = () => {
     };
     setPredictions(prev => [...prev.slice(-2), emojis[emotion as keyof typeof emojis] || '🤔']);
     setScore(prev => prev + 10);
+    
+    // AI teaching moment
+    if (score % 20 === 0) {
+      onConceptExplanation('Pattern Recognition - AI learns by seeing many examples!');
+    }
   };
 
   return (
@@ -61,13 +77,14 @@ const EmojiPredictorGame = () => {
         <CardTitle className="flex items-center gap-2">
           <Camera className="h-5 w-5" />
           Emotion Detector
+          <Badge variant="outline" className="text-xs">Computer Vision</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {gameState === 'idle' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
-              Train the AI to recognize your emotions and earn points!
+              🤖 AI-ko says: "Let's teach the computer to recognize emotions! Just like how you recognize when your friend is happy or sad."
             </p>
             <Button onClick={startGame} className="w-full">
               <Play className="mr-2 h-4 w-4" />
@@ -111,7 +128,7 @@ const EmojiPredictorGame = () => {
   );
 };
 
-const FoodClassifierGame = () => {
+const FoodClassifierGame = ({ gameId, onConceptExplanation }: MLGameWithMascotProps) => {
   const [gameState, setGameState] = useState<'menu' | 'playing'>('menu');
   const [score, setScore] = useState(0);
   const [currentFood, setCurrentFood] = useState<string>('');
@@ -124,6 +141,7 @@ const FoodClassifierGame = () => {
     setGameState('playing');
     setRound(0);
     setScore(0);
+    onConceptExplanation('Classification - sorting things into categories!');
     generateNewFood();
   };
 
@@ -141,12 +159,12 @@ const FoodClassifierGame = () => {
       setScore(prev => prev + 10);
       toast({
         title: "Correct! 🎉",
-        description: `You identified the ${correctName}!`
+        description: `AI-ko: Great classification! You correctly identified the ${correctName}!`
       });
     } else {
       toast({
         title: "Try again!",
-        description: `That was a ${correctName}`,
+        description: `AI-ko: That was a ${correctName}. Classification means putting things in the right group!`,
         variant: "destructive"
       });
     }
@@ -155,9 +173,10 @@ const FoodClassifierGame = () => {
       setTimeout(generateNewFood, 1500);
     } else {
       setGameState('menu');
+      onConceptExplanation('Machine Learning - computers get better with practice!');
       toast({
         title: "Game Complete!",
-        description: `Final score: ${score}/50`
+        description: `Final score: ${score}/50. AI-ko: You trained the AI well!`
       });
     }
   };
@@ -168,13 +187,14 @@ const FoodClassifierGame = () => {
         <CardTitle className="flex items-center gap-2">
           <Gamepad2 className="h-5 w-5" />
           Food Classifier
+          <Badge variant="outline" className="text-xs">Classification</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {gameState === 'menu' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
-              Train your AI to recognize different foods!
+              🤖 AI-ko says: "Classification is like sorting your toys! Let's teach the AI to sort different foods."
             </p>
             <Button onClick={startGame} className="w-full">
               <Play className="mr-2 h-4 w-4" />
@@ -207,7 +227,7 @@ const FoodClassifierGame = () => {
   );
 };
 
-const RockPaperScissorsML = () => {
+const RockPaperScissorsML = ({ gameId, onConceptExplanation }: MLGameWithMascotProps) => {
   const [gameState, setGameState] = useState<'idle' | 'countdown' | 'playing'>('idle');
   const [playerChoice, setPlayerChoice] = useState<string>('');
   const [botChoice, setBotChoice] = useState<string>('');
@@ -236,6 +256,11 @@ const RockPaperScissorsML = () => {
     } else {
       toast({ title: "It's a tie! 🤝" });
     }
+
+    // Teaching moment
+    if ((score.player + score.bot) % 3 === 0) {
+      onConceptExplanation('Predictive AI - the computer tries to guess your next move by looking at patterns!');
+    }
   };
 
   return (
@@ -244,10 +269,15 @@ const RockPaperScissorsML = () => {
         <CardTitle className="flex items-center gap-2">
           <Hand className="h-5 w-5" />
           Rock Paper Scissors ML
+          <Badge variant="outline" className="text-xs">Pattern Analysis</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center space-y-4">
+          <p className="text-sm text-muted-foreground">
+            🤖 AI-ko: "This AI tries to predict your moves by learning your patterns!"
+          </p>
+          
           <div className="flex justify-between items-center">
             <Badge variant="outline">You: {score.player}</Badge>
             <Badge variant="outline">Bot: {score.bot}</Badge>
@@ -301,7 +331,7 @@ const RockPaperScissorsML = () => {
   );
 };
 
-const MagicDrawingGame = () => {
+const MagicDrawingGame = ({ gameId, onConceptExplanation }: MLGameWithMascotProps) => {
   const [gameState, setGameState] = useState<'idle' | 'drawing'>('idle');
   const [currentPrompt, setCurrentPrompt] = useState('');
   const [score, setScore] = useState(0);
@@ -312,6 +342,7 @@ const MagicDrawingGame = () => {
   const startDrawing = () => {
     setGameState('drawing');
     setCurrentPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
+    onConceptExplanation('Image Recognition - AI learns to see and understand drawings!');
   };
 
   const submitDrawing = () => {
@@ -321,15 +352,17 @@ const MagicDrawingGame = () => {
       setScore(prev => prev + 10);
       toast({
         title: "Great drawing! ✨",
-        description: `I can see it's a ${currentPrompt}!`
+        description: `AI-ko: I can see it's a ${currentPrompt}! Neural networks help me recognize your art!`
       });
     } else {
       toast({
         title: "Let me guess... 🤔",
-        description: "Try drawing it a bit differently!",
+        description: "AI-ko: Try drawing it a bit differently! AI learns from many examples.",
         variant: "destructive"
       });
     }
+    
+    onConceptExplanation('Feature Detection - AI looks for specific shapes and patterns in images!');
     
     // Clear canvas and get new prompt
     const canvas = canvasRef.current;
@@ -346,13 +379,14 @@ const MagicDrawingGame = () => {
         <CardTitle className="flex items-center gap-2">
           <Palette className="h-5 w-5" />
           Magic Drawing
+          <Badge variant="outline" className="text-xs">Image Recognition</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {gameState === 'idle' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
-              Draw what the AI asks and see if it can recognize your art!
+              🤖 AI-ko says: "Draw what I ask and I'll try to recognize it! This is how computers learn to 'see' art."
             </p>
             <Button onClick={startDrawing} className="w-full">
               <Play className="mr-2 h-4 w-4" />
@@ -401,7 +435,7 @@ const MagicDrawingGame = () => {
   );
 };
 
-const MLGames = () => {
+const EnhancedMLGames = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
 
@@ -409,7 +443,7 @@ const MLGames = () => {
     setCurrentTopic(concept);
     toast({
       title: "🤖 AI-ko explains!",
-      description: `Learning about ${concept}...`
+      description: concept
     });
   };
 
@@ -501,10 +535,18 @@ const MLGames = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🎮 ML Games</h2>
+        <h2 className="text-3xl font-bold mb-2">🎮 ML Games with AI-ko</h2>
         <p className="text-muted-foreground">
-          Learn machine learning through fun, interactive games!
+          Learn machine learning through fun, interactive games with your AI teacher!
         </p>
+      </div>
+
+      {/* AI Mascot Integration */}
+      <div className="max-w-md mx-auto">
+        <AIMascot 
+          currentTopic={currentTopic}
+          onTopicChange={setCurrentTopic}
+        />
       </div>
 
       <Tabs defaultValue="all" className="w-full">
@@ -516,90 +558,159 @@ const MLGames = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {games.map((game) => {
-              const Icon = game.icon;
+              const IconComponent = game.icon;
               return (
-                <Dialog key={game.id}>
-                  <DialogTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-lg transition-all">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <Icon className="h-6 w-6 text-primary" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-lg">{game.title}</CardTitle>
-                              <p className="text-sm text-muted-foreground">{game.description}</p>
-                            </div>
+                <Card key={game.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <IconComponent className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-base">{game.title}</CardTitle>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Badge className={getDifficultyColor(game.difficulty)}>
+                          {game.difficulty}
+                        </Badge>
+                        <Badge className={getCategoryColor(game.category)}>
+                          {game.category}
+                        </Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{game.description}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        {game.instructions.map((instruction, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="w-4 h-4 bg-primary/10 rounded-full text-xs flex items-center justify-center">
+                              {i + 1}
+                            </span>
+                            {instruction}
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <Badge className={getDifficultyColor(game.difficulty)}>
-                              {game.difficulty}
+                        ))}
+                      </div>
+                      
+                      {/* AI Concepts */}
+                      <div className="border-t pt-3">
+                        <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                          <Brain className="h-3 w-3" />
+                          You'll learn about:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {game.aiConcepts.map((concept, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {concept}
                             </Badge>
-                            <Badge className={getCategoryColor(game.category)}>
-                              {game.category}
-                            </Badge>
-                          </div>
+                          ))}
                         </div>
-                      </CardHeader>
-                    </Card>
-                  </DialogTrigger>
-                  
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Icon className="h-5 w-5" />
-                        {game.title}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <game.gameComponent />
-                  </DialogContent>
-                </Dialog>
+                      </div>
+                    </div>
+                    
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="w-full mt-4" 
+                          onClick={() => setSelectedGame(game.id)}
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Play Game
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <IconComponent className="h-5 w-5" />
+                            {game.title}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-center">
+                          {game.gameComponent()}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
         </TabsContent>
 
+        {/* Category specific tabs */}
         {['Vision', 'Gesture', 'Creative'].map(category => (
           <TabsContent key={category} value={category} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {games.filter(game => game.category === category).map((game) => {
-                const Icon = game.icon;
+                const IconComponent = game.icon;
                 return (
-                  <Dialog key={game.id}>
-                    <DialogTrigger asChild>
-                      <Card className="cursor-pointer hover:shadow-lg transition-all">
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-primary/10 rounded-lg">
-                                <Icon className="h-6 w-6 text-primary" />
-                              </div>
-                              <div>
-                                <CardTitle className="text-lg">{game.title}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{game.description}</p>
-                              </div>
+                  <Card key={game.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <IconComponent className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-base">{game.title}</CardTitle>
+                        </div>
+                        <Badge className={getDifficultyColor(game.difficulty)}>
+                          {game.difficulty}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{game.description}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          {game.instructions.map((instruction, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="w-4 h-4 bg-primary/10 rounded-full text-xs flex items-center justify-center">
+                                {i + 1}
+                              </span>
+                              {instruction}
                             </div>
-                            <Badge className={getDifficultyColor(game.difficulty)}>
-                              {game.difficulty}
-                            </Badge>
+                          ))}
+                        </div>
+                        
+                        {/* AI Concepts */}
+                        <div className="border-t pt-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                            <Brain className="h-3 w-3" />
+                            You'll learn about:
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {game.aiConcepts.map((concept, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {concept}
+                              </Badge>
+                            ))}
                           </div>
-                        </CardHeader>
-                      </Card>
-                    </DialogTrigger>
-                    
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <Icon className="h-5 w-5" />
-                          {game.title}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <game.gameComponent />
-                    </DialogContent>
-                  </Dialog>
+                        </div>
+                      </div>
+                      
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            className="w-full mt-4" 
+                            onClick={() => setSelectedGame(game.id)}
+                          >
+                            <Play className="mr-2 h-4 w-4" />
+                            Play Game
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <IconComponent className="h-5 w-5" />
+                              {game.title}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="text-center">
+                            {game.gameComponent()}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
@@ -610,4 +721,4 @@ const MLGames = () => {
   );
 };
 
-export default MLGames;
+export default EnhancedMLGames;

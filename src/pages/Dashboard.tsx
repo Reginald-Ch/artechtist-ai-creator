@@ -145,6 +145,18 @@ const Dashboard = () => {
             </Card>
           </Link>
 
+          <Link to="/python-ide">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-indigo-200 hover:border-indigo-300">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-indigo-600">Python IDE for Kids</CardTitle>
+                <CardDescription>Learn Python programming with AI assistance</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
           <Card 
             className="hover:shadow-lg transition-shadow cursor-pointer border-red-200 hover:border-red-300"
             onClick={() => setShowGoogleAssistant(true)}

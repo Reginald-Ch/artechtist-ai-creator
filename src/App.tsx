@@ -11,6 +11,8 @@ import BotBuilder from "./pages/BotBuilder";
 import VoiceTraining from "./pages/VoiceTraining";
 import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
+import PythonIDE from "./pages/PythonIDE";
+import CreateAgent from "./pages/CreateAgent";
 import EnhancedAuth from "./components/auth/EnhancedAuth";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/voice-training" element={<ProtectedRoute><VoiceTraining /></ProtectedRoute>} />
             <Route path="/ai-lessons" element={<ProtectedRoute><AILessons /></ProtectedRoute>} />
             <Route path="/cultural-hub" element={<ProtectedRoute><CulturalHub /></ProtectedRoute>} />
+            <Route path="/python-ide" element={<ProtectedRoute><PythonIDE /></ProtectedRoute>} />
+            <Route path="/create-agent" element={<ProtectedRoute><CreateAgent /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
