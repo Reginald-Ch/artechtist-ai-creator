@@ -60,6 +60,159 @@ print(f"Nice to meet you, {name}!")
       solution: 'for i in range(1, 11):\n    print(i)',
       completed: false,
       difficulty: 'Medium'
+    },
+    {
+      id: 'math',
+      title: 'Calculator Fun',
+      description: 'Create a simple calculator',
+      starterCode: '# Calculator\nnum1 = 10\nnum2 = 5\n# Add your calculations here',
+      solution: 'num1 = 10\nnum2 = 5\nprint(f"{num1} + {num2} = {num1 + num2}")',
+      completed: false,
+      difficulty: 'Easy'
+    },
+    {
+      id: 'lists',
+      title: 'My Favorite Things',
+      description: 'Create a list of your favorite things',
+      starterCode: '# Create a list\nfavorites = []\n# Add items and print them',
+      solution: 'favorites = ["pizza", "games", "coding"]\nfor item in favorites:\n    print(f"I love {item}!")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'conditionals',
+      title: 'Age Checker',
+      description: 'Check if someone can vote based on age',
+      starterCode: 'age = 16\n# Use if/else to check voting eligibility',
+      solution: 'age = 16\nif age >= 18:\n    print("You can vote!")\nelse:\n    print("You cannot vote yet.")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'string-methods',
+      title: 'Name Games',
+      description: 'Play with string methods',
+      starterCode: 'name = "python"\n# Try different string methods',
+      solution: 'name = "python"\nprint(name.upper())\nprint(name.capitalize())\nprint(len(name))',
+      completed: false,
+      difficulty: 'Easy'
+    },
+    {
+      id: 'random-numbers',
+      title: 'Lucky Numbers',
+      description: 'Generate random numbers',
+      starterCode: 'import random\n# Generate random numbers between 1-10',
+      solution: 'import random\nfor i in range(5):\n    print(f"Lucky number: {random.randint(1, 10)}")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'dictionaries',
+      title: 'Pet Database',
+      description: 'Create a dictionary of pets',
+      starterCode: '# Create a pet dictionary\npet = {}\n# Add name, type, age',
+      solution: 'pet = {"name": "Buddy", "type": "dog", "age": 3}\nprint(f"Meet {pet[\"name\"]}, a {pet[\"age\"]} year old {pet[\"type\"]}")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'functions',
+      title: 'Greeting Function',
+      description: 'Create a function to greet people',
+      starterCode: '# Define a greeting function\ndef greet_person():\n    # Add your code here\n    pass',
+      solution: 'def greet_person(name):\n    return f"Hello, {name}! Nice to meet you!"\n\nprint(greet_person("Alice"))',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'while-loops',
+      title: 'Countdown Timer',
+      description: 'Create a countdown from 10 to 1',
+      starterCode: '# Countdown timer\ncount = 10\n# Use while loop',
+      solution: 'count = 10\nwhile count > 0:\n    print(count)\n    count -= 1\nprint("Blast off! 🚀")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'file-handling',
+      title: 'Message Writer',
+      description: 'Write and read a message file',
+      starterCode: '# Write to a file\nmessage = "Hello from Python!"\n# Save and read the message',
+      solution: 'message = "Hello from Python!"\nwith open("message.txt", "w") as file:\n    file.write(message)\nwith open("message.txt", "r") as file:\n    print(file.read())',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'classes',
+      title: 'Animal Class',
+      description: 'Create a simple Animal class',
+      starterCode: '# Create an Animal class\nclass Animal:\n    def __init__(self, name):\n        # Add your code here\n        pass',
+      solution: 'class Animal:\n    def __init__(self, name, sound):\n        self.name = name\n        self.sound = sound\n    \n    def speak(self):\n        return f"{self.name} says {self.sound}!"\n\ndog = Animal("Rex", "woof")\nprint(dog.speak())',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'error-handling',
+      title: 'Safe Division',
+      description: 'Handle division by zero errors',
+      starterCode: '# Safe division\ndef safe_divide(a, b):\n    # Add error handling\n    pass',
+      solution: 'def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return "Cannot divide by zero!"\n\nprint(safe_divide(10, 2))\nprint(safe_divide(10, 0))',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'list-comprehension',
+      title: 'Square Numbers',
+      description: 'Create squares using list comprehension',
+      starterCode: '# Create squares of numbers 1-10\nnumbers = [1, 2, 3, 4, 5]\n# Use list comprehension',
+      solution: 'numbers = [1, 2, 3, 4, 5]\nsquares = [x**2 for x in numbers]\nprint(f"Numbers: {numbers}")\nprint(f"Squares: {squares}")',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'sorting',
+      title: 'Sort My Friends',
+      description: 'Sort a list of names alphabetically',
+      starterCode: '# Sort friends list\nfriends = ["Alice", "Bob", "Charlie", "Diana"]\n# Sort and display',
+      solution: 'friends = ["Alice", "Bob", "Charlie", "Diana"]\nfriends.sort()\nprint("My friends in order:")\nfor friend in friends:\n    print(f"- {friend}")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'nested-loops',
+      title: 'Pattern Maker',
+      description: 'Create a star pattern using nested loops',
+      starterCode: '# Pattern maker\nrows = 5\n# Create a triangle pattern',
+      solution: 'rows = 5\nfor i in range(1, rows + 1):\n    for j in range(i):\n        print("*", end="")\n    print()',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'lambda',
+      title: 'Quick Functions',
+      description: 'Use lambda functions for quick calculations',
+      starterCode: '# Lambda functions\nnumbers = [1, 2, 3, 4, 5]\n# Use lambda with map',
+      solution: 'numbers = [1, 2, 3, 4, 5]\ndoubled = list(map(lambda x: x * 2, numbers))\nprint(f"Original: {numbers}")\nprint(f"Doubled: {doubled}")',
+      completed: false,
+      difficulty: 'Hard'
+    },
+    {
+      id: 'modules',
+      title: 'Date and Time',
+      description: 'Work with date and time modules',
+      starterCode: 'import datetime\n# Get current date and time',
+      solution: 'import datetime\nnow = datetime.datetime.now()\nprint(f"Current date: {now.strftime(\"%Y-%m-%d\")}")\nprint(f"Current time: {now.strftime(\"%H:%M:%S\")}")',
+      completed: false,
+      difficulty: 'Medium'
+    },
+    {
+      id: 'json-data',
+      title: 'Student Records',
+      description: 'Work with JSON data for student records',
+      starterCode: 'import json\n# Create student data\nstudent = {}\n# Convert to JSON',
+      solution: 'import json\nstudent = {\n    "name": "Alice",\n    "age": 12,\n    "grades": [95, 87, 92]\n}\njson_data = json.dumps(student, indent=2)\nprint(json_data)',
+      completed: false,
+      difficulty: 'Hard'
     }
   ]);
   
@@ -310,7 +463,7 @@ print(f"Nice to meet you, {name}!")
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div className="p-4 border rounded-lg">
                         <h3 className="font-semibold mb-2">🖨️ Print Statements</h3>
                         <p className="text-sm text-muted-foreground mb-2">
@@ -333,7 +486,7 @@ print(f"Nice to meet you, {name}!")
                       </div>
                       
                       <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🔄 Loops</h3>
+                        <h3 className="font-semibold mb-2">🔄 For Loops</h3>
                         <p className="text-sm text-muted-foreground mb-2">
                           Repeat actions multiple times!
                         </p>
@@ -351,6 +504,132 @@ print(f"Nice to meet you, {name}!")
                         <code className="text-xs bg-muted p-2 rounded block">
                           def say_hello():<br/>
                           &nbsp;&nbsp;print("Hi!")
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">📊 Lists</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Store multiple items in order!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          fruits = ["apple", "banana"]<br/>
+                          print(fruits[0])
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🤔 If Statements</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Make decisions in your code!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          if age {'>='}13:<br/>
+                          &nbsp;&nbsp;print("Teenager!")
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🔢 Math Operations</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Calculate numbers like a calculator!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          result = 10 + 5 * 2<br/>
+                          print(result)
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🎲 Random Numbers</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Generate surprise numbers!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          import random<br/>
+                          print(random.randint(1, 10))
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🔄 While Loops</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Keep doing something until condition is false!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          count = 0<br/>
+                          while count {'<'} 3:<br/>
+                          &nbsp;&nbsp;print(count)<br/>
+                          &nbsp;&nbsp;count += 1
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">📖 Dictionaries</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Store data with names (keys)!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          pet = {'{'}name: "Buddy", age: 3{'}'}<br/>
+                          print(pet["name"])
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🎨 String Methods</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Transform text in cool ways!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          text = "python"<br/>
+                          print(text.upper())
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">🛡️ Error Handling</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Handle mistakes gracefully!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          try:<br/>
+                          &nbsp;&nbsp;result = 10/0<br/>
+                          except:<br/>
+                          &nbsp;&nbsp;print("Oops!")
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">📂 Classes & Objects</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Create your own data types!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          class Dog:<br/>
+                          &nbsp;&nbsp;def bark(self):<br/>
+                          &nbsp;&nbsp;&nbsp;&nbsp;print("Woof!")
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">📦 Modules</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Use pre-built code from others!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          import datetime<br/>
+                          print(datetime.datetime.now())
+                        </code>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h3 className="font-semibold mb-2">📄 File Handling</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Save and read files!
+                        </p>
+                        <code className="text-xs bg-muted p-2 rounded block">
+                          with open("file.txt", "w") as f:<br/>
+                          &nbsp;&nbsp;f.write("Hello!")
                         </code>
                       </div>
                     </div>

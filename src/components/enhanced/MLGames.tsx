@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw } from "lucide-react";
+import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw, Brain, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AIMascot } from "@/components/ai-tutor/AIMascot";
 
 interface MLGame {
   id: string;
@@ -405,12 +406,33 @@ const MagicDrawingGame = () => {
 const MLGames = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
+  const [aiMascotVisible, setAiMascotVisible] = useState(true);
 
   const handleConceptExplanation = (concept: string) => {
     setCurrentTopic(concept);
     toast({
       title: "🤖 AI-ko explains!",
       description: `Learning about ${concept}...`
+    });
+  };
+
+  const handleTopicChange = (topic: string) => {
+    setCurrentTopic(topic);
+    
+    // Provide concept explanations
+    const explanations = {
+      'Computer Vision': 'Computer Vision teaches machines to see and understand images, just like how you recognize faces and objects!',
+      'Pattern Recognition': 'Pattern Recognition helps AI find similarities and differences in data, like spotting trends in games!',
+      'Machine Learning': 'Machine Learning is how computers learn from examples to make predictions and decisions!',
+      'Neural Networks': 'Neural Networks are inspired by how our brain works, with connections that help AI think!',
+      'Classification': 'Classification is sorting things into groups, like organizing your toys by color or type!',
+      'Predictive AI': 'Predictive AI tries to guess what will happen next based on what happened before!',
+      'Game Theory': 'Game Theory studies how players make decisions when competing against each other!'
+    };
+
+    toast({
+      title: `🧠 Learning: ${topic}`,
+      description: explanations[topic as keyof typeof explanations] || `Exploring ${topic} concepts...`
     });
   };
 
@@ -507,6 +529,48 @@ const MLGames = () => {
           Learn machine learning through fun, interactive games!
         </p>
       </div>
+
+      {/* AI Mascot Section */}
+      {aiMascotVisible && (
+        <div className="max-w-md mx-auto">
+          <AIMascot 
+            currentTopic={currentTopic}
+            onTopicChange={handleTopicChange}
+            className="mb-4"
+          />
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Brain className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold">AI Learning Assistant</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Click on any game to learn the AI concepts behind it!
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setAiMascotVisible(false)}
+              >
+                Hide Assistant
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!aiMascotVisible && (
+        <div className="text-center">
+          <Button 
+            variant="outline"
+            onClick={() => setAiMascotVisible(true)}
+            className="mb-4"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Show AI Assistant
+          </Button>
+        </div>
+      )}
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
