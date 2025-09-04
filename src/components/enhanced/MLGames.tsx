@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw, Brain, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
+import { AIKoTeacher } from "@/components/enhanced/AIKoTeacher";
+import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
+import { SimpleGoogleAssistantButton } from "@/components/enhanced/SimpleGoogleAssistantButton";
 
 interface MLGame {
   id: string;
@@ -58,14 +61,15 @@ const EmojiPredictorGame = () => {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="h-5 w-5" />
-          Emotion Detector
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Emotion Detector
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {gameState === 'idle' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
@@ -108,8 +112,16 @@ const EmojiPredictorGame = () => {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <AIKoTeacher 
+        gameId="emoji-predictor" 
+        gameState={gameState}
+        onHint={() => toast({ title: "💡 AI-ko's Tip", description: "Make clear facial expressions for better recognition!" })}
+        onEncouragement={() => toast({ title: "🌟 AI-ko", description: "You're teaching me so well!" })}
+      />
+    </>
   );
 };
 
@@ -165,14 +177,15 @@ const FoodClassifierGame = () => {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Gamepad2 className="h-5 w-5" />
-          Food Classifier
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gamepad2 className="h-5 w-5" />
+            Food Classifier
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {gameState === 'menu' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
@@ -204,8 +217,16 @@ const FoodClassifierGame = () => {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <AIKoTeacher 
+        gameId="food-classifier" 
+        gameState={gameState}
+        onHint={() => toast({ title: "💡 AI-ko's Tip", description: "Look at the shape and colors carefully!" })}
+        onEncouragement={() => toast({ title: "🌟 AI-ko", description: "You're helping me learn so much!" })}
+      />
+    </>
   );
 };
 
@@ -241,14 +262,15 @@ const RockPaperScissorsML = () => {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Hand className="h-5 w-5" />
-          Rock Paper Scissors ML
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Hand className="h-5 w-5" />
+            Rock Paper Scissors ML
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         <div className="text-center space-y-4">
           <div className="flex justify-between items-center">
             <Badge variant="outline">You: {score.player}</Badge>
@@ -298,8 +320,16 @@ const RockPaperScissorsML = () => {
             Reset Game
           </Button>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <AIKoTeacher 
+        gameId="rock-paper-scissors" 
+        gameState="playing"
+        onHint={() => toast({ title: "💡 AI-ko's Tip", description: "Try to be unpredictable!" })}
+        onEncouragement={() => toast({ title: "🌟 AI-ko", description: "Great strategy! Keep challenging me!" })}
+      />
+    </>
   );
 };
 
@@ -343,14 +373,15 @@ const MagicDrawingGame = () => {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
-          Magic Drawing
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            Magic Drawing
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {gameState === 'idle' && (
           <div className="text-center space-y-4">
             <p className="text-muted-foreground">
@@ -398,8 +429,16 @@ const MagicDrawingGame = () => {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <AIKoTeacher 
+        gameId="magic-drawing" 
+        gameState={gameState}
+        onHint={() => toast({ title: "💡 AI-ko's Tip", description: "Draw clear, simple shapes!" })}
+        onEncouragement={() => toast({ title: "🌟 AI-ko", description: "Your creativity is amazing!" })}
+      />
+    </>
   );
 };
 
@@ -528,6 +567,12 @@ const MLGames = () => {
         <p className="text-muted-foreground">
           Learn machine learning through fun, interactive games!
         </p>
+      </div>
+
+      {/* Action Bar */}
+      <div className="flex justify-center gap-4 mb-6">
+        <VoiceChatbotSettings />
+        <SimpleGoogleAssistantButton />
       </div>
 
       {/* AI Mascot Section */}
