@@ -15,6 +15,7 @@ interface MLGame {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   category: 'Vision' | 'Gesture' | 'Creative';
   instructions: string[];
+  aiConcepts: string[];
   gameComponent: () => JSX.Element;
 }
 
@@ -428,7 +429,7 @@ const MLGames = () => {
         'Earn points for correct predictions'
       ],
       aiConcepts: ['Computer Vision', 'Pattern Recognition', 'Training Data'],
-      gameComponent: () => <EmojiPredictorGame gameId="emoji-predictor" onConceptExplanation={handleConceptExplanation} />
+      gameComponent: () => <EmojiPredictorGame />
     },
     {
       id: 'food-classifier',
@@ -444,7 +445,7 @@ const MLGames = () => {
         'Get the highest score'
       ],
       aiConcepts: ['Classification', 'Machine Learning', 'Data Labeling'],
-      gameComponent: () => <FoodClassifierGame gameId="food-classifier" onConceptExplanation={handleConceptExplanation} />
+      gameComponent: () => <FoodClassifierGame />
     },
     {
       id: 'rock-paper-scissors',
@@ -460,7 +461,7 @@ const MLGames = () => {
         'Best of unlimited rounds'
       ],
       aiConcepts: ['Predictive AI', 'Pattern Analysis', 'Game Theory'],
-      gameComponent: () => <RockPaperScissorsML gameId="rock-paper-scissors" onConceptExplanation={handleConceptExplanation} />
+      gameComponent: () => <RockPaperScissorsML />
     },
     {
       id: 'magic-drawing',
@@ -476,7 +477,7 @@ const MLGames = () => {
         'See if AI recognizes it'
       ],
       aiConcepts: ['Image Recognition', 'Neural Networks', 'Feature Detection'],
-      gameComponent: () => <MagicDrawingGame gameId="magic-drawing" onConceptExplanation={handleConceptExplanation} />
+      gameComponent: () => <MagicDrawingGame />
     }
   ];
 
