@@ -253,6 +253,33 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_projects: {
+        Row: {
+          created_at: string
+          id: string
+          project_data: Json
+          project_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_data?: Json
+          project_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_data?: Json
+          project_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       treasure_code_batches: {
         Row: {
           batch_name: string

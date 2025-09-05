@@ -46,7 +46,9 @@ import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
-import { SimpleGoogleAssistantButton } from "@/components/enhanced/SimpleGoogleAssistantButton";
+import { AutoGoogleAssistantIntegration } from "./AutoGoogleAssistantIntegration";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Removed duplicate nodeTypes definition
 
@@ -99,8 +101,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botName, setBotName] = useState("My AI Assistant");
   const [botAvatar, setBotAvatar] = useState("🤖");
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
+  const [botDescription, setBotDescription] = useState("helpful and friendly");
+  const [selectedAvatar, setSelectedAvatar] = useState("");
+  const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [showGoogleAssistant, setShowGoogleAssistant] = useState(false);
+  const { user } = useAuth();
   
   const [projectName, setProjectName] = useState("My Project");
   const [autoSave, setAutoSave] = useState(true);
@@ -146,7 +153,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       console.log('Applying template:', template);
       setBotName(template.name || "My AI Assistant");
       setBotAvatar(template.avatar || "🤖");
-      setBotPersonality(template.description || "helpful and friendly");
+      setBotDescription(template.description || "helpful and friendly");
       
       // Improved template parsing with fallbacks
       const templateNodes = template.intents?.map((intent: any, index: number) => ({
@@ -171,6 +178,26 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       localStorage.setItem('current-agent-template', JSON.stringify(template));
     }
   }, [template, setNodes]);
+
+  // Load saved project data
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const savedProjectData = searchParams.get('project');
+    
+    if (savedProjectData) {
+      try {
+        const savedProject = JSON.parse(decodeURIComponent(savedProjectData));
+        setBotName(savedProject.project_name);
+        setBotDescription(savedProject.project_data.description || '');
+        setNodes(savedProject.project_data.nodes || []);
+        setEdges(savedProject.project_data.edges || []);
+        setVoiceSettings(savedProject.project_data.voiceSettings || {});
+        setSelectedAvatar(savedProject.project_data.selectedAvatar || '');
+      } catch (error) {
+        console.error('Error loading saved project:', error);
+      }
+    }
+  }, []);
   
   const onConnect = useCallback((params: Connection) => 
     setEdges((eds) => addEdge({
@@ -338,93 +365,68 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   }, [selectedNode, setNodes]);
 
   const handleSave = async () => {
-    setIsSaving(true);
-    
-    try {
-      // Validate bot data before saving
-      const hasValidIntents = nodes.some(node => 
-        (node.data.trainingPhrases as string[])?.length > 0 && 
-        (node.data.responses as string[])?.length > 0
-      );
-      
-      if (!hasValidIntents) {
-        toast({ 
-          title: "Save Warning", 
-          description: "Your bot needs at least one intent with training phrases and responses",
-          variant: "destructive"
-        });
-        setIsSaving(false);
-        return;
-      }
-
-      // Enhanced project data with voice settings
-      const projectData = {
-        id: `bot-${Date.now()}`,
-        name: projectName,
-        botName,
-        botAvatar,
-        botPersonality,
-        nodes,
-        edges,
-        voiceSettings: {
-          apiKey: voiceApiKey,
-          selectedVoice,
-          selectedModel
-        },
-        metadata: {
-          version: "1.0",
-          completionPercentage,
-          intentCount: nodes.length,
-          totalPhrases: nodes.reduce((sum, node) => sum + ((node.data.trainingPhrases as string[])?.length || 0), 0),
-          totalResponses: nodes.reduce((sum, node) => sum + ((node.data.responses as string[])?.length || 0), 0)
-        },
-        lastSaved: new Date().toISOString(),
-        createdAt: localStorage.getItem(`bot-project-${projectName}`) ? 
-          JSON.parse(localStorage.getItem(`bot-project-${projectName}`) || '{}').createdAt : 
-          new Date().toISOString()
-      };
-
-      // Save to localStorage
-      localStorage.setItem(`bot-project-${projectName}`, JSON.stringify(projectData));
-      
-      // Save to a general projects list for dashboard
-      const existingProjects = JSON.parse(localStorage.getItem('bot-projects-list') || '[]');
-      const projectIndex = existingProjects.findIndex((p: any) => p.name === projectName);
-      
-      const projectSummary = {
-        id: projectData.id,
-        name: projectName,
-        botName,
-        lastSaved: projectData.lastSaved,
-        completionPercentage,
-        intentCount: nodes.length
-      };
-      
-      if (projectIndex >= 0) {
-        existingProjects[projectIndex] = projectSummary;
-      } else {
-        existingProjects.push(projectSummary);
-      }
-      
-      localStorage.setItem('bot-projects-list', JSON.stringify(existingProjects));
-      
-      // Simulate API save delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setIsSaving(false);
-      setLastSaved(new Date());
-      toast({ 
-        title: "✅ Project Saved Successfully", 
-        description: `"${projectName}" with ${nodes.length} intents has been saved` 
-      });
-      
-    } catch (error) {
-      setIsSaving(false);
-      toast({ 
-        title: "❌ Save Failed", 
-        description: "There was an error saving your project. Please try again.",
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save your project",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (!botName.trim()) {
+      toast({
+        title: "Project name required",
+        description: "Please enter a name for your project",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      
+      const projectData = {
+        name: botName,
+        description: botDescription,
+        nodes,
+        edges,
+        voiceSettings,
+        selectedAvatar,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('saved_projects')
+        .insert({
+          user_id: user.id,
+          project_name: botName,
+          project_data: projectData as any
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Project saved successfully!",
+        description: `${botName} has been saved to your dashboard`
+      });
+
+      // Navigate to dashboard after saving
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+    } catch (error) {
+      console.error('Error saving project:', error);
+      toast({
+        title: "Error saving project",
+        description: "Failed to save your project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
   
@@ -712,7 +714,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* Enhanced Secondary header with navigation, project info, and action buttons */}
         <div className="flex items-center justify-between gap-4 px-6 py-3 border-b bg-gradient-to-r from-background to-muted/30">
           <div className="flex items-center gap-4">
-            <Link to="/dashboard">
+            <Link to="/">
               <Button variant="ghost" size="sm" className="hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
@@ -734,8 +736,24 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            <VoiceChatbotSettings />
-            <SimpleGoogleAssistantButton />
+            <Button
+              onClick={() => setShowVoiceSettings(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Mic className="h-4 w-4" />
+              Voice Settings
+            </Button>
+            
+            <Button
+              onClick={() => setShowGoogleAssistant(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Speaker className="h-4 w-4" />
+              Google Assistant
+            </Button>
+            
             <Button 
               onClick={handleSave} 
               disabled={isSaving}
@@ -1026,11 +1044,34 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
 
-        {/* Optimized Voice Settings Dialog */}
-        <OptimizedVoiceSettings
-          open={showVoiceSettings}
-          onOpenChange={setShowVoiceSettings}
-        />
+        {/* Voice Settings Dialog */}
+        <Dialog open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Voice Settings</DialogTitle>
+            </DialogHeader>
+            <VoiceChatbotSettings />
+          </DialogContent>
+        </Dialog>
+
+        {/* Google Assistant Integration Dialog */}
+        <Dialog open={showGoogleAssistant} onOpenChange={setShowGoogleAssistant}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Google Assistant Integration</DialogTitle>
+            </DialogHeader>
+            <AutoGoogleAssistantIntegration 
+              botName={botName}
+              nodes={nodes}
+              edges={edges}
+              voiceSettings={voiceSettings}
+              onDeploymentComplete={(connectionKey) => {
+                console.log('Deployment complete:', connectionKey);
+                setShowGoogleAssistant(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog

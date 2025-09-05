@@ -9,10 +9,10 @@ import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { AgentCreationDialog } from "@/components/AgentCreationDialog";
+import { SavedProjectsUI } from "@/components/enhanced/SavedProjectsUI";
 
 // Lazy load performance-heavy components
 const GoogleAssistantIntegration = lazy(() => import("@/components/enhanced/GoogleAssistantIntegration").then(module => ({ default: module.GoogleAssistantIntegration })));
-const PerformanceOptimizer = lazy(() => import("@/components/enhanced/PerformanceOptimizer").then(module => ({ default: module.PerformanceOptimizer })));
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ const Dashboard = () => {
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   const [showAgentCreation, setShowAgentCreation] = useState(false);
   const [showGoogleAssistant, setShowGoogleAssistant] = useState(false);
-  const [showPerformanceTools, setShowPerformanceTools] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -158,16 +157,13 @@ const Dashboard = () => {
           </Link>
 
 
-          <Card 
-            className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 hover:border-slate-300"
-            onClick={() => setShowPerformanceTools(true)}
-          >
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 hover:border-slate-300">
             <CardHeader className="text-center">
               <div className="mx-auto mb-2 w-12 h-12 bg-slate-500 rounded-full flex items-center justify-center">
                 <Settings className="h-6 w-6 text-white" />
               </div>
-              <CardTitle className="text-slate-600">Performance Tools</CardTitle>
-              <CardDescription>Optimize app performance & offline features</CardDescription>
+              <CardTitle className="text-slate-600">Saved Projects</CardTitle>
+              <CardDescription>View and manage your saved chatbot projects</CardDescription>
             </CardHeader>
           </Card>
         </div>
@@ -181,49 +177,8 @@ const Dashboard = () => {
             />
           </div>
           
-          {/* My Bots */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5" />
-                Open Project
-              </CardTitle>
-              <CardDescription>Continue working on previously saved agents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {myBots.map((bot) => (
-                  <div key={bot.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{bot.avatar}</div>
-                      <div>
-                        <h3 className="font-medium">{bot.name}</h3>
-                        <p className="text-sm text-muted-foreground">Last edited: {bot.lastEdited}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        bot.status === 'Active' 
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300' 
-                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300'
-                      }`}>
-                        {bot.status}
-                      </span>
-                      <Link to={`/builder/${bot.id}`}>
-                        <Button size="sm" variant="outline">Edit</Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-                <Link to="/builder">
-                  <Button className="w-full" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New Bot
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Saved Projects */}
+          <SavedProjectsUI />
 
           {/* Sample Bots */}
           <Card>
@@ -310,29 +265,6 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Performance Tools Modal */}
-        {showPerformanceTools && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Performance Optimization Tools</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowPerformanceTools(false)}>
-                  ✕
-                </Button>
-              </div>
-              <div className="p-4">
-                <Suspense fallback={
-                  <div className="flex items-center justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-2">Loading Performance Tools...</span>
-                  </div>
-                }>
-                  <PerformanceOptimizer />
-                </Suspense>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
