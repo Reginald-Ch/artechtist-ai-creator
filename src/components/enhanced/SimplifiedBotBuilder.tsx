@@ -45,6 +45,8 @@ import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerI
 import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
+import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
+import { SimpleGoogleAssistantButton } from "@/components/enhanced/SimpleGoogleAssistantButton";
 
 // Removed duplicate nodeTypes definition
 
@@ -335,25 +337,95 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     });
   }, [selectedNode, setNodes]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    // Save to localStorage
-    const projectData = {
-      name: projectName,
-      botName,
-      botAvatar,
-      botPersonality,
-      nodes,
-      edges,
-      lastSaved: new Date().toISOString()
-    };
-    localStorage.setItem(`bot-project-${projectName}`, JSON.stringify(projectData));
     
-    setTimeout(() => {
+    try {
+      // Validate bot data before saving
+      const hasValidIntents = nodes.some(node => 
+        (node.data.trainingPhrases as string[])?.length > 0 && 
+        (node.data.responses as string[])?.length > 0
+      );
+      
+      if (!hasValidIntents) {
+        toast({ 
+          title: "Save Warning", 
+          description: "Your bot needs at least one intent with training phrases and responses",
+          variant: "destructive"
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      // Enhanced project data with voice settings
+      const projectData = {
+        id: `bot-${Date.now()}`,
+        name: projectName,
+        botName,
+        botAvatar,
+        botPersonality,
+        nodes,
+        edges,
+        voiceSettings: {
+          apiKey: voiceApiKey,
+          selectedVoice,
+          selectedModel
+        },
+        metadata: {
+          version: "1.0",
+          completionPercentage,
+          intentCount: nodes.length,
+          totalPhrases: nodes.reduce((sum, node) => sum + ((node.data.trainingPhrases as string[])?.length || 0), 0),
+          totalResponses: nodes.reduce((sum, node) => sum + ((node.data.responses as string[])?.length || 0), 0)
+        },
+        lastSaved: new Date().toISOString(),
+        createdAt: localStorage.getItem(`bot-project-${projectName}`) ? 
+          JSON.parse(localStorage.getItem(`bot-project-${projectName}`) || '{}').createdAt : 
+          new Date().toISOString()
+      };
+
+      // Save to localStorage
+      localStorage.setItem(`bot-project-${projectName}`, JSON.stringify(projectData));
+      
+      // Save to a general projects list for dashboard
+      const existingProjects = JSON.parse(localStorage.getItem('bot-projects-list') || '[]');
+      const projectIndex = existingProjects.findIndex((p: any) => p.name === projectName);
+      
+      const projectSummary = {
+        id: projectData.id,
+        name: projectName,
+        botName,
+        lastSaved: projectData.lastSaved,
+        completionPercentage,
+        intentCount: nodes.length
+      };
+      
+      if (projectIndex >= 0) {
+        existingProjects[projectIndex] = projectSummary;
+      } else {
+        existingProjects.push(projectSummary);
+      }
+      
+      localStorage.setItem('bot-projects-list', JSON.stringify(existingProjects));
+      
+      // Simulate API save delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       setIsSaving(false);
       setLastSaved(new Date());
-      toast({ title: "Project saved", description: `"${projectName}" has been saved successfully` });
-    }, 1000);
+      toast({ 
+        title: "✅ Project Saved Successfully", 
+        description: `"${projectName}" with ${nodes.length} intents has been saved` 
+      });
+      
+    } catch (error) {
+      setIsSaving(false);
+      toast({ 
+        title: "❌ Save Failed", 
+        description: "There was an error saving your project. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleExport = () => {
@@ -637,31 +709,71 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           nodeCount={nodes.length}
         />
         
-        {/* Secondary header with navigation and project info */}
-        <div className="flex items-center justify-between gap-4 px-4 py-2 border-b bg-muted/30">
-          <div className="flex items-center gap-3">
+        {/* Enhanced Secondary header with navigation, project info, and action buttons */}
+        <div className="flex items-center justify-between gap-4 px-6 py-3 border-b bg-gradient-to-r from-background to-muted/30">
+          <div className="flex items-center gap-4">
             <Link to="/dashboard">
               <Button variant="ghost" size="sm" className="hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
             </Link>
-            <h1 className="text-xl font-semibold text-foreground">Chatbot Playground</h1>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Chatbot Playground</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>{projectName}</span>
+                <Badge variant="outline" className="text-xs">
+                  {completionPercentage}% Complete
+                </Badge>
+                <span className="text-xs">
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </span>
+              </div>
+            </div>
           </div>
 
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <VoiceChatbotSettings />
+            <SimpleGoogleAssistantButton />
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              className="gap-2"
+              variant="default"
+            >
+              {isSaving ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Project
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        <div className="flex-1 flex">
+        <div className="flex-1 flex gap-1">
           {/* Left Panel - Flow Canvas with ReactFlow */}
-          <div className="w-[500px] border-r bg-background">
-            <div className="h-14 px-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">Conversation Flow</h2>
+          <div className="w-[450px] border-r bg-background">
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold text-foreground">Conversation Flow</h2>
+                <Badge variant="secondary" className="text-xs">
+                  {nodes.length} intents
+                </Badge>
+              </div>
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={addNewIntent}
-                  className="text-xs"
+                  className="text-xs hover:bg-primary hover:text-primary-foreground"
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Intent
@@ -673,11 +785,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                   className="text-xs"
                 >
                   <Layout className="h-3 w-3 mr-1" />
-                  Auto Layout
+                  Layout
                 </Button>
               </div>
             </div>
-            <div className="h-[calc(100vh-14rem)]">
+            <div className="h-[calc(100vh-15rem)]">
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -736,13 +848,25 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             </div>
           </div>
 
-          {/* Middle Panel - Intent Editor */}
-          <div className="flex-1 p-6 bg-muted/20">
+          {/* Enhanced Middle Panel - Intent Editor */}
+          <div className="flex-1 p-8 bg-gradient-to-br from-background to-muted/20 overflow-y-auto">
             {selectedNode ? (
-              <div>
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-1">Edit: {String(selectedNode.data.label)}</h2>
-                  <p className="text-muted-foreground">Configure training phrases and responses</p>
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold mb-1">Edit: {String(selectedNode.data.label)}</h2>
+                      <p className="text-muted-foreground">Configure training phrases and responses for better understanding</p>
+                    </div>
+                  </div>
+                  {selectedNode.data.isDefault && (
+                    <Badge variant="outline" className="text-xs">
+                      Default Intent
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-6">
@@ -865,19 +989,30 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             )}
           </div>
 
-          {/* Right Panel - Real-time Testing */}
-          <div className="w-80 border-l bg-background">
-            <div className="h-14 px-4 border-b border-border flex items-center justify-between">
-              <h2 className="font-semibold text-foreground">Testing Panel</h2>
-              <Badge variant={showTestPanel ? "default" : "secondary"} className="text-xs">
-                {showTestPanel ? "Active" : "Inactive"}
-              </Badge>
+          {/* Enhanced Right Panel - Real-time Testing */}
+          <div className="w-96 border-l bg-background">
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Play className="h-4 w-4 text-primary" />
+                <h2 className="font-semibold text-foreground">Live Testing</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={showTestPanel ? "default" : "secondary"} className="text-xs">
+                  {showTestPanel ? "Active" : "Inactive"}
+                </Badge>
+              </div>
             </div>
-            <div className="p-4 text-sm text-muted-foreground">
-              <p className="mb-2">Real-time test of your chatbot responses.</p>
-              <p>Try typing or using voice-to-text.</p>
+            <div className="p-4 bg-gradient-to-b from-muted/20 to-background">
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p className="font-medium">🎯 Test Your Bot Instantly</p>
+                <p>Try typing questions or use voice input to see how your bot responds in real-time.</p>
+                <div className="flex items-center gap-2 text-xs">
+                  <Mic className="h-3 w-3" />
+                  <span>Voice input enabled</span>
+                </div>
+              </div>
             </div>
-            <div className="h-[calc(100vh-12rem)]">
+            <div className="h-[calc(100vh-13rem)] border-t">
               <TestChatInterface
                 nodes={nodes}
                 edges={edges}
