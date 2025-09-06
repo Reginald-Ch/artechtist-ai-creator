@@ -22,9 +22,11 @@ import {
   Bookmark
 } from 'lucide-react';
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
+import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
 import { ProgressAnalytics } from '@/components/enhanced/ProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
+import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -48,6 +50,8 @@ const AILessons = () => {
     getLessonScore,
     getTotalProgress
   } = useEnhancedLessonProgress();
+
+  const { recordActivity } = useProgressiveStreak();
 
   // Topics with icons and descriptions
   const topics = useMemo((): Topic[] => [
@@ -103,6 +107,7 @@ const AILessons = () => {
   const handleCompleteLesson = (lessonId: string) => {
     const score = Math.floor(Math.random() * 20) + 80; // 80-100% random score
     completeLesson(lessonId, score);
+    recordActivity('lesson', score);
     setSelectedLesson(null);
   };
 
@@ -170,25 +175,28 @@ const AILessons = () => {
             />
           </Suspense>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
-              <TabsTrigger value="browse">
-                <BookOpen className="w-4 h-4 mr-2" />
-                Topics
-              </TabsTrigger>
-              <TabsTrigger value="all">
-                <Star className="w-4 h-4 mr-2" />
-                All Lessons
-              </TabsTrigger>
-              <TabsTrigger value="search">
-                <Search className="w-4 h-4 mr-2" />
-                Search
-              </TabsTrigger>
-              <TabsTrigger value="analytics">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
+                  <TabsTrigger value="browse">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Topics
+                  </TabsTrigger>
+                  <TabsTrigger value="all">
+                    <Star className="w-4 h-4 mr-2" />
+                    All Lessons
+                  </TabsTrigger>
+                  <TabsTrigger value="search">
+                    <Search className="w-4 h-4 mr-2" />
+                    Search
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Analytics
+                  </TabsTrigger>
+                </TabsList>
 
             <TabsContent value="browse" className="space-y-6">
               {isLoading ? (
@@ -323,17 +331,24 @@ const AILessons = () => {
               />
             </TabsContent>
 
-            <TabsContent value="analytics" className="space-y-6">
-              {analytics && (
-                <ProgressAnalytics 
-                  analytics={analytics}
-                  syncStatus={syncStatus}
-                  isOnline={isOnline}
-                  onExportProgress={exportProgress}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
+                <TabsContent value="analytics" className="space-y-6">
+                  {analytics && (
+                    <ProgressAnalytics 
+                      analytics={analytics}
+                      syncStatus={syncStatus}
+                      isOnline={isOnline}
+                      onExportProgress={exportProgress}
+                    />
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Sidebar - Progressive Learning */}
+            <div className="lg:col-span-1">
+              <ProgressiveStreak />
+            </div>
+          </div>
         )}
       </div>
     </div>

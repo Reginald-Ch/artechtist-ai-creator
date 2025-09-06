@@ -95,56 +95,56 @@ export const VoiceChatbotSettings = () => {
           Voice Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Mic className="h-5 w-5" />
-            Chatbot Voice Settings
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Mic className="h-4 w-4" />
+            Voice Settings
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
-          {/* Voice Gender */}
-          <div className="space-y-2">
-            <Label>Voice Gender</Label>
-            <Select value={settings.gender} onValueChange={(value: 'male' | 'female' | 'child') => 
-              setSettings(prev => ({ ...prev, gender: value }))
-            }>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="child">Child-Friendly</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="male">Male</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="space-y-4">
+          {/* Compact Voice & Language */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Voice</Label>
+              <Select value={settings.gender} onValueChange={(value: 'male' | 'female' | 'child') => 
+                setSettings(prev => ({ ...prev, gender: value }))
+              }>
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="child">Child</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-1">
+              <Label className="text-xs">Language</Label>
+              <Select value={settings.language} onValueChange={(value) => 
+                setSettings(prev => ({ ...prev, language: value }))
+              }>
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en-US">English</SelectItem>
+                  <SelectItem value="es-ES">Spanish</SelectItem>
+                  <SelectItem value="fr-FR">French</SelectItem>
+                  <SelectItem value="sw-TZ">Swahili</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Language */}
-          <div className="space-y-2">
-            <Label>Language</Label>
-            <Select value={settings.language} onValueChange={(value) => 
-              setSettings(prev => ({ ...prev, language: value }))
-            }>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {languages.map(lang => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Pitch Control */}
+          {/* Compact Sliders */}
           <div className="space-y-3">
-            <div className="flex justify-between">
-              <Label>Pitch</Label>
-              <span className="text-sm text-muted-foreground">{settings.pitch}</span>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Pitch</Label>
+              <span className="text-xs text-muted-foreground">{settings.pitch}</span>
             </div>
             <Slider
               value={[settings.pitch]}
@@ -152,15 +152,14 @@ export const VoiceChatbotSettings = () => {
               min={0.5}
               max={2}
               step={0.1}
-              className="w-full"
+              className="h-2"
             />
           </div>
 
-          {/* Speaking Rate */}
           <div className="space-y-3">
-            <div className="flex justify-between">
-              <Label>Speaking Rate</Label>
-              <span className="text-sm text-muted-foreground">{settings.rate}</span>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Speed</Label>
+              <span className="text-xs text-muted-foreground">{settings.rate}</span>
             </div>
             <Slider
               value={[settings.rate]}
@@ -168,51 +167,18 @@ export const VoiceChatbotSettings = () => {
               min={0.5}
               max={2}
               step={0.1}
-              className="w-full"
+              className="h-2"
             />
           </div>
 
-          {/* Volume */}
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <Label>Volume</Label>
-              <span className="text-sm text-muted-foreground">{Math.round(settings.volume * 100)}%</span>
-            </div>
-            <Slider
-              value={[settings.volume]}
-              onValueChange={([value]) => setSettings(prev => ({ ...prev, volume: value }))}
-              min={0}
-              max={1}
-              step={0.1}
-              className="w-full"
-            />
-          </div>
-
-          {/* Voice Test */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Test Voice</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Hear how your chatbot will sound
-                  </p>
-                </div>
-                <Button onClick={testVoice} variant="outline" size="sm">
-                  <TestTube className="mr-2 h-4 w-4" />
-                  Test
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-4">
-            <Button onClick={saveSettings} className="flex-1">
-              Save Settings
+          {/* Test and Save */}
+          <div className="flex gap-2 pt-2">
+            <Button onClick={testVoice} variant="outline" size="sm" className="flex-1">
+              <TestTube className="mr-1 h-3 w-3" />
+              Test
             </Button>
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
-              Cancel
+            <Button onClick={saveSettings} size="sm" className="flex-1">
+              Save
             </Button>
           </div>
         </div>
