@@ -126,8 +126,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                   <Globe className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
-                <CardDescription>Explore African stories, languages & traditions</CardDescription>
+                <CardTitle className="text-purple-600">ML Playground</CardTitle>
+                <CardDescription>Gamified ML Learning experince</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -139,7 +139,7 @@ const Dashboard = () => {
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle className="text-yellow-600">AI Comic Lessons</CardTitle>
-                <CardDescription>Learn AI through interactive African stories</CardDescription>
+                <CardDescription>Learn AI through interactive and animative lessons</CardDescription>
               </CardHeader>
             </Card>
           </Link>
