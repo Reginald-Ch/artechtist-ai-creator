@@ -28,8 +28,7 @@ interface BotPersonality {
 
 const botPersonalities: BotPersonality[] = [
   {
-    avatar: <img src='https://avataaars.io/?avatarStyle=Transparent&topType=LongHairBun&accessoriesType=Prescription01&hairColor=Auburn&facialHairType=Blank&clotheType=ShirtScoopNeck&clotheColor=PastelRed&eyeType=Happy&eyebrowType=UpDownNatural&mouthType=Smile&skinColor=Brown'
-/>,
+    avatar: "🤖",
     name: "Tech Helper",
     personality: "helpful, technical, and precise",
     description: "A knowledgeable assistant that loves solving technical problems",
