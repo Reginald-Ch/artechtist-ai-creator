@@ -736,6 +736,23 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowVoiceSettings(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Mic className="h-4 w-4" />
+              Voice Settings
+            </Button>
+            
+            <Button
+              onClick={() => setShowGoogleAssistant(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Speaker className="h-4 w-4" />
+              Google Assistant
+            </Button>
             
             <Button 
               onClick={handleSave} 
@@ -759,17 +776,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
         <div className="flex-1 flex gap-1">
-          {/* Enhanced Left Panel - Expanded Flow Playground */}
-          <div className="flex-1 border-r bg-background">
-            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
+          {/* Left Panel - Flow Canvas with ReactFlow */}
+          <div className="w-[450px] border-r bg-background">
+            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-foreground">Conversation Flow Playground</h2>
+                <h2 className="font-semibold text-foreground">Conversation Flow</h2>
                 <Badge variant="secondary" className="text-xs">
                   {nodes.length} intents
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {edges.length} connections
                 </Badge>
               </div>
               <div className="flex gap-2">
@@ -789,7 +803,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                   className="text-xs"
                 >
                   <Layout className="h-3 w-3 mr-1" />
-                  Auto Layout
+                  Layout
                 </Button>
               </div>
             </div>
@@ -852,18 +866,18 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             </div>
           </div>
 
-          {/* Compact Right Panel - Properties & Settings */}
-          <div className="w-[400px] p-4 bg-gradient-to-br from-background to-muted/20 overflow-y-auto border-l">
+          {/* Enhanced Middle Panel - Intent Editor */}
+          <div className="flex-1 p-8 bg-gradient-to-br from-background to-muted/20 overflow-y-auto">
             {selectedNode ? (
-              <div className="space-y-4">
-                <div className="pb-4 border-b">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-primary" />
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-8">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{String(selectedNode.data.label)}</h3>
-                      <p className="text-xs text-muted-foreground">Configure intent properties</p>
+                      <h2 className="text-2xl font-semibold mb-1">Edit: {String(selectedNode.data.label)}</h2>
+                      <p className="text-muted-foreground">Configure training phrases and responses for better understanding</p>
                     </div>
                   </div>
                   {selectedNode.data.isDefault && (
@@ -981,39 +995,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <h4 className="font-medium mb-1">Select an Intent</h4>
-                <p className="text-xs text-muted-foreground">
-                  Click on an intent node to edit its properties
-                </p>
-              </div>
-            )}
-            
-            {/* Compact Settings Panel */}
-            <div className="mt-4 space-y-3 border-t pt-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  Bot Settings
-                </h4>
-                <div className="space-y-2">
-                  <VoiceChatbotSettings />
-                  <AutoGoogleAssistantIntegration
-                    botName={botName}
-                    nodes={nodes}
-                    edges={edges}
-                    voiceSettings={voiceSettings}
-                    onDeploymentComplete={(key) => {
-                      toast({
-                        title: "🎉 Bot deployed!",
-                        description: `Try saying: "Hey Google, talk to test version of ${botName}"`
-                      });
-                    }}
-                  />
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Select an Intent to Edit</h3>
+                  <p className="text-muted-foreground">
+                    Choose an intent from the conversation flow to configure its training phrases and responses.
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Enhanced Right Panel - Real-time Testing */}
@@ -1053,6 +1044,34 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
 
+        {/* Voice Settings Dialog */}
+        <Dialog open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Voice Settings</DialogTitle>
+            </DialogHeader>
+            <VoiceChatbotSettings />
+          </DialogContent>
+        </Dialog>
+
+        {/* Google Assistant Integration Dialog */}
+        <Dialog open={showGoogleAssistant} onOpenChange={setShowGoogleAssistant}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Google Assistant Integration</DialogTitle>
+            </DialogHeader>
+            <AutoGoogleAssistantIntegration 
+              botName={botName}
+              nodes={nodes}
+              edges={edges}
+              voiceSettings={voiceSettings}
+              onDeploymentComplete={(connectionKey) => {
+                console.log('Deployment complete:', connectionKey);
+                setShowGoogleAssistant(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog

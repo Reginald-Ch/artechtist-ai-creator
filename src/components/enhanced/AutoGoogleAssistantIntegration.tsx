@@ -116,69 +116,102 @@ export const AutoGoogleAssistantIntegration = ({
   };
 
   return (
-    <div className="w-full">
-      <div className="text-xs text-muted-foreground mb-2">
-        <p>Auto-deploy to Google Assistant test environment</p>
-      </div>
-
-      {/* Compact Bot Summary */}
-      <div className="bg-muted p-2 rounded text-xs mb-3">
-        <div className="flex gap-2">
-          <Badge variant="outline" className="text-xs">{nodes.length} intents</Badge>
-          <Badge variant="outline" className="text-xs">{edges.length} flows</Badge>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Radio className="h-5 w-5" />
+          Google Assistant Integration
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-sm text-muted-foreground">
+          <p>Automatically convert your chatbot to work with Google Assistant!</p>
+          <p className="text-xs mt-1">Your bot will be available in a test environment.</p>
         </div>
-      </div>
 
-      {/* Compact Deployment Button */}
-      <Button 
-        onClick={deployToGoogleAssistant}
-        disabled={isDeploying}
-        size="sm"
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-      >
-        {isDeploying ? (
-          <>
-            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-            Deploying...
-          </>
-        ) : (
-          <>
-            <Radio className="mr-1 h-3 w-3" />
-            Deploy to Google Assistant
-          </>
-        )}
-      </Button>
-
-      {/* Compact Status Display */}
-      {deploymentStatus !== 'idle' && (
-        <div className={`p-2 rounded mt-3 text-xs ${
-          deploymentStatus === 'success' ? 'bg-green-50 border border-green-200 text-green-700' :
-          deploymentStatus === 'error' ? 'bg-red-50 border border-red-200 text-red-700' :
-          'bg-blue-50 border border-blue-200 text-blue-700'
-        }`}>
-          <div className="flex items-center gap-1">
-            {deploymentStatus === 'processing' && <Loader2 className="h-3 w-3 animate-spin" />}
-            {deploymentStatus === 'success' && <CheckCircle className="h-3 w-3" />}
-            {deploymentStatus === 'error' && <AlertCircle className="h-3 w-3" />}
-            
-            <span className="font-medium">
-              {deploymentStatus === 'processing' && 'Deploying...'}
-              {deploymentStatus === 'success' && 'Deployed!'}
-              {deploymentStatus === 'error' && 'Failed'}
-            </span>
+        {/* Bot Summary */}
+        <div className="bg-muted p-3 rounded-lg">
+          <h4 className="font-medium">Bot Summary</h4>
+          <div className="flex gap-2 mt-2">
+            <Badge variant="outline">{nodes.length} intents</Badge>
+            <Badge variant="outline">{edges.length} connections</Badge>
+            <Badge variant="outline">Voice: {voiceSettings.gender || 'Neutral'}</Badge>
           </div>
-          
-          {deploymentStatus === 'success' && (
-            <div className="mt-2">
-              <div className="bg-white p-2 rounded border text-xs">
-                <code>
-                  "Hey Google, talk to test version of {botName}"
-                </code>
-              </div>
-            </div>
-          )}
         </div>
-      )}
-    </div>
+
+        {/* Deployment Button */}
+        <Button 
+          onClick={deployToGoogleAssistant}
+          disabled={isDeploying}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+        >
+          {isDeploying ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Deploying to Google Assistant...
+            </>
+          ) : (
+            <>
+              <Radio className="mr-2 h-4 w-4" />
+              Deploy to Google Assistant
+            </>
+          )}
+        </Button>
+
+        {/* Status Display */}
+        {deploymentStatus !== 'idle' && (
+          <div className={`p-3 rounded-lg border ${
+            deploymentStatus === 'success' ? 'bg-green-50 border-green-200' :
+            deploymentStatus === 'error' ? 'bg-red-50 border-red-200' :
+            'bg-blue-50 border-blue-200'
+          }`}>
+            <div className="flex items-center gap-2">
+              {deploymentStatus === 'processing' && <Loader2 className="h-4 w-4 animate-spin text-blue-600" />}
+              {deploymentStatus === 'success' && <CheckCircle className="h-4 w-4 text-green-600" />}
+              {deploymentStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-600" />}
+              
+              <span className="font-medium">
+                {deploymentStatus === 'processing' && 'Deploying...'}
+                {deploymentStatus === 'success' && 'Successfully Deployed!'}
+                {deploymentStatus === 'error' && 'Deployment Failed'}
+              </span>
+            </div>
+            
+            {deploymentStatus === 'success' && (
+              <div className="mt-2 space-y-2">
+                <p className="text-sm text-green-700">
+                  Your bot is now available on Google Assistant in test mode.
+                </p>
+                <div className="bg-white p-2 rounded border">
+                  <code className="text-sm">
+                    "Hey Google, talk to test version of {botName}"
+                  </code>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={testVoiceCommand}
+                  className="mt-2"
+                >
+                  <Mic className="mr-2 h-3 w-3" />
+                  Test Voice Command
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* How it Works */}
+        <div className="text-xs text-muted-foreground">
+          <h5 className="font-medium mb-1">How it works:</h5>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>Converts your intents to Google Actions format</li>
+            <li>Sets up voice recognition for kids' speech</li>
+            <li>Creates a test environment for safe testing</li>
+            <li>Enables voice commands through Google Assistant</li>
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

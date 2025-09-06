@@ -19,8 +19,6 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
-import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 
 const PythonIDE = () => {
   const [code, setCode] = useState(`# Welcome to Python IDE for Kids! 🐍
@@ -221,8 +219,6 @@ print(f"Nice to meet you, {name}!")
   const [selectedChallenge, setSelectedChallenge] = useState(challenges[0]);
   const [aiHelperVisible, setAiHelperVisible] = useState(true);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
-  
-  const { recordActivity } = useProgressiveStreak();
 
   // Simulate Python execution (for demo purposes)
   const runCode = async () => {
@@ -258,7 +254,6 @@ print(f"Nice to meet you, {name}!")
         
         // Check if challenge is completed
         if (selectedChallenge && code.includes('print')) {
-          recordActivity('challenge', 85); // Record challenge completion
           toast({
             title: "Great job! 🎉",
             description: "Your code is working perfectly!"
@@ -317,54 +312,49 @@ print(f"Nice to meet you, {name}!")
       </header>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* AI Helper Sidebar */}
           {aiHelperVisible && (
             <div className="lg:col-span-1">
-              <div className="space-y-4">
-                <AIMascot 
-                  currentTopic={currentTopic}
-                  onTopicChange={setCurrentTopic}
-                  className="mb-4"
-                />
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-sm">
-                      <Lightbulb className="h-4 w-4" />
-                      AI Helper
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={aiExplainCode}
-                      className="w-full justify-start"
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      Explain My Code
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentTopic('python-basics')}
-                      className="w-full justify-start"
-                    >
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Learn Concepts
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Progressive Learning Streak */}
-                <ProgressiveStreak />
-              </div>
+              <AIMascot 
+                currentTopic={currentTopic}
+                onTopicChange={setCurrentTopic}
+                className="mb-4"
+              />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Lightbulb className="h-4 w-4" />
+                    AI Helper
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={aiExplainCode}
+                    className="w-full justify-start"
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Explain My Code
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentTopic('python-basics')}
+                    className="w-full justify-start"
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Learn Concepts
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
 
           {/* Main IDE Area */}
-          <div className={`${aiHelperVisible ? 'lg:col-span-4' : 'lg:col-span-5'}`}>
+          <div className={`${aiHelperVisible ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
             <Tabs defaultValue="code" className="space-y-4">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="code">Code Editor</TabsTrigger>

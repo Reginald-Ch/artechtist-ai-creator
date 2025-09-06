@@ -9,7 +9,7 @@ import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { AgentCreationDialog } from "@/components/AgentCreationDialog";
-import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection";
+import { SavedProjectsUI } from "@/components/enhanced/SavedProjectsUI";
 
 // Lazy load performance-heavy components
 const GoogleAssistantIntegration = lazy(() => import("@/components/enhanced/GoogleAssistantIntegration").then(module => ({ default: module.GoogleAssistantIntegration })));
@@ -126,8 +126,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                   <Globe className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-purple-600">ML Playground</CardTitle>
-                <CardDescription>Gamified ML Learning experince</CardDescription>
+                <CardTitle className="text-purple-600">Cultural Hub</CardTitle>
+                <CardDescription>Explore African stories, languages & traditions</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -139,7 +139,7 @@ const Dashboard = () => {
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
                 <CardTitle className="text-yellow-600">AI Comic Lessons</CardTitle>
-                <CardDescription>Learn AI through interactive and animative lessons</CardDescription>
+                <CardDescription>Learn AI through interactive African stories</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -157,19 +157,28 @@ const Dashboard = () => {
           </Link>
 
 
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-slate-200 hover:border-slate-300">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-12 h-12 bg-slate-500 rounded-full flex items-center justify-center">
+                <Settings className="h-6 w-6 text-white" />
+              </div>
+              <CardTitle className="text-slate-600">Saved Projects</CardTitle>
+              <CardDescription>View and manage your saved chatbot projects</CardDescription>
+            </CardHeader>
+          </Card>
         </div>
 
-        {/* Saved Projects Dashboard */}
-        <SavedProjectsSection />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* AI Mascot */}
-          <div>
+          <div className="lg:col-span-1">
             <AIMascot 
               currentTopic={selectedConcept}
               onTopicChange={setSelectedConcept}
             />
           </div>
+          
+          {/* Saved Projects */}
+          <SavedProjectsUI />
 
           {/* Sample Bots */}
           <Card>
