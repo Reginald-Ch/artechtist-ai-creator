@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,18 @@ export const VoiceChatbotSettings = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const { speak, stop, isPlaying } = useSpeechSynthesis();
+
+  // Load saved settings on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem('voiceChatbotSettings');
+    if (saved) {
+      try {
+        setSettings(JSON.parse(saved));
+      } catch (error) {
+        console.error('Failed to load voice settings:', error);
+      }
+    }
+  }, []);
 
   const testVoice = () => {
     const testMessage = "Hi there! I'm your AI assistant. How do you like my voice?";
@@ -90,12 +102,17 @@ export const VoiceChatbotSettings = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Settings className="h-4 w-4" />
-          Voice Settings
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2 hover:bg-accent transition-colors"
+          title="Voice Settings"
+        >
+          <Mic className="h-3.5 w-3.5" />
+          <span className="hidden lg:inline">Voice</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Mic className="h-4 w-4" />

@@ -106,8 +106,11 @@ const AILessons = () => {
 
   const handleCompleteLesson = (lessonId: string) => {
     const score = Math.floor(Math.random() * 20) + 80; // 80-100% random score
+    const lesson = getLessonById(lessonId);
+    const category = topics.find(t => t.lessons.includes(lessonId))?.id;
+    
     completeLesson(lessonId, score);
-    recordActivity('lesson', score);
+    recordActivity('lesson', score, lessonId, category);
     setSelectedLesson(null);
   };
 

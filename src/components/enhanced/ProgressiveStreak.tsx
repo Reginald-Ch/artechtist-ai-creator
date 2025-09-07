@@ -1,63 +1,121 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Flame, Trophy, Star, Target, Calendar, Award } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Flame, Trophy, Star, Target, Calendar, Award, Share2, Crown, Medal, Zap, BookOpen, Brain } from 'lucide-react';
 import { useProgressiveStreak, Achievement } from '@/hooks/useProgressiveStreak';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProgressiveStreakProps {
   onViewAchievements?: () => void;
 }
 
 export const ProgressiveStreak = ({ onViewAchievements }: ProgressiveStreakProps) => {
-  const { streakData, getStreakMessage, getWeeklyProgress } = useProgressiveStreak();
+  const { 
+    streakData, 
+    getStreakMessage, 
+    getMotivationalMessage,
+    getWeeklyProgress, 
+    shareProgress,
+    lessonsCompleted,
+    categoriesExplored,
+    perfectScores,
+    highScores
+  } = useProgressiveStreak();
+  
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
   
   const weeklyProgress = getWeeklyProgress();
   const weeklyPercentage = (weeklyProgress / streakData.weeklyGoal) * 100;
   
-  const recentAchievements = streakData.achievements
-    .filter(a => a.unlocked)
+  const unlockedAchievements = streakData.achievements.filter(a => a.unlocked);
+  const recentAchievements = unlockedAchievements
     .sort((a, b) => new Date(b.unlockedAt || 0).getTime() - new Date(a.unlockedAt || 0).getTime())
     .slice(0, 3);
 
+  const getStreakEmoji = () => {
+    if (streakData.currentStreak >= 100) return '🏅';
+    if (streakData.currentStreak >= 30) return '👑';
+    if (streakData.currentStreak >= 14) return '⚡';
+    if (streakData.currentStreak >= 7) return '🔥';
+    if (streakData.currentStreak >= 3) return '💪';
+    return '🌱';
+  };
+
+  const getAchievementsByCategory = () => {
+    const categories = {
+      streak: streakData.achievements.filter(a => a.type === 'streak'),
+      score: streakData.achievements.filter(a => a.type === 'score'),
+      completion: streakData.achievements.filter(a => a.type === 'completion'),
+      exploration: streakData.achievements.filter(a => a.type === 'exploration')
+    };
+    return categories;
+  };
+
   return (
     <div className="space-y-4">
-      {/* Main Streak Card */}
-      <Card className="comic-card overflow-hidden">
+      {/* Enhanced Main Streak Card */}
+      <Card className="comic-card overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              Learning Streak
+              <span className="text-2xl animate-pulse">{getStreakEmoji()}</span>
+              <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                Learning Streak
+              </span>
             </CardTitle>
-            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-              {streakData.currentStreak} days
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                {streakData.currentStreak} days
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareProgress}
+                className="h-8 w-8 p-0 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+                title="Share Progress"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-primary mb-2">
+          <motion.div 
+            className="text-center"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <div className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
               {streakData.currentStreak}
             </div>
-            <p className="text-sm text-muted-foreground">
-              {getStreakMessage()}
+            <p className="text-sm text-muted-foreground font-medium">
+              {getMotivationalMessage()}
             </p>
-          </div>
+          </motion.div>
           
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-semibold text-purple-600">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
+              <div className="text-xl font-semibold text-purple-600">
                 {streakData.longestStreak}
               </div>
               <p className="text-xs text-muted-foreground">Best Streak</p>
             </div>
-            <div>
-              <div className="text-2xl font-semibold text-blue-600">
+            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
+              <div className="text-xl font-semibold text-blue-600">
                 {streakData.totalActiveDays}
               </div>
               <p className="text-xs text-muted-foreground">Total Days</p>
+            </div>
+            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
+              <div className="text-xl font-semibold text-green-600">
+                {lessonsCompleted.length}
+              </div>
+              <p className="text-xs text-muted-foreground">Lessons</p>
             </div>
           </div>
         </CardContent>
@@ -87,48 +145,163 @@ export const ProgressiveStreak = ({ onViewAchievements }: ProgressiveStreakProps
         </CardContent>
       </Card>
 
-      {/* Recent Achievements */}
-      {recentAchievements.length > 0 && (
-        <Card className="comic-card">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Award className="h-4 w-4 text-yellow-500" />
-                Recent Achievements
-              </CardTitle>
-              {onViewAchievements && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={onViewAchievements}
-                  className="text-xs"
-                >
+      {/* Enhanced Achievements Section */}
+      <Card className="comic-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Trophy className="h-4 w-4 text-yellow-500" />
+              Achievements
+              <Badge variant="outline" className="ml-1">
+                {unlockedAchievements.length}/{streakData.achievements.length}
+              </Badge>
+            </CardTitle>
+            <Dialog open={showAllAchievements} onOpenChange={setShowAllAchievements}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-xs">
                   View All
                 </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {recentAchievements.map((achievement) => (
-              <div
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    Achievement Gallery
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList className="grid w-full grid-cols-5">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="streak">Streaks</TabsTrigger>
+                    <TabsTrigger value="score">Scores</TabsTrigger>
+                    <TabsTrigger value="completion">Progress</TabsTrigger>
+                    <TabsTrigger value="exploration">Explore</TabsTrigger>
+                  </TabsList>
+                  
+                  {Object.entries(getAchievementsByCategory()).map(([category, achievements]) => (
+                    <TabsContent key={category} value={category} className="mt-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {achievements.map((achievement) => (
+                          <motion.div
+                            key={achievement.id}
+                            className={`p-3 rounded-lg border transition-all ${
+                              achievement.unlocked 
+                                ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 dark:from-yellow-950/20 dark:to-orange-950/20 dark:border-yellow-800' 
+                                : 'bg-muted/30 border-muted opacity-60'
+                            }`}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className={`text-2xl ${!achievement.unlocked && 'grayscale'}`}>
+                                {achievement.icon}
+                              </span>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-sm">{achievement.title}</h4>
+                                <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                                {achievement.unlocked && achievement.unlockedAt && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                              {achievement.unlocked && (
+                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  ))}
+                  
+                  <TabsContent value="all" className="mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {streakData.achievements.map((achievement) => (
+                        <motion.div
+                          key={achievement.id}
+                          className={`p-3 rounded-lg border transition-all ${
+                            achievement.unlocked 
+                              ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 dark:from-yellow-950/20 dark:to-orange-950/20 dark:border-yellow-800' 
+                              : 'bg-muted/30 border-muted opacity-60'
+                          }`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`text-2xl ${!achievement.unlocked && 'grayscale'}`}>
+                              {achievement.icon}
+                            </span>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm">{achievement.title}</h4>
+                              <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                              {achievement.unlocked && achievement.unlockedAt && (
+                                <p className="text-xs text-green-600 mt-1">
+                                  Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            {achievement.unlocked && (
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <AnimatePresence>
+            {recentAchievements.map((achievement, index) => (
+              <motion.div
                 key={achievement.id}
-                className="flex items-center gap-3 p-2 rounded-lg bg-muted/50"
+                className="flex items-center gap-3 p-2 rounded-lg bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 border border-yellow-200 dark:border-yellow-800"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ delay: index * 0.1 }}
               >
-                <span className="text-xl">{achievement.icon}</span>
+                <span className="text-xl animate-bounce">{achievement.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {achievement.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {achievement.description}
-                  </p>
+                  <p className="text-sm font-medium truncate">{achievement.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">{achievement.description}</p>
                 </div>
                 <Star className="h-4 w-4 text-yellow-500 fill-current flex-shrink-0" />
-              </div>
+              </motion.div>
             ))}
-          </CardContent>
+          </AnimatePresence>
+          
+          {recentAchievements.length === 0 && (
+            <div className="text-center py-4 text-muted-foreground">
+              <Trophy className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Complete lessons to unlock achievements!</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="comic-card p-3">
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-600">{categoriesExplored.length}</div>
+            <p className="text-xs text-muted-foreground">Categories Explored</p>
+          </div>
         </Card>
-      )}
+        <Card className="comic-card p-3">
+          <div className="text-center">
+            <div className="text-lg font-bold text-green-600">{perfectScores}</div>
+            <p className="text-xs text-muted-foreground">Perfect Scores</p>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
