@@ -90,8 +90,8 @@ const Dashboard = () => {
               <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                 <Plus className="h-6 w-6 text-white" />
               </div>
-              <CardTitle className="text-orange-600">Enhanced Bot Builder</CardTitle>
-              <CardDescription>Enhanced UI with voice settings & testing panel</CardDescription>
+              <CardTitle className="text-orange-600">Create New Project</CardTitle>
+              <CardDescription>Build a brand-new conversational agent</CardDescription>
             </CardHeader>
           </Card>
 
