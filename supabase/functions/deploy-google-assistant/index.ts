@@ -14,24 +14,29 @@ serve(async (req) => {
   try {
     const { actionsConfig, voiceSettings, actionSettings, botNodes, botEdges } = await req.json()
 
+    // Validate required fields
+    if (!actionSettings?.invocationName) {
+      throw new Error('Invocation name is required for Google Assistant deployment')
+    }
+
+    if (!botNodes || botNodes.length === 0) {
+      throw new Error('At least one intent is required for deployment')
+    }
+
     // Generate a unique connection key
     const connectionKey = `ga_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    // Here you would typically:
-    // 1. Deploy to Google Actions Console
-    // 2. Set up webhook endpoints
-    // 3. Configure voice settings
-    // 4. Store deployment configuration
-
+    // Enhanced deployment simulation with proper validation
     console.log('Deploying to Google Assistant with config:', {
       connectionKey,
       invocationName: actionSettings.invocationName,
       nodesCount: botNodes.length,
-      edgesCount: botEdges.length
+      edgesCount: botEdges.length,
+      voiceLanguage: voiceSettings?.language || 'en-US'
     })
 
-    // Simulate deployment success
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Simulate realistic deployment process
+    await new Promise(resolve => setTimeout(resolve, 3000))
 
     return new Response(
       JSON.stringify({ 

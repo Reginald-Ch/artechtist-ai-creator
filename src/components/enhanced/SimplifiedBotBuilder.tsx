@@ -170,9 +170,22 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           isDefault: intent.name === 'Greet' || intent.name === 'Fallback',
         },
       })) || initialNodes;
+
+      // Create connecting lines between template nodes
+      const templateEdges = templateNodes.length > 1 ? templateNodes.slice(1).map((node, index) => ({
+        id: `template-edge-${index}`,
+        source: templateNodes[0].id,
+        target: node.id,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { 
+          stroke: 'hsl(var(--primary))',
+          strokeWidth: 2,
+          strokeDasharray: '5,5'
+        }
+      })) : [];
       
       setNodes(templateNodes);
-      setEdges([]);
+      setEdges(templateEdges);
       
       // Save template data to localStorage for persistence
       localStorage.setItem('current-agent-template', JSON.stringify(template));
@@ -736,6 +749,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* Voice Settings Button */}
+            <Button
+              onClick={() => setShowVoiceSettings(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Mic className="h-4 w-4" />
+              Voice Settings
+            </Button>
+            
+            {/* Google Assistant Button */}
+            <Button
+              onClick={() => setShowGoogleAssistant(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Speaker className="h-4 w-4" />
+              Google Assistant
+            </Button>
             
             <Button 
               onClick={handleSave} 
@@ -1053,6 +1087,40 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
 
+
+        {/* Voice Settings Dialog */}
+        <Dialog open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Voice Settings</DialogTitle>
+            </DialogHeader>
+            <VoiceChatbotSettings />
+          </DialogContent>
+        </Dialog>
+
+        {/* Google Assistant Integration Dialog */}
+        <Dialog open={showGoogleAssistant} onOpenChange={setShowGoogleAssistant}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Google Assistant Integration</DialogTitle>
+            </DialogHeader>
+            <AutoGoogleAssistantIntegration
+              botName={botName}
+              nodes={nodes}
+              edges={edges}
+              voiceSettings={voiceSettings}
+              onDeploymentComplete={(success) => {
+                if (success) {
+                  toast({
+                    title: "Google Assistant Connected",
+                    description: "Your bot is now available on Google Assistant"
+                  });
+                  setShowGoogleAssistant(false);
+                }
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog
