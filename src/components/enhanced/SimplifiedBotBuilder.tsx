@@ -84,8 +84,9 @@ const initialEdges: Edge[] = [
     target: 'fallback',
     markerEnd: { type: MarkerType.ArrowClosed },
     style: { 
-      stroke: 'hsl(var(--foreground))',
+      stroke: 'hsl(var(--primary))',
       strokeWidth: 2,
+      strokeDasharray: '5,5',
     }
   }
 ];
@@ -734,14 +735,17 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               </Button>
             </Link>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Chatbot Playground</h1>
+              <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                Bot Builder
+              </h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{projectName}</span>
-                <Badge variant="outline" className="text-xs">
+                <span className="font-medium">{projectName}</span>
+                <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
                   {completionPercentage}% Complete
                 </Badge>
-                <span className="text-xs">
-                  Last saved: {lastSaved.toLocaleTimeString()}
+                <span className="text-xs opacity-75">
+                  Saved: {lastSaved.toLocaleTimeString()}
                 </span>
               </div>
             </div>
@@ -754,10 +758,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               onClick={() => setShowVoiceSettings(true)}
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
             >
               <Mic className="h-4 w-4" />
-              Voice Settings
+              Voice
             </Button>
             
             {/* Google Assistant Button */}
@@ -765,10 +769,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               onClick={() => setShowGoogleAssistant(true)}
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:border-blue-800 dark:hover:border-blue-700 dark:hover:bg-blue-950"
             >
               <Speaker className="h-4 w-4" />
-              Google Assistant
+              Google
             </Button>
             
             <Button 

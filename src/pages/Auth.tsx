@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Brain, Mail, Lock, User, Users, ArrowLeft } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
 const Auth = () => {
@@ -77,7 +78,11 @@ const Auth = () => {
     if (!changePasswordForm.newPassword || !changePasswordForm.confirmPassword) return;
     
     if (changePasswordForm.newPassword !== changePasswordForm.confirmPassword) {
-      // Use toast for password mismatch error
+      toast({
+        title: "Password mismatch",
+        description: "The passwords you entered don't match. Please try again.",
+        variant: "destructive"
+      });
       return;
     }
     
