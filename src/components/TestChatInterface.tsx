@@ -227,10 +227,10 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
                 }`}>
                   {message.isUser ? <User className="h-3 w-3" /> : selectedAvatar}
                 </div>
-                <div className={`rounded-lg px-3 py-2 text-sm ${
+                <div className={`rounded-lg px-3 py-2 text-sm shadow-sm ${
                   message.isUser 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-foreground'
+                    ? 'bg-primary text-primary-foreground ml-2' 
+                    : 'bg-background border text-foreground mr-2'
                 }`}>
                   <p>{message.text}</p>
                   {!message.isUser && message.confidence !== undefined && (
@@ -252,7 +252,7 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
                 <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs">
                   {selectedAvatar}
                 </div>
-                <div className="bg-muted text-foreground rounded-lg px-3 py-2 text-sm">
+                <div className="bg-background border text-foreground rounded-lg px-3 py-2 text-sm shadow-sm mr-2">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

@@ -62,9 +62,12 @@ const Auth = () => {
     );
     setIsLoading(false);
     
-    if (!error) {
-      // Note: User will need to confirm email before being redirected
-    }
+      if (!error) {
+        toast({
+          title: "Check your email",
+          description: "We've sent you a confirmation link. Please check your email and click the link to complete your registration.",
+        });
+      }
   };
 
   const handleGoogleAuth = async () => {

@@ -46,7 +46,7 @@ import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
-import { AutoGoogleAssistantIntegration } from "./AutoGoogleAssistantIntegration";
+import { ImprovedGoogleAssistantIntegration } from "./ImprovedGoogleAssistantIntegration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -1023,35 +1023,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                 <h4 className="font-medium mb-1">Select an Intent</h4>
                 <p className="text-xs text-muted-foreground">
-                  Click on an intent node to edit its properties
+                  Click on an intent node above to edit its properties and responses
                 </p>
               </div>
             )}
             
-            {/* Compact Settings Panel */}
-            <div className="mt-4 space-y-3 border-t pt-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  Bot Settings
-                </h4>
-                <div className="space-y-2">
-                  <VoiceChatbotSettings />
-                  <AutoGoogleAssistantIntegration
-                    botName={botName}
-                    nodes={nodes}
-                    edges={edges}
-                    voiceSettings={voiceSettings}
-                    onDeploymentComplete={(key) => {
-                      toast({
-                        title: "🎉 Bot deployed!",
-                        description: `Try saying: "Hey Google, talk to test version of ${botName}"`
-                      });
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Enhanced Right Panel - Real-time Testing */}
@@ -1104,23 +1080,21 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
         {/* Google Assistant Integration Dialog */}
         <Dialog open={showGoogleAssistant} onOpenChange={setShowGoogleAssistant}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Google Assistant Integration</DialogTitle>
             </DialogHeader>
-            <AutoGoogleAssistantIntegration
+            <ImprovedGoogleAssistantIntegration
               botName={botName}
               nodes={nodes}
               edges={edges}
               voiceSettings={voiceSettings}
-              onDeploymentComplete={(success) => {
-                if (success) {
-                  toast({
-                    title: "Google Assistant Connected",
-                    description: "Your bot is now available on Google Assistant"
-                  });
-                  setShowGoogleAssistant(false);
-                }
+              onDeploymentComplete={(key) => {
+                setShowGoogleAssistant(false);
+                toast({
+                  title: "🎉 Bot deployed to Google Assistant!",
+                  description: `Try saying: "Hey Google, talk to test version of ${botName}"`
+                });
               }}
             />
           </DialogContent>
