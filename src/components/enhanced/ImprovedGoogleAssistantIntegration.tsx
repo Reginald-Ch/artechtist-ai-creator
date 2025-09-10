@@ -1,59 +1,74 @@
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Speaker, ExternalLink, CheckCircle, AlertCircle, Clock } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Cloud, CheckCircle, AlertCircle, Loader2, ExternalLink, Mic } from 'lucide-react';
+import { Node, Edge } from '@xyflow/react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImprovedGoogleAssistantIntegrationProps {
-  botName: string;
-  nodes: any[];
-  edges: any[];
+  nodes: Node[];
+  edges: Edge[];
   voiceSettings?: any;
-  onDeploymentComplete?: (connectionKey: string) => void;
+  selectedAvatar?: string;
+  botPersonality?: string;
+  onDeploymentComplete?: (status: 'deployed' | 'failed') => void;
 }
 
-export const ImprovedGoogleAssistantIntegration = ({ 
-  botName, 
-  nodes, 
-  edges, 
+type DeploymentState = 'idle' | 'deploying' | 'deployed' | 'error';
+
+export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistantIntegrationProps> = ({
+  nodes,
+  edges,
   voiceSettings,
-  onDeploymentComplete 
-}: ImprovedGoogleAssistantIntegrationProps) => {
-  const [isDeploying, setIsDeploying] = useState(false);
-  const [deploymentState, setDeploymentState] = useState<'idle' | 'deploying' | 'deployed' | 'error'>('idle');
+  selectedAvatar = '🤖',
+  botPersonality = 'friendly and helpful',
+  onDeploymentComplete
+}) => {
+  const [deploymentState, setDeploymentState] = useState<DeploymentState>('idle');
   const [connectionKey, setConnectionKey] = useState<string>('');
   const [actionSettings, setActionSettings] = useState({
-    invocationName: botName.toLowerCase().replace(/[^a-z0-9]/g, ' ').trim(),
+    invocationName: '',
     testMode: true,
-    parentalControls: true,
-    voiceLanguage: 'en-US'
+    parentalControls: false,
+    voiceLanguage: voiceSettings?.language || 'en-US'
   });
+  
+  const { toast } = useToast();
 
   const convertToGoogleActionsFormat = () => {
-    const intents = nodes.map(node => ({
-      name: node.data.label,
-      trainingPhrases: node.data.trainingPhrases || [],
-      responses: node.data.responses || [],
-      isDefault: node.data.isDefault || false
-    }));
+    // Convert bot nodes/edges to Google Actions format
+    const intents = nodes
+      .filter(node => node.type === 'intent')
+      .map(node => ({
+        name: node.data.label || 'Default Intent',
+        trainingPhrases: node.data.phrases || ['hello', 'hi', 'start'],
+        response: node.data.response || 'Hello! How can I help you?',
+        parameters: node.data.parameters || [],
+        context: node.data.context || []
+      }));
 
     const actions = {
+      projectId: `test-${Date.now()}`,
+      invocationName: actionSettings.invocationName,
+      locale: actionSettings.voiceLanguage,
+      category: 'EDUCATION',
+      surfaceSupport: ['PHONE', 'SMART_DISPLAY'],
       intents,
-      flows: edges.map(edge => ({
-        from: edge.source,
-        to: edge.target,
-        condition: edge.data?.condition || 'default'
-      })),
-      settings: {
-        invocationName: actionSettings.invocationName,
-        testMode: actionSettings.testMode,
-        parentalControls: actionSettings.parentalControls,
-        voiceLanguage: actionSettings.voiceLanguage
+      responses: {
+        welcome: `Hi! I'm ${selectedAvatar}, your ${botPersonality} assistant. How can I help you today?`,
+        fallback: "I'm sorry, I didn't understand that. Could you try rephrasing?",
+        goodbye: "Goodbye! Thanks for chatting with me!"
+      },
+      voice: {
+        gender: voiceSettings?.gender || 'FEMALE',
+        language: voiceSettings?.language || 'en-US',
+        speed: voiceSettings?.speed || 1.0,
+        pitch: voiceSettings?.pitch || 0
       }
     };
 
@@ -64,7 +79,7 @@ export const ImprovedGoogleAssistantIntegration = ({
     if (!actionSettings.invocationName.trim()) {
       toast({
         title: "Missing invocation name",
-        description: "Please enter an invocation name for your Google Assistant action",
+        description: "Please enter a name for your Google Assistant action",
         variant: "destructive"
       });
       return;
@@ -72,19 +87,19 @@ export const ImprovedGoogleAssistantIntegration = ({
 
     if (nodes.length === 0) {
       toast({
-        title: "No intents to deploy",
-        description: "Please add at least one intent before deploying",
+        title: "No intents found",
+        description: "Add at least one intent before deploying",
         variant: "destructive"
       });
       return;
     }
 
-    setIsDeploying(true);
     setDeploymentState('deploying');
 
     try {
       const actionsConfig = convertToGoogleActionsFormat();
       
+      // Call our Supabase edge function for deployment
       const { data, error } = await supabase.functions.invoke('deploy-google-assistant', {
         body: {
           actionsConfig,
@@ -97,193 +112,161 @@ export const ImprovedGoogleAssistantIntegration = ({
 
       if (error) throw error;
 
-      setDeploymentState('deployed');
-      setConnectionKey(data.connectionKey);
-      
-      toast({
-        title: "🎉 Successfully deployed to Google Assistant!",
-        description: `Your bot "${botName}" is now available for testing`
-      });
-
-      onDeploymentComplete?.(data.connectionKey);
-    } catch (error) {
+      if (data.success) {
+        setConnectionKey(data.connectionKey);
+        setDeploymentState('deployed');
+        onDeploymentComplete?.('deployed');
+        
+        toast({
+          title: "🎉 Successfully deployed!",
+          description: `Your bot is now available on Google Assistant. Try saying: "Hey Google, talk to test version of ${actionSettings.invocationName}"`
+        });
+      } else {
+        throw new Error(data.message || 'Deployment failed');
+      }
+    } catch (error: any) {
       console.error('Deployment error:', error);
       setDeploymentState('error');
+      onDeploymentComplete?.('failed');
+      
       toast({
         title: "Deployment failed",
-        description: error instanceof Error ? error.message : "Failed to deploy to Google Assistant",
+        description: error.message || "Failed to deploy to Google Assistant. Please try again.",
         variant: "destructive"
       });
-    } finally {
-      setIsDeploying(false);
     }
   };
 
   const testVoiceCommand = () => {
     toast({
-      title: "Test your bot",
-      description: `Say: "Hey Google, talk to test version of ${actionSettings.invocationName}"`
+      title: "Test your Google Assistant bot",
+      description: `Try saying: "Hey Google, talk to test version of ${actionSettings.invocationName}"`,
     });
   };
 
   const getStatusColor = () => {
     switch (deploymentState) {
-      case 'deployed': return 'text-green-600 dark:text-green-400';
-      case 'deploying': return 'text-yellow-600 dark:text-yellow-400';
-      case 'error': return 'text-red-600 dark:text-red-400';
-      default: return 'text-muted-foreground';
+      case 'deployed': return 'text-green-600';
+      case 'deploying': return 'text-yellow-600';
+      case 'error': return 'text-red-600';
+      default: return 'text-gray-600';
     }
   };
 
   const getStatusIcon = () => {
     switch (deploymentState) {
       case 'deployed': return <CheckCircle className="h-4 w-4" />;
-      case 'deploying': return <Clock className="h-4 w-4 animate-spin" />;
+      case 'deploying': return <Loader2 className="h-4 w-4 animate-spin" />;
       case 'error': return <AlertCircle className="h-4 w-4" />;
-      default: return <Speaker className="h-4 w-4" />;
+      default: return <Cloud className="h-4 w-4" />;
     }
   };
 
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {getStatusIcon()}
-          <span className={getStatusColor()}>
-            Google Assistant Integration
-          </span>
-          {deploymentState === 'deployed' && (
-            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-              Live
-            </Badge>
+  if (deploymentState === 'deployed') {
+    return (
+      <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-green-700">Google Assistant Live!</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-3 bg-background rounded-lg border">
+            <p className="text-sm font-medium mb-1">Test Command:</p>
+            <code className="text-sm bg-muted px-2 py-1 rounded">
+              "Hey Google, talk to test version of {actionSettings.invocationName}"
+            </code>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={testVoiceCommand}>
+              <Mic className="h-4 w-4 mr-1" />
+              Test Voice
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setDeploymentState('idle')}>
+              Redeploy
+            </Button>
+          </div>
+          {connectionKey && (
+            <div className="text-xs text-muted-foreground">
+              Connection ID: {connectionKey}
+            </div>
           )}
-        </CardTitle>
-      </CardHeader>
+        </CardContent>
+      </Card>
+    );
+  }
 
-      <CardContent className="space-y-4">
-        {/* Bot Summary */}
-        <div className="grid grid-cols-3 gap-4 p-3 bg-muted/50 rounded-lg">
-          <div className="text-center">
-            <div className="text-sm font-medium">{nodes.length}</div>
-            <div className="text-xs text-muted-foreground">Intents</div>
-          </div>
-          <div className="text-center">
-            <div className="text-sm font-medium">{edges.length}</div>
-            <div className="text-xs text-muted-foreground">Connections</div>
-          </div>
-          <div className="text-center">
-            <div className="text-sm font-medium">{voiceSettings?.language || 'en-US'}</div>
-            <div className="text-xs text-muted-foreground">Language</div>
-          </div>
-        </div>
-
-        {/* Configuration */}
-        <div className="space-y-3">
-          <div>
-            <Label htmlFor="invocation" className="text-sm font-medium">
-              Invocation Name
-            </Label>
-            <Input
-              id="invocation"
-              value={actionSettings.invocationName}
-              onChange={(e) => setActionSettings(prev => ({ ...prev, invocationName: e.target.value }))}
-              placeholder="my awesome bot"
-              className="mt-1"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Users will say: "Hey Google, talk to {actionSettings.invocationName}"
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+  return (
+    <div className="inline-block">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={deploymentState === 'idle' ? deployToGoogleAssistant : undefined}
+        disabled={deploymentState === 'deploying'}
+        className="gap-2 whitespace-nowrap"
+      >
+        {getStatusIcon()}
+        {deploymentState === 'deploying' ? 'Deploying...' : 'Google Assistant'}
+      </Button>
+      
+      {/* Quick Settings Modal - shown on first click */}
+      {deploymentState === 'idle' && (
+        <div className="hidden group-hover:block absolute top-full mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 min-w-80">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="invocation">Action Name*</Label>
+              <Input
+                id="invocation"
+                placeholder="my awesome bot"
+                value={actionSettings.invocationName}
+                onChange={(e) => setActionSettings(prev => ({
+                  ...prev,
+                  invocationName: e.target.value
+                }))}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Users will say: "Hey Google, talk to {actionSettings.invocationName}"
+              </p>
+            </div>
+            
             <div className="flex items-center justify-between">
-              <Label htmlFor="test-mode" className="text-sm">Test Mode</Label>
+              <Label htmlFor="test-mode">Test Mode</Label>
               <Switch
                 id="test-mode"
                 checked={actionSettings.testMode}
-                onCheckedChange={(checked) => setActionSettings(prev => ({ ...prev, testMode: checked }))}
+                onCheckedChange={(checked) => setActionSettings(prev => ({
+                  ...prev,
+                  testMode: checked
+                }))}
               />
             </div>
+            
             <div className="flex items-center justify-between">
-              <Label htmlFor="parental" className="text-sm">Kid-Safe</Label>
+              <Label htmlFor="parental">Parental Controls</Label>
               <Switch
                 id="parental"
                 checked={actionSettings.parentalControls}
-                onCheckedChange={(checked) => setActionSettings(prev => ({ ...prev, parentalControls: checked }))}
+                onCheckedChange={(checked) => setActionSettings(prev => ({
+                  ...prev,
+                  parentalControls: checked
+                }))}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Deploy Button */}
-        <Button 
-          onClick={deployToGoogleAssistant}
-          disabled={isDeploying}
-          className="w-full"
-          size="lg"
-        >
-          {isDeploying ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent mr-2" />
-              Deploying to Google...
-            </>
-          ) : deploymentState === 'deployed' ? (
-            <>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Redeploy Bot
-            </>
-          ) : (
-            <>
-              <Speaker className="h-4 w-4 mr-2" />
-              Deploy to Google Assistant
-            </>
-          )}
-        </Button>
-
-        {/* Success State */}
-        {deploymentState === 'deployed' && (
-          <div className="space-y-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="font-medium text-green-800 dark:text-green-200">
-                Successfully deployed!
-              </span>
-            </div>
             
-            <div className="text-sm text-green-700 dark:text-green-300">
-              <strong>Connection ID:</strong> {connectionKey}
-            </div>
-            
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm text-green-800 dark:text-green-200">
-                Test your bot:
-              </h4>
-              <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded border border-green-200 dark:border-green-700">
-                <code className="text-sm">
-                  "Hey Google, talk to test version of {actionSettings.invocationName}"
-                </code>
-              </div>
-            </div>
-            
-            <Button
-              onClick={testVoiceCommand}
-              variant="outline"
-              size="sm"
-              className="border-green-300 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
+            <Button 
+              onClick={deployToGoogleAssistant} 
+              className="w-full"
+              disabled={!actionSettings.invocationName.trim()}
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Test Voice Command
+              Deploy to Google Assistant
             </Button>
           </div>
-        )}
-
-        {/* Safety Notice */}
-        {actionSettings.parentalControls && (
-          <div className="text-xs text-muted-foreground p-3 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-800">
-            🛡️ <strong>Kid-Safe Mode:</strong> Your bot follows child safety guidelines and content policies
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 };
+
+export default ImprovedGoogleAssistantIntegration;

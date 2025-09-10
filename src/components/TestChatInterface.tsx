@@ -106,13 +106,10 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
         matchedIntent: result.matchedIntent
       };
 
-      setTimeout(() => {
-        setMessages(prev => [...prev, botMessage]);
-        setIsLoading(false);
-        // Auto-speak bot response
-        speakText(result.response);
-      }, 500); // Simulate typing delay
+      setMessages(prev => [...prev, botMessage]);
+      speakText(result.response);
     } catch (error) {
+      console.error('Chat error:', error);
       const errorMessage: TestMessage = {
         id: `error-${Date.now()}`,
         text: "Sorry, I encountered an error. Please try again.",
@@ -120,17 +117,45 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
         timestamp: new Date(),
         confidence: 0
       };
-      
-      setTimeout(() => {
-        setMessages(prev => [...prev, errorMessage]);
-        setIsLoading(false);
-      }, 500);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleReset = () => {
+  const startListening = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.start();
+    }
+  };
+
+  const resetChat = () => {
     setMessages([]);
-    conversationEngine.resetConversation();
+    setInput('');
     if (isActive) {
       const welcomeMessage: TestMessage = {
         id: 'welcome-reset',
@@ -143,101 +168,58 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
     }
   };
 
-  // Voice-to-text functionality
-  const startListening = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Speech recognition not supported in this browser');
-      return;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
-    
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.lang = 'en-US';
-
-    recognitionRef.current.onstart = () => {
-      setIsListening(true);
-    };
-
-    recognitionRef.current.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
-      setIsListening(false);
-    };
-
-    recognitionRef.current.onerror = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current.start();
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setIsListening(false);
-  };
-
   return (
-    <Card className="h-full flex flex-col">
+    <Card className={`w-full max-w-md transition-all duration-300 ${isActive ? 'shadow-lg border-primary/20' : 'opacity-60'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <div className="text-lg">{selectedAvatar}</div>
-            Chat Test
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Bot className="h-5 w-5" />
+            Test Your Bot
           </CardTitle>
-          <div className="flex gap-1">
-            <Button
+          <div className="flex gap-2">
+            <Button 
+              onClick={onToggle} 
+              variant={isActive ? "destructive" : "default"} 
               size="sm"
-              variant="outline"
-              onClick={handleReset}
-              className="h-7 px-2"
             >
-              <RotateCcw className="h-3 w-3" />
+              {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {isActive ? 'Stop' : 'Start'}
             </Button>
-            <Button
-              size="sm"
-              variant={isActive ? "default" : "outline"}
-              onClick={onToggle}
-              className="h-7 px-2"
-            >
-              {isActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+            <Button onClick={resetChat} variant="outline" size="sm">
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-4 pt-0">
+      <CardContent className="p-0">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0">
+        <div className="space-y-3 max-h-80 overflow-y-auto p-4 bg-background/50">
           {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
+            <div key={message.id} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}>
               <div className={`flex items-start gap-2 max-w-[80%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shadow-sm ${
                   message.isUser 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-2 border-primary/20' 
+                    : 'bg-card border-2 border-border text-card-foreground'
                 }`}>
-                  {message.isUser ? <User className="h-3 w-3" /> : selectedAvatar}
+                  {message.isUser ? <User className="h-4 w-4" /> : selectedAvatar}
                 </div>
-                <div className={`rounded-lg px-3 py-2 text-sm shadow-sm ${
+                <div className={`rounded-2xl px-4 py-3 text-sm shadow-sm backdrop-blur-sm ${
                   message.isUser 
-                    ? 'bg-primary text-primary-foreground ml-2' 
-                    : 'bg-background border text-foreground mr-2'
+                    ? 'bg-primary text-primary-foreground ml-2 rounded-br-sm' 
+                    : 'bg-card border border-border text-card-foreground mr-2 rounded-bl-sm'
                 }`}>
-                  <p>{message.text}</p>
+                  <p className="leading-relaxed">{message.text}</p>
                   {!message.isUser && message.confidence !== undefined && (
-                    <div className="text-xs opacity-70 mt-1">
-                      Confidence: {Math.round(message.confidence * 100)}%
+                    <div className="flex items-center gap-2 text-xs opacity-70 mt-2 pt-2 border-t border-border/20">
+                      <div className="bg-accent px-2 py-1 rounded-full">
+                        {Math.round(message.confidence * 100)}% confident
+                      </div>
                       {message.matchedIntent && (
-                        <span className="ml-2">({message.matchedIntent})</span>
+                        <div className="bg-muted px-2 py-1 rounded-full">
+                          {message.matchedIntent}
+                        </div>
                       )}
                     </div>
                   )}
@@ -247,58 +229,64 @@ export const TestChatInterface = ({ nodes, edges, isActive, onToggle, selectedAv
           ))}
           
           {isLoading && (
-            <div className="flex justify-start">
+            <div className="flex justify-start mb-4">
               <div className="flex items-start gap-2">
-                <div className="w-6 h-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs">
+                <div className="w-8 h-8 rounded-full bg-card border-2 border-border text-card-foreground flex items-center justify-center text-sm font-medium shadow-sm">
                   {selectedAvatar}
                 </div>
-                <div className="bg-background border text-foreground rounded-lg px-3 py-2 text-sm shadow-sm mr-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="bg-card border border-border text-card-foreground rounded-2xl rounded-bl-sm px-4 py-3 text-sm shadow-sm mr-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                    <span className="text-muted-foreground">Thinking...</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
-          
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={isActive ? (isListening ? "Listening..." : "Type your message or use voice...") : "Activate test mode"}
-            disabled={!isActive || isLoading}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            className="text-sm"
-          />
-          <Button 
-            size="sm" 
-            variant={isListening ? "destructive" : "outline"}
-            onClick={isListening ? stopListening : startListening}
-            disabled={!isActive || isLoading}
-            className="px-2"
-          >
-            {isListening ? <StopCircle className="h-3 w-3" /> : <MicIcon className="h-3 w-3" />}
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={handleSendMessage}
-            disabled={!isActive || !input.trim() || isLoading}
-          >
-            <Send className="h-3 w-3" />
-          </Button>
+        {/* Input Area */}
+        <div className="p-4 border-t bg-background/50">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={isActive ? (isListening ? "Listening..." : "Type your message or use voice...") : "Activate test mode"}
+              disabled={!isActive || isLoading}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="flex-1"
+            />
+            <Button
+              onClick={startListening}
+              variant="outline"
+              size="icon"
+              disabled={!isActive || isListening}
+              className={`${isListening ? 'bg-red-100 text-red-600 animate-pulse' : ''}`}
+            >
+              {isListening ? <StopCircle className="h-4 w-4" /> : <MicIcon className="h-4 w-4" />}
+            </Button>
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={!input.trim() || !isActive || isLoading}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 };
+
+export default TestChatInterface;

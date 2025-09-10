@@ -1085,11 +1085,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <DialogTitle>Google Assistant Integration</DialogTitle>
             </DialogHeader>
             <ImprovedGoogleAssistantIntegration
-              botName={botName}
               nodes={nodes}
               edges={edges}
               voiceSettings={voiceSettings}
-              onDeploymentComplete={(key) => {
+              selectedAvatar={selectedAvatar}
+              botPersonality={botPersonality}
+              onDeploymentComplete={(status) => {
                 setShowGoogleAssistant(false);
                 toast({
                   title: "🎉 Bot deployed to Google Assistant!",

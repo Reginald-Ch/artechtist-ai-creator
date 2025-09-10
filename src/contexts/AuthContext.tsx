@@ -50,8 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, parentEmail?: string) => {
+    setLoading(true);
     try {
-      // Always redirect to dashboard after email confirmation
       const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -62,50 +62,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             first_name: firstName,
             last_name: lastName,
-            parent_email: parentEmail
+            parent_email: parentEmail || null,
           }
         }
       });
 
       if (error) {
-        // Handle specific error cases with user-friendly messages
-        let friendlyMessage = error.message;
-        if (error.message.includes('already registered')) {
-          friendlyMessage = "An account with this email already exists. Try signing in instead.";
-        } else if (error.message.includes('Password')) {
-          friendlyMessage = "Password must be at least 6 characters long and secure.";
-        } else if (error.message.includes('Email')) {
-          friendlyMessage = "Please enter a valid email address.";
-        }
-        
         toast({
           title: "Sign up failed",
-          description: friendlyMessage,
+          description: error.message,
           variant: "destructive",
         });
-      } else {
-        // If signup is successful and user is immediately available, they're logged in
-        if (data.user && data.session) {
-          toast({
-            title: "Welcome to Artechtist AI!",
-            description: "Your account has been created successfully.",
-          });
-        } else {
-          toast({
-            title: "Sign up successful!",
-            description: "You can now sign in with your credentials.",
-          });
-        }
+        return { error };
       }
 
-      return { error };
+      if (data.user && !data.session) {
+        toast({
+          title: "Check your email",
+          description: "Please check your email and click the confirmation link to activate your account.",
+        });
+      } else if (data.session) {
+        toast({
+          title: "Welcome to Artechtist AI!",
+          description: "Your account has been created successfully.",
+        });
+      }
+
+      return { error: null };
     } catch (error: any) {
+      const errorMessage = error.message || "An unexpected error occurred";
       toast({
         title: "Sign up failed",
-        description: "An unexpected error occurred. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
