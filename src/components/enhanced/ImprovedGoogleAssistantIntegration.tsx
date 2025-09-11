@@ -41,34 +41,54 @@ export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistan
   const { toast } = useToast();
 
   const convertToGoogleActionsFormat = () => {
-    // Convert bot nodes/edges to Google Actions format
+    // Convert bot nodes/edges to Google Actions format with proper AMBY-style structure
     const intents = nodes
       .filter(node => node.type === 'intent')
       .map(node => ({
         name: node.data.label || 'Default Intent',
-        trainingPhrases: node.data.phrases || ['hello', 'hi', 'start'],
-        response: node.data.response || 'Hello! How can I help you?',
+        trainingPhrases: node.data.trainingPhrases || ['hello', 'hi', 'start'],
+        responses: node.data.responses || ['Hello! How can I help you?'],
         parameters: node.data.parameters || [],
-        context: node.data.context || []
+        context: node.data.context || [],
+        followUpIntents: edges
+          .filter(edge => edge.source === node.id)
+          .map(edge => {
+            const targetNode = nodes.find(n => n.id === edge.target);
+            return targetNode ? targetNode.data.label : 'Unknown';
+          })
       }));
 
     const actions = {
-      projectId: `test-${Date.now()}`,
+      projectId: `amby-test-${Date.now()}`,
       invocationName: actionSettings.invocationName,
       locale: actionSettings.voiceLanguage,
       category: 'EDUCATION',
-      surfaceSupport: ['PHONE', 'SMART_DISPLAY'],
+      surface: ['PHONE', 'SMART_DISPLAY', 'SMART_SPEAKER'],
       intents,
-      responses: {
-        welcome: `Hi! I'm ${selectedAvatar}, your ${botPersonality} assistant. How can I help you today?`,
-        fallback: "I'm sorry, I didn't understand that. Could you try rephrasing?",
-        goodbye: "Goodbye! Thanks for chatting with me!"
+      conversationFlow: {
+        welcome: {
+          prompt: `Hi! I'm ${selectedAvatar}, your ${botPersonality} assistant created by a young African innovator. How can I help you today?`,
+          suggestions: intents.slice(0, 3).map(i => i.name)
+        },
+        fallback: {
+          prompt: "I'm sorry, I didn't understand that. Could you try rephrasing?",
+          suggestions: ['help', 'start over', 'what can you do']
+        },
+        goodbye: {
+          prompt: "Goodbye! Thanks for chatting with me. Keep building amazing things!"
+        }
       },
       voice: {
         gender: voiceSettings?.gender || 'FEMALE',
         language: voiceSettings?.language || 'en-US',
         speed: voiceSettings?.speed || 1.0,
-        pitch: voiceSettings?.pitch || 0
+        pitch: voiceSettings?.pitch || 0,
+        style: 'conversational'
+      },
+      testingConfig: {
+        enableSandbox: actionSettings.testMode,
+        testPhrase: `talk to test version of ${actionSettings.invocationName}`,
+        releaseChannel: 'ALPHA'
       }
     };
 
@@ -210,58 +230,83 @@ export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistan
         {deploymentState === 'deploying' ? 'Deploying...' : 'Google Assistant'}
       </Button>
       
-      {/* Quick Settings Modal - shown on first click */}
+      {/* Enhanced Settings Modal with proper z-index */}
       {deploymentState === 'idle' && (
-        <div className="hidden group-hover:block absolute top-full mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 min-w-80">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="invocation">Action Name*</Label>
-              <Input
-                id="invocation"
-                placeholder="my awesome bot"
-                value={actionSettings.invocationName}
-                onChange={(e) => setActionSettings(prev => ({
-                  ...prev,
-                  invocationName: e.target.value
-                }))}
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Users will say: "Hey Google, talk to {actionSettings.invocationName}"
-              </p>
+        <div className="relative group">
+          <div className="hidden group-hover:block absolute top-full right-0 mt-2 p-4 bg-popover border rounded-lg shadow-lg z-[100] min-w-80">
+            <div className="space-y-4">
+              <div className="border-b pb-2">
+                <h4 className="font-semibold text-sm">Google Assistant Setup</h4>
+                <p className="text-xs text-muted-foreground">Deploy your bot to Google Assistant for voice interaction</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="invocation">Action Name*</Label>
+                <Input
+                  id="invocation"
+                  placeholder="my awesome bot"
+                  value={actionSettings.invocationName}
+                  onChange={(e) => setActionSettings(prev => ({
+                    ...prev,
+                    invocationName: e.target.value
+                  }))}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Users will say: "Hey Google, talk to test version of {actionSettings.invocationName}"
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="test-mode">Sandbox Mode</Label>
+                    <p className="text-xs text-muted-foreground">Deploy to test environment first</p>
+                  </div>
+                  <Switch
+                    id="test-mode"
+                    checked={actionSettings.testMode}
+                    onCheckedChange={(checked) => setActionSettings(prev => ({
+                      ...prev,
+                      testMode: checked
+                    }))}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="parental">Family-Friendly</Label>
+                    <p className="text-xs text-muted-foreground">Enable parental controls</p>
+                  </div>
+                  <Switch
+                    id="parental"
+                    checked={actionSettings.parentalControls}
+                    onCheckedChange={(checked) => setActionSettings(prev => ({
+                      ...prev,
+                      parentalControls: checked
+                    }))}
+                  />
+                </div>
+              </div>
+              
+              <Button 
+                onClick={deployToGoogleAssistant} 
+                className="w-full"
+                disabled={!actionSettings.invocationName.trim()}
+              >
+                <Cloud className="h-4 w-4 mr-2" />
+                Deploy to Google Assistant
+              </Button>
+              
+              <div className="text-xs text-muted-foreground border-t pt-2">
+                <strong>What happens next:</strong>
+                <ul className="list-disc list-inside space-y-1 mt-1">
+                  <li>Bot deployed to Google Actions Console</li>
+                  <li>Test command generated for voice testing</li>
+                  <li>Available on all Google Assistant devices</li>
+                </ul>
+              </div>
             </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="test-mode">Test Mode</Label>
-              <Switch
-                id="test-mode"
-                checked={actionSettings.testMode}
-                onCheckedChange={(checked) => setActionSettings(prev => ({
-                  ...prev,
-                  testMode: checked
-                }))}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="parental">Parental Controls</Label>
-              <Switch
-                id="parental"
-                checked={actionSettings.parentalControls}
-                onCheckedChange={(checked) => setActionSettings(prev => ({
-                  ...prev,
-                  parentalControls: checked
-                }))}
-              />
-            </div>
-            
-            <Button 
-              onClick={deployToGoogleAssistant} 
-              className="w-full"
-              disabled={!actionSettings.invocationName.trim()}
-            >
-              Deploy to Google Assistant
-            </Button>
           </div>
         </div>
       )}
