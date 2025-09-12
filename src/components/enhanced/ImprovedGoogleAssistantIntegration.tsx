@@ -198,21 +198,19 @@ export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistan
   }
 
   return (
-    <div className="inline-block">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={deploymentState === 'idle' ? deployToGoogleAssistant : undefined}
-        disabled={deploymentState === 'deploying'}
-        className="gap-2 whitespace-nowrap"
-      >
-        {getStatusIcon()}
-        {deploymentState === 'deploying' ? 'Deploying...' : 'Google Assistant'}
-      </Button>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <Cloud className={`h-5 w-5 ${getStatusColor()}`} />
+          <CardTitle className="text-lg">Google Assistant Integration</CardTitle>
+          <Badge variant="secondary" className="ml-auto">
+            {deploymentState === 'deploying' ? 'Deploying' : 'Ready'}
+          </Badge>
+        </div>
+      </CardHeader>
       
-      {/* Quick Settings Modal - shown on first click */}
-      {deploymentState === 'idle' && (
-        <div className="hidden group-hover:block absolute top-full mt-2 p-4 bg-popover border rounded-lg shadow-lg z-50 min-w-80">
+      <CardContent className="space-y-4">
+        {deploymentState === 'idle' && (
           <div className="space-y-4">
             <div>
               <Label htmlFor="invocation">Action Name*</Label>
@@ -227,32 +225,34 @@ export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistan
                 className="mt-1"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Users will say: "Hey Google, talk to {actionSettings.invocationName}"
+                Users will say: "Hey Google, talk to {actionSettings.invocationName || 'your bot'}"
               </p>
             </div>
             
-            <div className="flex items-center justify-between">
-              <Label htmlFor="test-mode">Test Mode</Label>
-              <Switch
-                id="test-mode"
-                checked={actionSettings.testMode}
-                onCheckedChange={(checked) => setActionSettings(prev => ({
-                  ...prev,
-                  testMode: checked
-                }))}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="parental">Parental Controls</Label>
-              <Switch
-                id="parental"
-                checked={actionSettings.parentalControls}
-                onCheckedChange={(checked) => setActionSettings(prev => ({
-                  ...prev,
-                  parentalControls: checked
-                }))}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="test-mode" className="text-sm">Test Mode</Label>
+                <Switch
+                  id="test-mode"
+                  checked={actionSettings.testMode}
+                  onCheckedChange={(checked) => setActionSettings(prev => ({
+                    ...prev,
+                    testMode: checked
+                  }))}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="parental" className="text-sm">Parental Controls</Label>
+                <Switch
+                  id="parental"
+                  checked={actionSettings.parentalControls}
+                  onCheckedChange={(checked) => setActionSettings(prev => ({
+                    ...prev,
+                    parentalControls: checked
+                  }))}
+                />
+              </div>
             </div>
             
             <Button 
@@ -260,12 +260,34 @@ export const ImprovedGoogleAssistantIntegration: React.FC<ImprovedGoogleAssistan
               className="w-full"
               disabled={!actionSettings.invocationName.trim()}
             >
+              <Cloud className="h-4 w-4 mr-2" />
               Deploy to Google Assistant
             </Button>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+        
+        {deploymentState === 'deploying' && (
+          <div className="text-center py-4">
+            <Loader2 className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Deploying your bot to Google Assistant...</p>
+          </div>
+        )}
+        
+        {deploymentState === 'error' && (
+          <div className="text-center py-4">
+            <AlertCircle className="h-8 w-8 mx-auto mb-4 text-destructive" />
+            <p className="text-sm text-muted-foreground">Deployment failed. Please try again.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeploymentState('idle')} 
+              className="mt-2"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

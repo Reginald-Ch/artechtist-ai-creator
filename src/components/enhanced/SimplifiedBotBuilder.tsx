@@ -31,6 +31,7 @@ import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
+import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
 import AvatarSelector from "@/components/AvatarSelector";
 import { OptimizedVoiceSettings } from "@/components/enhanced/OptimizedVoiceSettings";
 import { TestChatInterface } from "@/components/TestChatInterface";
@@ -47,6 +48,8 @@ import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { ImprovedGoogleAssistantIntegration } from "./ImprovedGoogleAssistantIntegration";
+import TemplateGallery from "@/components/TemplateGallery";
+import { SavedProjectsSection } from "./SavedProjectsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 

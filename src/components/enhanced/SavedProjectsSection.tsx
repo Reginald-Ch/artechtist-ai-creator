@@ -1,65 +1,86 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Bot, Edit3, Clock, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Folder, Calendar, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface SavedProject {
   id: string;
   project_name: string;
-  project_data: any;
+  project_data: {
+    name: string;
+    description: string;
+    nodes: any[];
+    edges: any[];
+    voiceSettings: any;
+    selectedAvatar: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   created_at: string;
   updated_at: string;
 }
 
-export const SavedProjectsSection = () => {
-  const [projects, setProjects] = useState<SavedProject[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const navigate = useNavigate();
+interface SavedProjectsSectionProps {
+  onLoadProject: (project: SavedProject) => void;
+}
 
-  useEffect(() => {
-    fetchProjects();
-  }, [user]);
+export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
+  onLoadProject
+}) => {
+  const [projects, setProjects] = useState<SavedProject[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchProjects = async () => {
     if (!user) return;
-    
+
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('saved_projects')
         .select('*')
         .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(6); // Show only latest 6 projects for dashboard
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      setProjects((data || []) as unknown as SavedProject[]);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      toast({
+        title: "Error loading projects",
+        description: "Failed to load your saved projects",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteProject = async (projectId: string) => {
+    if (!user) return;
+
+    setDeleting(projectId);
     try {
       const { error } = await supabase
         .from('saved_projects')
         .delete()
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setProjects(projects.filter(p => p.id !== projectId));
+      setProjects(prev => prev.filter(p => p.id !== projectId));
       toast({
         title: "Project deleted",
-        description: "Your project has been deleted successfully"
+        description: "Project has been removed from your dashboard"
       });
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -68,110 +89,135 @@ export const SavedProjectsSection = () => {
         description: "Failed to delete the project",
         variant: "destructive"
       });
+    } finally {
+      setDeleting(null);
     }
   };
 
-  const openProject = (project: SavedProject) => {
-    const projectData = encodeURIComponent(JSON.stringify(project));
-    navigate(`/builder?project=${projectData}`);
+  const handleLoadProject = (project: SavedProject) => {
+    onLoadProject(project);
+    toast({
+      title: "Project loaded",
+      description: `"${project.project_name}" has been loaded into the builder`
+    });
   };
 
-  if (loading) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchProjects();
+    }
+  }, [user]);
+
+  if (!user) {
     return (
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold mb-4">Your Saved Projects</h3>
-        <div className="flex items-center justify-center p-8 border rounded-lg">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2">Loading projects...</span>
-        </div>
-      </div>
+      <Button variant="outline" size="sm" disabled>
+        <Folder className="h-4 w-4 mr-1" />
+        My Projects
+      </Button>
     );
   }
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-2xl font-bold">Your Saved Projects</h3>
-        <Button 
-          onClick={() => navigate('/builder')}
-          className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          New Project
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" onClick={fetchProjects}>
+          <Folder className="h-4 w-4 mr-1" />
+          My Projects
         </Button>
-      </div>
+      </DialogTrigger>
+      
+      <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Folder className="h-5 w-5" />
+            My Saved Projects
+          </DialogTitle>
+        </DialogHeader>
 
-      {projects.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/50" />
-            <h4 className="text-lg font-medium mb-2">No saved projects yet</h4>
-            <p className="text-muted-foreground mb-4">Create your first chatbot to get started!</p>
-            <Button 
-              onClick={() => navigate('/builder')}
-              className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First Bot
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/20">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-white" />
+        <ScrollArea className="h-[60vh] pr-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Folder className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No saved projects yet</p>
+              <p className="text-sm mt-2">Create and save your first AI bot to see it here!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {projects.map((project) => (
+                <Card key={project.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <span className="text-xl">
+                            {project.project_data.selectedAvatar || '🤖'}
+                          </span>
+                          {project.project_name}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          {project.project_data.description || 'No description provided'}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteProject(project.id)}
+                        disabled={deleting === project.id}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        {deleting === project.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">{project.project_name}</h4>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatDistanceToNow(new Date(project.updated_at))} ago</span>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {formatDate(project.updated_at)}
+                      </div>
+                      <div className="flex gap-1">
+                        <Badge variant="secondary" className="text-xs">
+                          {project.project_data.nodes?.length || 0} intents
+                        </Badge>
                       </div>
                     </div>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => deleteProject(project.id)}
-                    className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-xs">
-                    {project.project_data?.nodes?.length || 0} intents
-                  </Badge>
-                  <Button 
-                    size="sm" 
-                    onClick={() => openProject(project)}
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-                  >
-                    <Edit3 className="h-3 w-3 mr-1" />
-                    Open
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          
-          {projects.length >= 6 && (
-            <Card className="border-dashed border-2 flex items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
-              <CardContent className="text-center py-8">
-                <Plus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">View All Projects</p>
-              </CardContent>
-            </Card>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleLoadProject(project)}
+                        className="flex-1"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Load Project
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
-        </div>
-      )}
-    </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 };
+
+export default SavedProjectsSection;

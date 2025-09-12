@@ -7,312 +7,201 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Sparkles, User } from "lucide-react";
+import { communityAvatars, avatarCategories, type CommunityAvatar } from "@/data/communityAvatars";
 
 interface OptimizedAvatarSelectorProps {
   selectedAvatar: string;
   onAvatarChange: (avatar: string, personality: string) => void;
 }
 
-interface BotPersonality {
-  avatar: string;
-  name: string;
-  personality: string;
-  description: string;
-  traits: string[];
-  color: string;
-  category: 'friendly' | 'educational' | 'creative' | 'cultural' | 'professional';
-}
-
-const botPersonalities: BotPersonality[] = [
-  // Friendly personalities
-  {
-    avatar: '😊',
-    name: 'Happy Helper',
-    personality: 'Cheerful and enthusiastic, always ready to help with a positive attitude',
-    description: 'A friendly assistant that brings joy to every interaction',
-    traits: ['Optimistic', 'Supportive', 'Encouraging'],
-    color: 'from-yellow-400 to-orange-400',
-    category: 'friendly'
-  },
-  {
-    avatar: '🤗',
-    name: 'Warm Companion',
-    personality: 'Caring and empathetic, creating a welcoming environment for all users',
-    description: 'Makes everyone feel valued and understood',
-    traits: ['Empathetic', 'Caring', 'Inclusive'],
-    color: 'from-pink-400 to-rose-400',
-    category: 'friendly'
-  },
-  
-  // Educational personalities
-  {
-    avatar: '🎓',
-    name: 'Professor Bot',
-    personality: 'Knowledgeable and patient teacher who explains concepts clearly',
-    description: 'An expert educator who makes learning enjoyable',
-    traits: ['Knowledgeable', 'Patient', 'Clear'],
-    color: 'from-blue-400 to-indigo-400',
-    category: 'educational'
-  },
-  {
-    avatar: '📚',
-    name: 'Study Buddy',
-    personality: 'Encouraging learning companion who makes education fun and engaging',
-    description: 'Motivates learners and celebrates their progress',
-    traits: ['Motivating', 'Engaging', 'Supportive'],
-    color: 'from-green-400 to-emerald-400',
-    category: 'educational'
-  },
-  
-  // Creative personalities
-  {
-    avatar: '🎨',
-    name: 'Creative Genius',
-    personality: 'Imaginative and inspiring, helps unlock creative potential',
-    description: 'Sparks creativity and artistic expression',
-    traits: ['Imaginative', 'Inspiring', 'Artistic'],
-    color: 'from-purple-400 to-violet-400',
-    category: 'creative'
-  },
-  {
-    avatar: '✨',
-    name: 'Innovation Spark',
-    personality: 'Inventive and forward-thinking, always exploring new possibilities',
-    description: 'Encourages innovative thinking and breakthrough ideas',
-    traits: ['Innovative', 'Visionary', 'Experimental'],
-    color: 'from-cyan-400 to-blue-400',
-    category: 'creative'
-  },
-  
-  // Cultural personalities
-  {
-    avatar: '🌍',
-    name: 'Global Guide',
-    personality: 'Culturally aware and respectful, celebrating diversity and inclusion',
-    description: 'Bridges cultures and promotes understanding',
-    traits: ['Inclusive', 'Respectful', 'Global'],
-    color: 'from-emerald-400 to-teal-400',
-    category: 'cultural'
-  },
-  {
-    avatar: '🌺',
-    name: 'Cultural Ambassador',
-    personality: 'Celebrates traditions and heritage while embracing modern perspectives',
-    description: 'Honors cultural richness and promotes cross-cultural dialogue',
-    traits: ['Traditional', 'Modern', 'Diplomatic'],
-    color: 'from-pink-400 to-purple-400',
-    category: 'cultural'
-  },
-  
-  // Professional personalities
-  {
-    avatar: '💼',
-    name: 'Business Pro',
-    personality: 'Professional and efficient, focused on productivity and results',
-    description: 'Streamlines workflows and enhances business operations',
-    traits: ['Professional', 'Efficient', 'Results-driven'],
-    color: 'from-gray-600 to-slate-600',
-    category: 'professional'
-  },
-  {
-    avatar: '⚡',
-    name: 'Tech Expert',
-    personality: 'Tech-savvy and analytical, solves problems with precision',
-    description: 'Masters technology to deliver optimal solutions',
-    traits: ['Analytical', 'Precise', 'Technical'],
-    color: 'from-blue-500 to-cyan-500',
-    category: 'professional'
-  }
-];
-
-const categories = [
-  { id: 'all', name: 'All', icon: '🌟' },
-  { id: 'friendly', name: 'Friendly', icon: '😊' },
-  { id: 'educational', name: 'Educational', icon: '🎓' },
-  { id: 'creative', name: 'Creative', icon: '🎨' },
-  { id: 'cultural', name: 'Cultural', icon: '🌍' },
-  { id: 'professional', name: 'Professional', icon: '💼' }
-];
-
-export const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAvatarSelectorProps) => {
+const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAvatarSelectorProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [customEmoji, setCustomEmoji] = useState('');
 
   const filteredPersonalities = useMemo(() => {
-    let filtered = botPersonalities;
+    let filtered = communityAvatars;
     
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(p => p.category === selectedCategory);
     }
     
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.traits.some(trait => trait.toLowerCase().includes(searchQuery.toLowerCase()))
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        p.traits.some(trait => trait.toLowerCase().includes(query)) ||
+        p.title.toLowerCase().includes(query)
       );
     }
     
     return filtered;
   }, [selectedCategory, searchQuery]);
 
-  const handleAvatarSelect = (avatar: string, personality: string) => {
-    onAvatarChange(avatar, personality);
+  const handleAvatarSelect = (personality: CommunityAvatar) => {
+    onAvatarChange(personality.emoji, personality.personality);
     setOpen(false);
   };
 
   const handleCustomEmoji = () => {
     if (customEmoji.trim()) {
-      onAvatarChange(customEmoji.trim(), 'Custom personality with unique character traits');
-      setCustomEmoji('');
+      onAvatarChange(customEmoji.trim(), 'custom personality');
       setOpen(false);
+      setCustomEmoji('');
     }
   };
 
-  const selectedPersonality = botPersonalities.find(p => p.avatar === selectedAvatar);
+  const selectedPersonality = communityAvatars.find(p => p.emoji === selectedAvatar);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-20 w-20 text-2xl p-0 relative group hover:scale-105 transition-transform">
-          <span className="text-3xl">{selectedAvatar}</span>
-          <div className="absolute inset-0 bg-primary/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <User className="h-6 w-6 text-primary" />
+        <Button 
+          variant="outline" 
+          onClick={() => setOpen(true)}
+          className="w-full justify-start gap-2 h-auto p-3"
+        >
+          <div className="flex items-center gap-3">
+            <div className="text-2xl">{selectedAvatar || '🤖'}</div>
+            <div className="text-left">
+              <div className="font-medium">
+                {selectedPersonality ? selectedPersonality.name : 'Choose Avatar'}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {selectedPersonality ? `${selectedPersonality.title} - ${selectedPersonality.description}` : 'Select a community hero for your bot'}
+              </div>
+            </div>
           </div>
+          <Sparkles className="h-4 w-4 ml-auto" />
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Choose Your AI Personality
+            Choose Your Bot's Personality
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="h-full">
-          <div className="flex flex-col gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search personalities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search personalities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-            {/* Category Tabs */}
-            <TabsList className="grid grid-cols-6">
-              {categories.map((category) => (
-                <TabsTrigger key={category.id} value={category.id} className="text-xs">
+          <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+              <TabsTrigger value="all" className="text-xs">
+                <span className="mr-1">✨</span>
+                All
+              </TabsTrigger>
+              {avatarCategories.slice(0, 7).map(category => (
+                <TabsTrigger key={category.key} value={category.key} className="text-xs">
                   <span className="mr-1">{category.icon}</span>
-                  {category.name}
+                  <span className="hidden sm:inline">{category.name}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {/* Content */}
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-4">
-                  {/* Custom Emoji Section */}
-                  <Card className="border-dashed">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        ✨ Create Custom Avatar
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Enter any emoji 🎭"
-                          value={customEmoji}
-                          onChange={(e) => setCustomEmoji(e.target.value)}
-                          className="flex-1"
-                          maxLength={2}
-                        />
-                        <Button 
-                          onClick={handleCustomEmoji}
-                          disabled={!customEmoji.trim()}
-                          size="sm"
-                        >
-                          Use Custom
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Personality Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {filteredPersonalities.map((personality) => (
-                      <Card 
-                        key={`${personality.category}-${personality.name}`}
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-                          selectedAvatar === personality.avatar ? 'ring-2 ring-primary' : ''
-                        }`}
-                        onClick={() => handleAvatarSelect(personality.avatar, personality.personality)}
-                      >
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center gap-3">
-                            <div className="text-3xl">{personality.avatar}</div>
-                            <div className="flex-1">
-                              <CardTitle className="text-sm">{personality.name}</CardTitle>
-                              <Badge variant="outline" className="text-xs mt-1">
-                                {personality.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <CardDescription className="text-xs mb-2">
-                            {personality.description}
-                          </CardDescription>
-                          <div className="flex flex-wrap gap-1">
-                            {personality.traits.slice(0, 3).map((trait) => (
-                              <Badge key={trait} variant="secondary" className="text-xs px-2 py-0">
-                                {trait}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  {filteredPersonalities.length === 0 && (
-                    <Card>
-                      <CardContent className="text-center py-8">
-                        <p className="text-muted-foreground">No personalities found matching your search.</p>
+            <TabsContent value={selectedCategory} className="space-y-4 mt-4">
+              <ScrollArea className="h-[50vh] pr-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {filteredPersonalities.map((personality) => (
+                    <Card 
+                      key={personality.id}
+                      className="cursor-pointer hover:shadow-md transition-all hover:scale-105 border-2 hover:border-primary"
+                      onClick={() => handleAvatarSelect(personality)}
+                    >
+                      <CardContent className="p-3 text-center">
+                        <div className="text-3xl mb-2">{personality.emoji}</div>
+                        <h3 className="font-medium text-sm mb-1">{personality.name}</h3>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">{personality.title}</p>
+                        <Badge variant="outline" className={`text-xs mb-2 ${avatarCategories.find(c => c.key === personality.category)?.color || 'text-muted-foreground'}`}>
+                          {avatarCategories.find(c => c.key === personality.category)?.name || personality.category}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                          {personality.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {personality.traits.slice(0, 2).map((trait, traitIndex) => (
+                            <Badge key={traitIndex} variant="secondary" className="text-xs">
+                              {trait}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-2 italic">
+                          "{personality.impact}"
+                        </div>
                       </CardContent>
                     </Card>
-                  )}
+                  ))}
                 </div>
-              </ScrollArea>
-            </div>
 
-            {/* Preview */}
-            {selectedPersonality && (
-              <Card className="bg-primary/5">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <span className="text-2xl">{selectedPersonality.avatar}</span>
-                    Currently Selected: {selectedPersonality.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedPersonality.personality}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                {filteredPersonalities.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No personalities found</p>
+                    <p className="text-sm mt-2">Try adjusting your search or category filter</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+
+          {/* Custom Emoji Section */}
+          <div className="border-t pt-4">
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Or Create Custom Avatar
+            </h3>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter any emoji..."
+                value={customEmoji}
+                onChange={(e) => setCustomEmoji(e.target.value)}
+                className="flex-1"
+                maxLength={2}
+              />
+              <Button 
+                onClick={handleCustomEmoji}
+                disabled={!customEmoji.trim()}
+                variant="outline"
+              >
+                Use Custom
+              </Button>
+            </div>
           </div>
-        </Tabs>
+
+          {selectedPersonality && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border">
+              <h3 className="font-medium mb-2 flex items-center gap-2">
+                <span className="text-2xl">{selectedPersonality.emoji}</span>
+                Currently Selected: {selectedPersonality.name}
+              </h3>
+              <p className="text-sm font-semibold text-primary mb-1">{selectedPersonality.title}</p>
+              <p className="text-sm text-muted-foreground mb-2">{selectedPersonality.description}</p>
+              <p className="text-xs italic text-muted-foreground mb-2">"{selectedPersonality.impact}"</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedPersonality.traits.map((trait, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {trait}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
+
+export { OptimizedAvatarSelector };
