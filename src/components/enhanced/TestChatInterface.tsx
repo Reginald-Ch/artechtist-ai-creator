@@ -109,7 +109,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
     } else {
       // Fallback response
       const fallbackNode = nodes.find(node => 
-        node.data.label?.toLowerCase() === 'fallback' || 
+        (typeof node.data.label === 'string' && node.data.label.toLowerCase() === 'fallback') || 
         node.data.isDefault === true
       );
       
