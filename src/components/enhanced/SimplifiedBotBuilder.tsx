@@ -32,17 +32,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import AvatarSelector from "@/components/AvatarSelector";
 import { OptimizedVoiceSettings } from "@/components/enhanced/OptimizedVoiceSettings";
-import { TestChatInterface } from "@/components/TestChatInterface";
-import { VoiceEnhancedChat } from "@/components/enhanced/VoiceEnhancedChat";
+import { TestChatInterface } from "@/components/enhanced/TestChatInterface";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
-import GoogleSpeakerIntegration from "@/components/google-speaker/GoogleSpeakerIntegration";
+// Removed Google Speaker Integration
 import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
 import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
@@ -653,7 +651,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <CardContent className="space-y-3">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Bot Avatar & Personality</Label>
-                  <AvatarSelector
+                  <OptimizedAvatarSelector
                     selectedAvatar={botAvatar}
                     onAvatarChange={(avatar, personality) => {
                       setBotAvatar(avatar);
@@ -682,8 +680,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
         <TabsContent value="test" className="p-0 mt-0 h-full">
           <div className="p-4 h-full">
-            <VoiceEnhancedChat
+            <TestChatInterface
               nodes={nodes}
+              edges={edges}
               botName={botName}
               botAvatar={botAvatar}
             />
@@ -692,12 +691,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
         <TabsContent value="speaker" className="p-0 mt-0 h-full">
           <div className="p-4 h-full overflow-y-auto">
-            <GoogleSpeakerIntegration
-              botNodes={nodes}
-              botEdges={edges}
-              onConnectionChange={(isConnected) => {
-                console.log('Google Speaker connection changed:', isConnected);
-              }}
+            <ImprovedGoogleAssistantIntegration
+              nodes={nodes}
+              edges={edges}
+              voiceSettings={voiceSettings}
+              selectedAvatar={botAvatar}
+              botPersonality={botPersonality}
             />
           </div>
         </TabsContent>
@@ -1060,10 +1059,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <TestChatInterface
                 nodes={nodes}
                 edges={edges}
-                isActive={showTestPanel}
-                onToggle={() => setShowTestPanel(!showTestPanel)}
-                selectedAvatar={botAvatar}
-                botPersonality={botPersonality}
+                botAvatar={botAvatar}
+                botName={botName || 'My AI Assistant'}
               />
             </div>
           </div>

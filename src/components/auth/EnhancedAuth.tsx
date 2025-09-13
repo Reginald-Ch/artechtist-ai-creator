@@ -39,26 +39,40 @@ const EnhancedAuth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthErrors([]);
-    
-    if (!loginForm.email || !loginForm.password) {
-      setAuthErrors(['Please fill in all required fields']);
-      return;
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(loginForm.email)) {
-      setAuthErrors(['Please enter a valid email address']);
-      return;
-    }
-    
     setIsLoading(true);
-    const { error } = await signIn(loginForm.email, loginForm.password);
-    setIsLoading(false);
     
-    if (error) {
+    try {
+      // Input validation
+      if (!loginForm.email || !loginForm.password) {
+        throw new Error('Please fill in all required fields');
+      }
+      
+      // Enhanced email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(loginForm.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+      
+      // Password validation
+      if (loginForm.password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+      
+      const { error } = await signIn(loginForm.email, loginForm.password);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
+      navigate('/dashboard');
+      
+    } catch (error: any) {
       console.error('Login error:', error);
-      const errorMessage = error.message.toLowerCase();
+      const errorMessage = error.message?.toLowerCase() || '';
       
       let userFriendlyMessage = 'Login failed. Please try again.';
       if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid credentials')) {
@@ -70,6 +84,8 @@ const EnhancedAuth = () => {
         userFriendlyMessage = 'Too many login attempts. Please wait a few minutes and try again.';
       } else if (errorMessage.includes('user not found')) {
         userFriendlyMessage = 'No account found with this email address. Please sign up first.';
+      } else if (error.message) {
+        userFriendlyMessage = error.message;
       }
       
       setAuthErrors([userFriendlyMessage]);
@@ -78,12 +94,8 @@ const EnhancedAuth = () => {
         description: userFriendlyMessage,
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-      navigate('/dashboard');
+    } finally {
+      setIsLoading(false);
     }
   };
 

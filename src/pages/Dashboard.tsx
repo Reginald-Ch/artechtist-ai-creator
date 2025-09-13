@@ -12,7 +12,7 @@ import { AgentCreationDialog } from "@/components/AgentCreationDialog";
 import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection";
 
 // Lazy load performance-heavy components
-const GoogleAssistantIntegration = lazy(() => import("@/components/enhanced/GoogleAssistantIntegration").then(module => ({ default: module.GoogleAssistantIntegration })));
+// Removed deprecated Google Assistant integration
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -237,20 +237,9 @@ const Dashboard = () => {
                 </Button>
               </div>
               <div className="p-4">
-                <Suspense fallback={
-                  <div className="flex items-center justify-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-2">Loading Google Assistant...</span>
-                  </div>
-                }>
-                  <GoogleAssistantIntegration 
-                    nodes={[]}
-                    edges={[]}
-                    onIntentMatch={(intent, confidence) => {
-                      console.log('Intent matched:', intent, confidence);
-                    }}
-                  />
-                </Suspense>
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>Create a bot to enable voice integration</p>
+                </div>
               </div>
             </div>
           </div>

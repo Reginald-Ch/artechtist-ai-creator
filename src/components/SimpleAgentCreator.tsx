@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Bot, Brain, ArrowRight, Save } from "lucide-react";
-import AvatarSelector from "@/components/AvatarSelector";
+import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
 import VoiceSettings from "@/components/VoiceSettings";
 import { toast } from "@/hooks/use-toast";
 
@@ -104,7 +104,7 @@ const SimpleAgentCreator = () => {
               
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Avatar & Personality</Label>
-                <AvatarSelector
+                <OptimizedAvatarSelector
                   selectedAvatar={botAvatar}
                   onAvatarChange={(avatar, personality) => {
                     setBotAvatar(avatar);
