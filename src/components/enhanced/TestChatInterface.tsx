@@ -193,14 +193,27 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   };
 
   return (
-    <Card className={`flex flex-col h-full ${className}`}>
-      <CardHeader className="pb-3">
+    <Card className={`flex flex-col h-full border-2 border-dashed border-muted hover:border-primary/30 transition-colors ${className}`}>
+      <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <span className="text-2xl">{botAvatar}</span>
-            Test Chat with {botName}
+          <CardTitle className="flex items-center gap-3 text-lg">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl border-2 border-primary/20">
+              {botAvatar}
+            </div>
+            <div>
+              <span className="font-semibold">Test Chat</span>
+              <p className="text-sm text-muted-foreground font-normal">
+                with {botName}
+              </p>
+            </div>
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={clearChat}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={clearChat}
+            className="hover:bg-destructive/10 hover:text-destructive rounded-full"
+            title="Clear conversation"
+          >
             <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
@@ -233,13 +246,13 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
                 
                 <div className={`max-w-[80%] ${message.type === 'user' ? 'order-first' : ''}`}>
                   <div
-                    className={`rounded-lg px-4 py-2 ${
+                    className={`rounded-xl px-4 py-3 shadow-sm ${
                       message.type === 'user'
-                        ? 'bg-primary text-primary-foreground ml-auto'
-                        : 'bg-muted text-foreground'
+                        ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground ml-auto'
+                        : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                     }`}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm leading-relaxed">{message.content}</p>
                   </div>
                   
                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
@@ -308,8 +321,16 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
         </div>
 
         {/* Status Info */}
-        <div className="text-xs text-muted-foreground text-center">
-          {nodes.length} intents loaded • Click the mic to use voice input
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>{nodes.length} intents loaded</span>
+          </div>
+          <span>•</span>
+          <div className="flex items-center gap-1">
+            <Mic className="w-3 h-3" />
+            <span>Voice input available</span>
+          </div>
         </div>
       </CardContent>
     </Card>

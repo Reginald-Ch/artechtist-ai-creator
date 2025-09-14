@@ -61,27 +61,31 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
         <Button 
           variant="outline" 
           onClick={() => setOpen(true)}
-          className="w-full justify-start gap-2 h-auto p-3"
+          className="w-full justify-start gap-2 h-auto p-4 hover:bg-accent/50 transition-colors border-dashed border-2 hover:border-primary/30"
         >
-          <div className="flex items-center gap-3">
-            <div className="text-2xl">{selectedAvatar || '🤖'}</div>
-            <div className="text-left">
-              <div className="font-medium">
-                {selectedPersonality ? selectedPersonality.name : 'Choose Avatar'}
+          <div className="flex items-center gap-4 w-full">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-3xl border-2 border-primary/20">
+              {selectedAvatar || '🤖'}
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <div className="font-semibold text-base">
+                {selectedPersonality ? selectedPersonality.name : 'Choose Your Bot Avatar'}
               </div>
-              <div className="text-xs text-muted-foreground">
-                {selectedPersonality ? `${selectedPersonality.title} - ${selectedPersonality.description}` : 'Select a community hero for your bot'}
+              <div className="text-sm text-muted-foreground line-clamp-2">
+                {selectedPersonality ? `${selectedPersonality.title} • ${selectedPersonality.description}` : 'Select a personality that matches your bot\'s purpose'}
               </div>
             </div>
+            <Sparkles className="h-5 w-5 text-primary animate-pulse" />
           </div>
-          <Sparkles className="h-4 w-4 ml-auto" />
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
             Choose Your Bot's Personality
           </DialogTitle>
         </DialogHeader>
@@ -117,27 +121,31 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
                   {filteredPersonalities.map((personality) => (
                     <Card 
                       key={personality.id}
-                      className="cursor-pointer hover:shadow-md transition-all hover:scale-105 border-2 hover:border-primary"
+                      className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 hover:border-primary/50 bg-gradient-to-br from-background to-accent/20"
                       onClick={() => handleAvatarSelect(personality)}
                     >
-                      <CardContent className="p-3 text-center">
-                        <div className="text-3xl mb-2">{personality.emoji}</div>
-                        <h3 className="font-medium text-sm mb-1">{personality.name}</h3>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">{personality.title}</p>
-                        <Badge variant="outline" className={`text-xs mb-2 ${avatarCategories.find(c => c.key === personality.category)?.color || 'text-muted-foreground'}`}>
-                          {avatarCategories.find(c => c.key === personality.category)?.name || personality.category}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                      <CardContent className="p-4 text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+                          {personality.emoji}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-base mb-1">{personality.name}</h3>
+                          <p className="text-sm font-medium text-primary mb-2">{personality.title}</p>
+                          <Badge variant="outline" className={`text-xs mb-3 ${avatarCategories.find(c => c.key === personality.category)?.color || 'text-muted-foreground'}`}>
+                            {avatarCategories.find(c => c.key === personality.category)?.name || personality.category}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3 line-clamp-3 leading-relaxed">
                           {personality.description}
                         </p>
-                        <div className="flex flex-wrap gap-1 justify-center">
-                          {personality.traits.slice(0, 2).map((trait, traitIndex) => (
-                            <Badge key={traitIndex} variant="secondary" className="text-xs">
+                        <div className="flex flex-wrap gap-1 justify-center mb-3">
+                          {personality.traits.slice(0, 3).map((trait, traitIndex) => (
+                            <Badge key={traitIndex} variant="secondary" className="text-xs px-2 py-1">
                               {trait}
                             </Badge>
                           ))}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-2 italic">
+                        <div className="text-xs text-muted-foreground italic font-medium border-t pt-2">
                           "{personality.impact}"
                         </div>
                       </CardContent>

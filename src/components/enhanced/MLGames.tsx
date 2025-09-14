@@ -8,8 +8,6 @@ import { Camera, Hand, Gamepad2, Palette, Trophy, Star, Play, RotateCcw, Brain, 
 import { toast } from "@/hooks/use-toast";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { AIKoTeacher } from "@/components/enhanced/AIKoTeacher";
-import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
-import { SimpleGoogleAssistantButton } from "@/components/enhanced/SimpleGoogleAssistantButton";
 
 interface MLGame {
   id: string;
@@ -569,11 +567,6 @@ const MLGames = () => {
         </p>
       </div>
 
-      {/* Action Bar */}
-      <div className="flex justify-center gap-4 mb-6">
-        <VoiceChatbotSettings />
-        <SimpleGoogleAssistantButton />
-      </div>
 
       {/* AI Mascot Section */}
       {aiMascotVisible && (
