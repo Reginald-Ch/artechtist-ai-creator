@@ -15,7 +15,10 @@ import {
   BookOpen,
   Zap,
   Trophy,
-  Star
+  Star,
+  CheckCircle,
+  Target,
+  Sparkles
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
@@ -43,7 +46,8 @@ print(f"Nice to meet you, {name}!")
       starterCode: 'print("Hello, World!")',
       solution: 'print("Hello, World!")',
       completed: false,
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      points: 10
     },
     {
       id: 'variables',
@@ -52,7 +56,8 @@ print(f"Nice to meet you, {name}!")
       starterCode: '# Create variables here\nname = ""\nage = 0\nprint(f"My name is {name} and I am {age} years old")',
       solution: 'name = "Alice"\nage = 10\nprint(f"My name is {name} and I am {age} years old")',
       completed: false,
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      points: 15
     },
     {
       id: 'loops',
@@ -61,7 +66,8 @@ print(f"Nice to meet you, {name}!")
       starterCode: '# Write a loop here\nfor i in range(?):\n    print(?)',
       solution: 'for i in range(1, 11):\n    print(i)',
       completed: false,
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      points: 25
     },
     {
       id: 'math',
@@ -70,7 +76,8 @@ print(f"Nice to meet you, {name}!")
       starterCode: '# Calculator\nnum1 = 10\nnum2 = 5\n# Add your calculations here',
       solution: 'num1 = 10\nnum2 = 5\nprint(f"{num1} + {num2} = {num1 + num2}")',
       completed: false,
-      difficulty: 'Easy'
+      difficulty: 'Easy',
+      points: 20
     },
     {
       id: 'lists',
@@ -79,7 +86,8 @@ print(f"Nice to meet you, {name}!")
       starterCode: '# Create a list\nfavorites = []\n# Add items and print them',
       solution: 'favorites = ["pizza", "games", "coding"]\nfor item in favorites:\n    print(f"I love {item}!")',
       completed: false,
-      difficulty: 'Medium'
+      difficulty: 'Medium',
+      points: 30
     },
     {
       id: 'conditionals',
@@ -88,139 +96,15 @@ print(f"Nice to meet you, {name}!")
       starterCode: 'age = 16\n# Use if/else to check voting eligibility',
       solution: 'age = 16\nif age >= 18:\n    print("You can vote!")\nelse:\n    print("You cannot vote yet.")',
       completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'string-methods',
-      title: 'Name Games',
-      description: 'Play with string methods',
-      starterCode: 'name = "python"\n# Try different string methods',
-      solution: 'name = "python"\nprint(name.upper())\nprint(name.capitalize())\nprint(len(name))',
-      completed: false,
-      difficulty: 'Easy'
-    },
-    {
-      id: 'random-numbers',
-      title: 'Lucky Numbers',
-      description: 'Generate random numbers',
-      starterCode: 'import random\n# Generate random numbers between 1-10',
-      solution: 'import random\nfor i in range(5):\n    print(f"Lucky number: {random.randint(1, 10)}")',
-      completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'dictionaries',
-      title: 'Pet Database',
-      description: 'Create a dictionary of pets',
-      starterCode: '# Create a pet dictionary\npet = {}\n# Add name, type, age',
-      solution: 'pet = {"name": "Buddy", "type": "dog", "age": 3}\nprint(f"Meet {pet[\"name\"]}, a {pet[\"age\"]} year old {pet[\"type\"]}")',
-      completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'functions',
-      title: 'Greeting Function',
-      description: 'Create a function to greet people',
-      starterCode: '# Define a greeting function\ndef greet_person():\n    # Add your code here\n    pass',
-      solution: 'def greet_person(name):\n    return f"Hello, {name}! Nice to meet you!"\n\nprint(greet_person("Alice"))',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'while-loops',
-      title: 'Countdown Timer',
-      description: 'Create a countdown from 10 to 1',
-      starterCode: '# Countdown timer\ncount = 10\n# Use while loop',
-      solution: 'count = 10\nwhile count > 0:\n    print(count)\n    count -= 1\nprint("Blast off! 🚀")',
-      completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'file-handling',
-      title: 'Message Writer',
-      description: 'Write and read a message file',
-      starterCode: '# Write to a file\nmessage = "Hello from Python!"\n# Save and read the message',
-      solution: 'message = "Hello from Python!"\nwith open("message.txt", "w") as file:\n    file.write(message)\nwith open("message.txt", "r") as file:\n    print(file.read())',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'classes',
-      title: 'Animal Class',
-      description: 'Create a simple Animal class',
-      starterCode: '# Create an Animal class\nclass Animal:\n    def __init__(self, name):\n        # Add your code here\n        pass',
-      solution: 'class Animal:\n    def __init__(self, name, sound):\n        self.name = name\n        self.sound = sound\n    \n    def speak(self):\n        return f"{self.name} says {self.sound}!"\n\ndog = Animal("Rex", "woof")\nprint(dog.speak())',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'error-handling',
-      title: 'Safe Division',
-      description: 'Handle division by zero errors',
-      starterCode: '# Safe division\ndef safe_divide(a, b):\n    # Add error handling\n    pass',
-      solution: 'def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return "Cannot divide by zero!"\n\nprint(safe_divide(10, 2))\nprint(safe_divide(10, 0))',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'list-comprehension',
-      title: 'Square Numbers',
-      description: 'Create squares using list comprehension',
-      starterCode: '# Create squares of numbers 1-10\nnumbers = [1, 2, 3, 4, 5]\n# Use list comprehension',
-      solution: 'numbers = [1, 2, 3, 4, 5]\nsquares = [x**2 for x in numbers]\nprint(f"Numbers: {numbers}")\nprint(f"Squares: {squares}")',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'sorting',
-      title: 'Sort My Friends',
-      description: 'Sort a list of names alphabetically',
-      starterCode: '# Sort friends list\nfriends = ["Alice", "Bob", "Charlie", "Diana"]\n# Sort and display',
-      solution: 'friends = ["Alice", "Bob", "Charlie", "Diana"]\nfriends.sort()\nprint("My friends in order:")\nfor friend in friends:\n    print(f"- {friend}")',
-      completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'nested-loops',
-      title: 'Pattern Maker',
-      description: 'Create a star pattern using nested loops',
-      starterCode: '# Pattern maker\nrows = 5\n# Create a triangle pattern',
-      solution: 'rows = 5\nfor i in range(1, rows + 1):\n    for j in range(i):\n        print("*", end="")\n    print()',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'lambda',
-      title: 'Quick Functions',
-      description: 'Use lambda functions for quick calculations',
-      starterCode: '# Lambda functions\nnumbers = [1, 2, 3, 4, 5]\n# Use lambda with map',
-      solution: 'numbers = [1, 2, 3, 4, 5]\ndoubled = list(map(lambda x: x * 2, numbers))\nprint(f"Original: {numbers}")\nprint(f"Doubled: {doubled}")',
-      completed: false,
-      difficulty: 'Hard'
-    },
-    {
-      id: 'modules',
-      title: 'Date and Time',
-      description: 'Work with date and time modules',
-      starterCode: 'import datetime\n# Get current date and time',
-      solution: 'import datetime\nnow = datetime.datetime.now()\nprint(f"Current date: {now.strftime(\"%Y-%m-%d\")}")\nprint(f"Current time: {now.strftime(\"%H:%M:%S\")}")',
-      completed: false,
-      difficulty: 'Medium'
-    },
-    {
-      id: 'json-data',
-      title: 'Student Records',
-      description: 'Work with JSON data for student records',
-      starterCode: 'import json\n# Create student data\nstudent = {}\n# Convert to JSON',
-      solution: 'import json\nstudent = {\n    "name": "Alice",\n    "age": 12,\n    "grades": [95, 87, 92]\n}\njson_data = json.dumps(student, indent=2)\nprint(json_data)',
-      completed: false,
-      difficulty: 'Hard'
+      difficulty: 'Medium',
+      points: 25
     }
   ]);
   
   const [selectedChallenge, setSelectedChallenge] = useState(challenges[0]);
   const [aiHelperVisible, setAiHelperVisible] = useState(true);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
+  const [userScore, setUserScore] = useState(0);
   
   const { recordActivity } = useProgressiveStreak();
 
@@ -258,11 +142,19 @@ print(f"Nice to meet you, {name}!")
         
         // Check if challenge is completed
         if (selectedChallenge && code.includes('print')) {
-          recordActivity('challenge', 85); // Record challenge completion
-          toast({
-            title: "Great job! 🎉",
-            description: "Your code is working perfectly!"
+          const updatedChallenges = challenges.map(c => {
+            if (c.id === selectedChallenge.id && !c.completed) {
+              setUserScore(prev => prev + c.points);
+              recordActivity('challenge', 85); // Record challenge completion
+              toast({
+                title: "Challenge Completed! 🎉",
+                description: `You earned ${c.points} points! Keep coding!`
+              });
+              return { ...c, completed: true };
+            }
+            return c;
           });
+          setChallenges(updatedChallenges);
         }
       }, 1000);
       
@@ -300,19 +192,38 @@ print(f"Nice to meet you, {name}!")
     });
   };
 
+  const completedChallenges = challenges.filter(c => c.completed).length;
+  const totalChallenges = challenges.length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur">
+      <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2">
-            <Code className="h-8 w-8 text-blue-500" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-              Python IDE for Kids 🐍
-            </h1>
-            <Badge variant="secondary" className="ml-2">Learn & Code</Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                <Code className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  Python IDE for Kids 🐍
+                </h1>
+                <p className="text-sm text-muted-foreground">Learn Python programming with your AI friend!</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg px-3 py-2">
+                <Trophy className="h-4 w-4 text-yellow-500" />
+                <span className="font-semibold">{userScore} points</span>
+              </div>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Target className="h-3 w-3" />
+                {completedChallenges}/{totalChallenges} Challenges
+              </Badge>
+            </div>
           </div>
-          <p className="text-muted-foreground mt-2">Learn Python programming with your AI friend!</p>
         </div>
       </header>
 
@@ -328,7 +239,7 @@ print(f"Nice to meet you, {name}!")
                   className="mb-4"
                 />
                 
-                <Card>
+                <Card className="bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-sm">
                       <Lightbulb className="h-4 w-4" />
@@ -340,7 +251,7 @@ print(f"Nice to meet you, {name}!")
                       variant="outline"
                       size="sm"
                       onClick={aiExplainCode}
-                      className="w-full justify-start"
+                      className="w-full justify-start bg-background/50"
                     >
                       <Brain className="h-4 w-4 mr-2" />
                       Explain My Code
@@ -349,7 +260,7 @@ print(f"Nice to meet you, {name}!")
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentTopic('python-basics')}
-                      className="w-full justify-start"
+                      className="w-full justify-start bg-background/50"
                     >
                       <BookOpen className="h-4 w-4 mr-2" />
                       Learn Concepts
@@ -366,25 +277,37 @@ print(f"Nice to meet you, {name}!")
           {/* Main IDE Area */}
           <div className={`${aiHelperVisible ? 'lg:col-span-4' : 'lg:col-span-5'}`}>
             <Tabs defaultValue="code" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="code">Code Editor</TabsTrigger>
-                <TabsTrigger value="challenges">Challenges</TabsTrigger>
-                <TabsTrigger value="learn">Learn</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+                <TabsTrigger value="code" className="data-[state=active]:bg-background">
+                  <Code className="h-4 w-4 mr-2" />
+                  Code Editor
+                </TabsTrigger>
+                <TabsTrigger value="challenges" className="data-[state=active]:bg-background">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Challenges
+                </TabsTrigger>
+                <TabsTrigger value="learn" className="data-[state=active]:bg-background">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Learn
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="code" className="space-y-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Code Editor */}
-                  <Card>
+                  <Card className="bg-gradient-to-br from-background to-muted/20">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">Code Editor</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Code className="h-5 w-5" />
+                          Code Editor
+                        </CardTitle>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             onClick={runCode}
                             disabled={isRunning}
-                            className="bg-green-500 hover:bg-green-600"
+                            className="bg-green-500 hover:bg-green-600 text-white"
                           >
                             {isRunning ? (
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -404,13 +327,13 @@ print(f"Nice to meet you, {name}!")
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
                         placeholder="Write your Python code here..."
-                        className="min-h-[400px] font-mono text-sm"
+                        className="min-h-[400px] font-mono text-sm bg-background/50 border-muted/50"
                       />
                     </CardContent>
                   </Card>
 
                   {/* Output */}
-                  <Card>
+                  <Card className="bg-gradient-to-br from-background to-muted/20">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Zap className="h-5 w-5" />
@@ -419,7 +342,7 @@ print(f"Nice to meet you, {name}!")
                     </CardHeader>
                     <CardContent>
                       <ScrollArea className="h-[400px]">
-                        <pre className="whitespace-pre-wrap font-mono text-sm bg-muted p-4 rounded">
+                        <pre className="whitespace-pre-wrap font-mono text-sm bg-muted/30 p-4 rounded border">
                           {output || 'Click "Run" to see your code output here! 🚀'}
                         </pre>
                       </ScrollArea>
@@ -429,34 +352,77 @@ print(f"Nice to meet you, {name}!")
               </TabsContent>
 
               <TabsContent value="challenges" className="space-y-4">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold flex items-center gap-2">
+                      <Trophy className="h-6 w-6 text-yellow-500" />
+                      Python Challenges
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        {completedChallenges}/{totalChallenges} Completed
+                      </Badge>
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Star className="h-3 w-3" />
+                        {userScore} Points
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {challenges.map((challenge) => (
                     <Card
                       key={challenge.id}
-                      className={`cursor-pointer transition-all hover:shadow-lg ${
-                        selectedChallenge?.id === challenge.id ? 'border-primary' : ''
-                      }`}
+                      className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
+                        selectedChallenge?.id === challenge.id 
+                          ? 'border-primary bg-gradient-to-br from-primary/5 to-secondary/5' 
+                          : 'border-muted/50 hover:border-muted'
+                      } ${challenge.completed ? 'bg-green-50 dark:bg-green-950/20' : ''}`}
                       onClick={() => loadChallenge(challenge)}
                     >
                       <CardHeader>
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">{challenge.title}</CardTitle>
-                          <Badge
-                            variant={challenge.difficulty === 'Easy' ? 'default' : 'secondary'}
-                          >
-                            {challenge.difficulty}
-                          </Badge>
+                          <CardTitle className="text-base flex items-center gap-2">
+                            {challenge.completed && <CheckCircle className="h-4 w-4 text-green-500" />}
+                            {challenge.title}
+                          </CardTitle>
+                          <div className="flex items-center gap-1">
+                            <Badge
+                              variant={challenge.difficulty === 'Easy' ? 'default' : 
+                                     challenge.difficulty === 'Medium' ? 'secondary' : 'destructive'}
+                              className="text-xs"
+                            >
+                              {challenge.difficulty}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {challenge.points}pts
+                            </Badge>
+                          </div>
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {challenge.description}
                         </p>
                       </CardHeader>
                       <CardContent>
-                        {challenge.completed && (
+                        {challenge.completed ? (
                           <div className="flex items-center gap-1 text-green-600">
                             <Trophy className="h-4 w-4" />
-                            <span className="text-sm">Completed!</span>
+                            <span className="text-sm font-medium">Completed!</span>
                           </div>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              loadChallenge(challenge);
+                            }}
+                          >
+                            Start Challenge
+                          </Button>
                         )}
                       </CardContent>
                     </Card>
@@ -464,185 +430,129 @@ print(f"Nice to meet you, {name}!")
                 </div>
               </TabsContent>
 
-              <TabsContent value="learn">
-                <Card>
+              <TabsContent value="learn" className="space-y-6">
+                <Card className="bg-gradient-to-br from-background to-muted/20">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="h-5 w-5" />
                       Python Concepts for Kids
                     </CardTitle>
+                    <p className="text-muted-foreground">Learn the building blocks of Python programming!</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🖨️ Print Statements</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Use print() to display messages on the screen!
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🖨️ Print Statements
+                          <Badge variant="outline" className="text-xs">Beginner</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Use print() to display messages on the screen! It's like talking to the computer.
                         </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
                           print("Hello, World!")
                         </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full"
+                          onClick={() => setCode('print("Hello, World!")\nprint("I am learning Python!")')}
+                        >
+                          Try it now!
+                        </Button>
                       </div>
                       
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📦 Variables</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Store information in variables like boxes!
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          📦 Variables
+                          <Badge variant="outline" className="text-xs">Beginner</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Store information in variables like boxes! Give them names and put data inside.
                         </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
                           name = "Alice"<br/>
-                          age = 10
+                          age = 12
                         </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full"
+                          onClick={() => setCode('name = "Your Name"\nage = 12\nprint(f"Hello, my name is {name} and I am {age} years old!")')}
+                        >
+                          Try it now!
+                        </Button>
                       </div>
                       
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🔄 For Loops</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Repeat actions multiple times!
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🔄 Loops
+                          <Badge variant="outline" className="text-xs">Intermediate</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Repeat actions without writing code multiple times! Save time and effort.
                         </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
                           for i in range(5):<br/>
                           &nbsp;&nbsp;print(i)
                         </code>
-                      </div>
-                      
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🎯 Functions</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Create reusable code blocks!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          def say_hello():<br/>
-                          &nbsp;&nbsp;print("Hi!")
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📊 Lists</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Store multiple items in order!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          fruits = ["apple", "banana"]<br/>
-                          print(fruits[0])
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🤔 If Statements</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Make decisions in your code!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          if age {'>='}13:<br/>
-                          &nbsp;&nbsp;print("Teenager!")
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🔢 Math Operations</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Calculate numbers like a calculator!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          result = 10 + 5 * 2<br/>
-                          print(result)
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🎲 Random Numbers</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Generate surprise numbers!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          import random<br/>
-                          print(random.randint(1, 10))
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🔄 While Loops</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Keep doing something until condition is false!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          count = 0<br/>
-                          while count {'<'} 3:<br/>
-                          &nbsp;&nbsp;print(count)<br/>
-                          &nbsp;&nbsp;count += 1
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📖 Dictionaries</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Store data with names (keys)!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          pet = {'{'}name: "Buddy", age: 3{'}'}<br/>
-                          print(pet["name"])
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🎨 String Methods</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Transform text in cool ways!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          text = "python"<br/>
-                          print(text.upper())
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">🛡️ Error Handling</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Handle mistakes gracefully!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          try:<br/>
-                          &nbsp;&nbsp;result = 10/0<br/>
-                          except:<br/>
-                          &nbsp;&nbsp;print("Oops!")
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📂 Classes & Objects</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Create your own data types!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          class Dog:<br/>
-                          &nbsp;&nbsp;def bark(self):<br/>
-                          &nbsp;&nbsp;&nbsp;&nbsp;print("Woof!")
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📦 Modules</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Use pre-built code from others!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          import datetime<br/>
-                          print(datetime.datetime.now())
-                        </code>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <h3 className="font-semibold mb-2">📄 File Handling</h3>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Save and read files!
-                        </p>
-                        <code className="text-xs bg-muted p-2 rounded block">
-                          with open("file.txt", "w") as f:<br/>
-                          &nbsp;&nbsp;f.write("Hello!")
-                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full"
+                          onClick={() => setCode('for i in range(1, 6):\n    print(f"Count: {i}")\nprint("Done counting!")')}
+                        >
+                          Try it now!
+                        </Button>
                       </div>
                     </div>
+
+                    {/* Interactive Learning Section */}
+                    <Card className="bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-950/20 dark:to-fuchsia-950/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Sparkles className="h-5 w-5" />
+                          Interactive Learning Path
+                        </CardTitle>
+                        <p className="text-muted-foreground">Follow this step-by-step learning journey!</p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold">1</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold">Start with Print</h4>
+                              <p className="text-sm text-muted-foreground">Learn to display messages</p>
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => setCode('print("Hello, Python!")')}>
+                              Start
+                            </Button>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">2</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold">Store Data in Variables</h4>
+                              <p className="text-sm text-muted-foreground">Create your first variables</p>
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => setCode('name = "Young Coder"\nprint(f"Welcome, {name}!")')}>
+                              Next
+                            </Button>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border">
+                            <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold">3</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold">Make Decisions</h4>
+                              <p className="text-sm text-muted-foreground">Use if statements to choose</p>
+                            </div>
+                            <Button size="sm" variant="ghost" onClick={() => setCode('age = 10\nif age < 13:\n    print("You are awesome!")\nelse:\n    print("You are still awesome!")')}>
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </CardContent>
                 </Card>
               </TabsContent>

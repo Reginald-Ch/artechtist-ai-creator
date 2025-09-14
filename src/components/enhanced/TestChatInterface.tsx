@@ -221,8 +221,8 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
       
       <CardContent className="flex-1 flex flex-col p-4 gap-4">
         {/* Messages Area */}
-        <ScrollArea ref={scrollAreaRef} className="flex-1 w-full">
-          <div className="space-y-4 p-1">
+        <ScrollArea ref={scrollAreaRef} className="flex-1 w-full max-h-[400px] overflow-hidden">
+          <div className="space-y-4 p-1 break-words">
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -234,7 +234,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 max-w-full ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.type === 'bot' && (
                   <div className="flex-shrink-0">
@@ -244,23 +244,23 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
                   </div>
                 )}
                 
-                <div className={`max-w-[80%] ${message.type === 'user' ? 'order-first' : ''}`}>
+                <div className={`max-w-[75%] min-w-0 ${message.type === 'user' ? 'order-first' : ''}`}>
                   <div
-                    className={`rounded-xl px-4 py-3 shadow-sm ${
+                    className={`rounded-xl px-4 py-3 shadow-sm break-words overflow-wrap-anywhere ${
                       message.type === 'user'
                         ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground ml-auto'
                         : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                     }`}
                   >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                    <p className="text-sm leading-relaxed break-words">{message.content}</p>
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
                     <span>{message.timestamp.toLocaleTimeString()}</span>
                     {message.intent && (
                       <>
                         <span>•</span>
-                        <span>Intent: {message.intent}</span>
+                        <span className="truncate">Intent: {message.intent}</span>
                       </>
                     )}
                     {message.confidence && (
@@ -285,14 +285,14 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
+        <div className="flex gap-2 mt-4">
+          <div className="flex-1 relative min-w-0">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message here..."
-              className="pr-12"
+              className="pr-12 w-full"
               disabled={isListening}
             />
             {isListening && (
@@ -306,7 +306,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
             variant="outline"
             size="icon"
             onClick={toggleListening}
-            className={isListening ? 'bg-red-50 border-red-200' : ''}
+            className={`flex-shrink-0 ${isListening ? 'bg-red-50 border-red-200' : ''}`}
           >
             {isListening ? (
               <MicOff className="h-4 w-4 text-red-500" />
@@ -315,7 +315,11 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
             )}
           </Button>
           
-          <Button onClick={handleSendMessage} disabled={!input.trim() || isListening}>
+          <Button 
+            onClick={handleSendMessage} 
+            disabled={!input.trim() || isListening}
+            className="flex-shrink-0"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
