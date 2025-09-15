@@ -98,6 +98,86 @@ print(f"Nice to meet you, {name}!")
       completed: false,
       difficulty: 'Medium',
       points: 25
+    },
+    {
+      id: 'functions',
+      title: 'Create Functions',
+      description: 'Write a function that greets people',
+      starterCode: '# Define a function called greet\ndef greet(name):\n    # Add your code here\n    pass\n\n# Call your function\ngreet("Alice")',
+      solution: 'def greet(name):\n    print(f"Hello, {name}! Nice to meet you!")\n\ngreet("Alice")',
+      completed: false,
+      difficulty: 'Medium',
+      points: 35
+    },
+    {
+      id: 'dictionaries',
+      title: 'Student Records',
+      description: 'Create a dictionary to store student information',
+      starterCode: '# Create a student dictionary\nstudent = {\n    # Add student info here\n}\nprint(student)',
+      solution: 'student = {\n    "name": "Alice",\n    "age": 12,\n    "grade": "7th",\n    "subjects": ["Math", "Science", "English"]\n}\nprint(f"Student: {student["name"]}, Age: {student["age"]}")',
+      completed: false,
+      difficulty: 'Hard',
+      points: 40
+    },
+    {
+      id: 'turtle',
+      title: 'Drawing Shapes',
+      description: 'Use turtle graphics to draw a square',
+      starterCode: '# Import turtle\nimport turtle\n\n# Create a turtle\nt = turtle.Turtle()\n\n# Draw a square\n# Add your code here',
+      solution: 'import turtle\n\nt = turtle.Turtle()\nfor i in range(4):\n    t.forward(100)\n    t.right(90)\n\nturtle.done()',
+      completed: false,
+      difficulty: 'Medium',
+      points: 30
+    },
+    {
+      id: 'randomgame',
+      title: 'Number Guessing Game',
+      description: 'Create a simple guessing game',
+      starterCode: 'import random\n\n# Generate random number 1-10\nsecret = random.randint(1, 10)\n# Add your guessing game logic',
+      solution: 'import random\n\nsecret = random.randint(1, 10)\nguess = int(input("Guess a number 1-10: "))\n\nif guess == secret:\n    print("You win!")\nelse:\n    print(f"Sorry, it was {secret}")',
+      completed: false,
+      difficulty: 'Hard',
+      points: 45
+    },
+    {
+      id: 'classes',
+      title: 'Animal Class',
+      description: 'Create a class to represent animals',
+      starterCode: '# Create an Animal class\nclass Animal:\n    def __init__(self, name, sound):\n        # Add your code here\n        pass\n    \n    def make_sound(self):\n        # Add your code here\n        pass\n\n# Create an animal\ndog = Animal("Dog", "Woof")',
+      solution: 'class Animal:\n    def __init__(self, name, sound):\n        self.name = name\n        self.sound = sound\n    \n    def make_sound(self):\n        print(f"The {self.name} says {self.sound}!")\n\ndog = Animal("Dog", "Woof")\ndog.make_sound()',
+      completed: false,
+      difficulty: 'Hard',
+      points: 50
+    },
+    {
+      id: 'filehandling',
+      title: 'Save Your Story',
+      description: 'Write text to a file and read it back',
+      starterCode: '# Write to a file\nstory = "Once upon a time..."\n# Add file handling code here',
+      solution: 'story = "Once upon a time, there was a young programmer who loved Python!"\n\n# Write to file\nwith open("story.txt", "w") as file:\n    file.write(story)\n\n# Read from file\nwith open("story.txt", "r") as file:\n    content = file.read()\n    print(content)',
+      completed: false,
+      difficulty: 'Hard',
+      points: 45
+    },
+    {
+      id: 'apidata',
+      title: 'Weather Data',
+      description: 'Work with JSON data like a weather API',
+      starterCode: 'import json\n\n# Sample weather data\nweather_data = \'{"city": "New York", "temp": 75, "condition": "sunny"}\'\n# Parse and display the data',
+      solution: 'import json\n\nweather_data = \'{"city": "New York", "temp": 75, "condition": "sunny"}\'\nweather = json.loads(weather_data)\n\nprint(f"Weather in {weather["city"]}: {weather["temp"]}°F, {weather["condition"]}")',
+      completed: false,
+      difficulty: 'Hard',
+      points: 40
+    },
+    {
+      id: 'algorithm',
+      title: 'Sorting Challenge',
+      description: 'Sort a list of numbers without using built-in sort',
+      starterCode: 'numbers = [64, 34, 25, 12, 22, 11, 90]\n# Implement bubble sort algorithm\nprint("Original:", numbers)\n# Add sorting code here\nprint("Sorted:", numbers)',
+      solution: 'numbers = [64, 34, 25, 12, 22, 11, 90]\nprint("Original:", numbers)\n\n# Bubble sort\nfor i in range(len(numbers)):\n    for j in range(0, len(numbers)-i-1):\n        if numbers[j] > numbers[j+1]:\n            numbers[j], numbers[j+1] = numbers[j+1], numbers[j]\n\nprint("Sorted:", numbers)',
+      completed: false,
+      difficulty: 'Expert',
+      points: 60
     }
   ]);
   

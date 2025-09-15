@@ -58,39 +58,69 @@ export const ProgressiveStreak = ({ onViewAchievements }: ProgressiveStreakProps
   return (
     <div className="space-y-4">
       {/* Enhanced Main Streak Card */}
-      <Card className="comic-card overflow-hidden bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800 shadow-lg">
+      <Card className="comic-card overflow-hidden bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800 shadow-xl hover:shadow-2xl transition-all duration-300">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-3">
-              <div className="relative">
-                <span className="text-3xl animate-bounce">{getStreakEmoji()}</span>
+              <motion.div 
+                className="relative"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0] 
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse" 
+                }}
+              >
+                <span className="text-3xl filter drop-shadow-md">{getStreakEmoji()}</span>
                 {streakData.currentStreak > 0 && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                  <motion.div 
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"
+                    animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                  />
                 )}
-              </div>
+              </motion.div>
               <div>
-                <span className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent font-bold">
+                <motion.span 
+                  className="bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent font-bold text-lg"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
                   Learning Streak
-                </span>
+                </motion.span>
                 <p className="text-sm text-muted-foreground font-normal mt-1">
                   Keep the momentum going!
                 </p>
               </div>
             </CardTitle>
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold px-3 py-1 text-sm">
-                <Flame className="w-3 h-3 mr-1" />
-                {streakData.currentStreak} days
-              </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={shareProgress}
-                className="h-9 w-9 p-0 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-full"
-                title="Share Progress"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Share2 className="h-4 w-4" />
-              </Button>
+                <Badge variant="secondary" className="bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold px-3 py-1 text-sm shadow-lg">
+                  <Flame className="w-3 h-3 mr-1" />
+                  {streakData.currentStreak} days
+                </Badge>
+              </motion.div>
+              <motion.div
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={shareProgress}
+                  className="h-9 w-9 p-0 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-full transition-all duration-300"
+                  title="Share Progress"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </motion.div>
             </div>
           </div>
         </CardHeader>
@@ -110,24 +140,48 @@ export const ProgressiveStreak = ({ onViewAchievements }: ProgressiveStreakProps
           </motion.div>
           
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
-              <div className="text-xl font-semibold text-purple-600">
+            <motion.div 
+              className="p-2 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-white/70 dark:hover:bg-black/30 transition-all duration-300 cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div 
+                className="text-xl font-semibold text-purple-600"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
                 {streakData.longestStreak}
-              </div>
+              </motion.div>
               <p className="text-xs text-muted-foreground">Best Streak</p>
-            </div>
-            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
-              <div className="text-xl font-semibold text-blue-600">
+            </motion.div>
+            <motion.div 
+              className="p-2 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-white/70 dark:hover:bg-black/30 transition-all duration-300 cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div 
+                className="text-xl font-semibold text-blue-600"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              >
                 {streakData.totalActiveDays}
-              </div>
+              </motion.div>
               <p className="text-xs text-muted-foreground">Total Days</p>
-            </div>
-            <div className="p-2 rounded-lg bg-white/50 dark:bg-black/20">
-              <div className="text-xl font-semibold text-green-600">
+            </motion.div>
+            <motion.div 
+              className="p-2 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-white/70 dark:hover:bg-black/30 transition-all duration-300 cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <motion.div 
+                className="text-xl font-semibold text-green-600"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              >
                 {lessonsCompleted.length}
-              </div>
+              </motion.div>
               <p className="text-xs text-muted-foreground">Lessons</p>
-            </div>
+            </motion.div>
           </div>
         </CardContent>
       </Card>

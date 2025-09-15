@@ -404,10 +404,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       const projectData = {
         name: botName,
         description: botDescription,
+        avatar: selectedAvatar || botAvatar,
         nodes,
         edges,
         voiceSettings,
-        selectedAvatar,
+        selectedAvatar: selectedAvatar || botAvatar,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

@@ -61,21 +61,21 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
         <Button 
           variant="outline" 
           onClick={() => setOpen(true)}
-          className="w-full justify-start gap-2 h-auto p-4 hover:bg-accent/50 transition-colors border-dashed border-2 hover:border-primary/30"
+          className="w-full justify-start gap-2 h-auto p-4 hover:bg-accent/50 transition-all duration-300 border-dashed border-2 hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]"
         >
           <div className="flex items-center gap-4 w-full">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-3xl border-2 border-primary/20">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-3xl border-2 border-primary/20 transition-all duration-300 hover:scale-110 hover:border-primary/40">
               {selectedAvatar || '🤖'}
             </div>
             <div className="text-left flex-1 min-w-0">
-              <div className="font-semibold text-base">
+              <div className="font-semibold text-base transition-colors">
                 {selectedPersonality ? selectedPersonality.name : 'Choose Your Bot Avatar'}
               </div>
               <div className="text-sm text-muted-foreground line-clamp-2">
                 {selectedPersonality ? `${selectedPersonality.title} • ${selectedPersonality.description}` : 'Select a personality that matches your bot\'s purpose'}
               </div>
             </div>
-            <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+            <Sparkles className="h-5 w-5 text-primary animate-pulse transition-transform hover:scale-110" />
           </div>
         </Button>
       </DialogTrigger>
@@ -121,12 +121,12 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
                   {filteredPersonalities.map((personality) => (
                     <Card 
                       key={personality.id}
-                      className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-2 hover:border-primary/50 bg-gradient-to-br from-background to-accent/20"
+                      className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.03] border-2 hover:border-primary/50 bg-gradient-to-br from-background to-accent/20 hover:from-primary/5 hover:to-secondary/5 active:scale-[0.98]"
                       onClick={() => handleAvatarSelect(personality)}
                     >
                       <CardContent className="p-4 text-center space-y-3">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
-                          {personality.emoji}
+                        <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl border-2 border-primary/20 group-hover:border-primary/40 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                          <span className="animate-in zoom-in-50 duration-300 group-hover:animate-bounce">{personality.emoji}</span>
                         </div>
                         <div>
                           <h3 className="font-semibold text-base mb-1">{personality.name}</h3>
