@@ -244,15 +244,23 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
                   </div>
                 )}
                 
-                  <div className={`max-w-[75%] min-w-0 word-wrap break-words ${message.type === 'user' ? 'order-first' : ''}`}>
+                  <div className={`max-w-[85%] min-w-0 ${message.type === 'user' ? 'order-first' : ''}`}>
                     <div
-                      className={`rounded-xl px-4 py-3 shadow-sm word-wrap break-words overflow-hidden ${
+                      className={`rounded-xl px-4 py-3 shadow-sm break-words hyphens-auto overflow-wrap-anywhere ${
                         message.type === 'user'
                           ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground ml-auto'
                           : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                       }`}
+                      style={{ 
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        hyphens: 'auto',
+                        whiteSpace: 'pre-wrap'
+                      }}
                     >
-                      <p className="text-sm leading-relaxed word-wrap break-words overflow-hidden">{message.content}</p>
+                      <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                        {message.content}
+                      </p>
                     </div>
                   
                   <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
@@ -292,9 +300,14 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message here..."
-              className="pr-12 w-full resize-none overflow-hidden text-sm"
+              className="pr-12 w-full text-sm border-2 focus:border-primary/50 bg-background/50"
               disabled={isListening}
-              style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+              style={{ 
+                wordWrap: 'break-word', 
+                overflowWrap: 'break-word',
+                maxWidth: '100%',
+                minWidth: '0'
+              }}
             />
             {isListening && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

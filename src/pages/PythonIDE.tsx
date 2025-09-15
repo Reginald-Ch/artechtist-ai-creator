@@ -114,7 +114,7 @@ print(f"Nice to meet you, {name}!")
       title: 'Student Records',
       description: 'Create a dictionary to store student information',
       starterCode: '# Create a student dictionary\nstudent = {\n    # Add student info here\n}\nprint(student)',
-      solution: 'student = {\n    "name": "Alice",\n    "age": 12,\n    "grade": "7th",\n    "subjects": ["Math", "Science", "English"]\n}\nprint(f"Student: {student["name"]}, Age: {student["age"]}")',
+      solution: 'student = {\n    "name": "Alice",\n    "age": 12,\n    "grade": "7th",\n    "subjects": ["Math", "Science", "English"]\n}\nprint(f"Student: {student[\'name\']}, Age: {student[\'age\']}")',
       completed: false,
       difficulty: 'Hard',
       points: 40
@@ -164,7 +164,7 @@ print(f"Nice to meet you, {name}!")
       title: 'Weather Data',
       description: 'Work with JSON data like a weather API',
       starterCode: 'import json\n\n# Sample weather data\nweather_data = \'{"city": "New York", "temp": 75, "condition": "sunny"}\'\n# Parse and display the data',
-      solution: 'import json\n\nweather_data = \'{"city": "New York", "temp": 75, "condition": "sunny"}\'\nweather = json.loads(weather_data)\n\nprint(f"Weather in {weather["city"]}: {weather["temp"]}°F, {weather["condition"]}")',
+      solution: 'import json\n\nweather_data = \'{"city": "New York", "temp": 75, "condition": "sunny"}\'\nweather = json.loads(weather_data)\n\nprint(f"Weather in {weather[\'city\']}: {weather[\'temp\']}°F, {weather[\'condition\']}")',
       completed: false,
       difficulty: 'Hard',
       points: 40
@@ -178,6 +178,16 @@ print(f"Nice to meet you, {name}!")
       completed: false,
       difficulty: 'Expert',
       points: 60
+    },
+    {
+      id: 'web-scraping',
+      title: 'Web Data Collector',
+      description: 'Learn to collect data from websites',
+      starterCode: '# Simulate web data collection\nwebsite_data = ["Python", "JavaScript", "React", "Node.js"]\n# Process the data',
+      solution: 'website_data = ["Python", "JavaScript", "React", "Node.js"]\n\nprint("Programming languages found:")\nfor i, language in enumerate(website_data, 1):\n    print(f"{i}. {language}")\n\nprint(f"\\nTotal languages: {len(website_data)}")',
+      completed: false,
+      difficulty: 'Expert',
+      points: 55
     }
   ]);
   
@@ -515,16 +525,17 @@ print(f"Nice to meet you, {name}!")
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <BookOpen className="h-5 w-5" />
-                      Python Concepts for Kids
+                      13 Essential Python Lessons for Kids
                     </CardTitle>
-                    <p className="text-muted-foreground">Learn the building blocks of Python programming!</p>
+                    <p className="text-muted-foreground">Master Python step by step with interactive lessons!</p>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div className="p-4 border rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {/* Lesson 1: Print Statements */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 hover:shadow-lg transition-all duration-300">
                         <h3 className="font-semibold mb-2 flex items-center gap-2">
                           🖨️ Print Statements
-                          <Badge variant="outline" className="text-xs">Beginner</Badge>
+                          <Badge variant="outline" className="text-xs">Lesson 1</Badge>
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
                           Use print() to display messages on the screen! It's like talking to the computer.
@@ -535,17 +546,18 @@ print(f"Nice to meet you, {name}!")
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="mt-2 w-full"
+                          className="mt-2 w-full hover:bg-blue-100"
                           onClick={() => setCode('print("Hello, World!")\nprint("I am learning Python!")')}
                         >
                           Try it now!
                         </Button>
                       </div>
                       
-                      <div className="p-4 border rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20">
+                      {/* Lesson 2: Variables */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 hover:shadow-lg transition-all duration-300">
                         <h3 className="font-semibold mb-2 flex items-center gap-2">
                           📦 Variables
-                          <Badge variant="outline" className="text-xs">Beginner</Badge>
+                          <Badge variant="outline" className="text-xs">Lesson 2</Badge>
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
                           Store information in variables like boxes! Give them names and put data inside.
@@ -557,17 +569,88 @@ print(f"Nice to meet you, {name}!")
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="mt-2 w-full"
+                          className="mt-2 w-full hover:bg-green-100"
                           onClick={() => setCode('name = "Your Name"\nage = 12\nprint(f"Hello, my name is {name} and I am {age} years old!")')}
                         >
                           Try it now!
                         </Button>
                       </div>
                       
-                      <div className="p-4 border rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20">
+                      {/* Lesson 3: Numbers & Math */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🔢 Numbers & Math
+                          <Badge variant="outline" className="text-xs">Lesson 3</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Python can do math! Add, subtract, multiply, and divide numbers.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          x = 10 + 5<br/>
+                          print(x)
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-orange-100"
+                          onClick={() => setCode('# Math is fun!\nx = 10 + 5\ny = 20 - 3\nz = 4 * 6\nprint(f"Addition: {x}")\nprint(f"Subtraction: {y}")\nprint(f"Multiplication: {z}")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 4: Input from User */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-950/20 dark:to-pink-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          💬 User Input
+                          <Badge variant="outline" className="text-xs">Lesson 4</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Ask users questions and get their answers with input()!
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          name = input("What's your name? ")<br/>
+                          print(f"Hi {name}!")
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-pink-100"
+                          onClick={() => setCode('# Ask the user questions\nname = input("What\\'s your name? ")\nage = input("How old are you? ")\nprint(f"Hello {name}! You are {age} years old.")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 5: If Statements */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🤔 If Statements
+                          <Badge variant="outline" className="text-xs">Lesson 5</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Make decisions in your code! Use if, elif, and else.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          age = 10<br/>
+                          if age < 13:<br/>
+                          &nbsp;&nbsp;print("You're a kid!")
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-purple-100"
+                          onClick={() => setCode('age = 12\nif age < 13:\n    print("You\\'re still a kid!")\nelif age < 20:\n    print("You\\'re a teenager!")\nelse:\n    print("You\\'re an adult!")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 6: Loops */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950/20 dark:to-indigo-900/20 hover:shadow-lg transition-all duration-300">
                         <h3 className="font-semibold mb-2 flex items-center gap-2">
                           🔄 Loops
-                          <Badge variant="outline" className="text-xs">Intermediate</Badge>
+                          <Badge variant="outline" className="text-xs">Lesson 6</Badge>
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
                           Repeat actions without writing code multiple times! Save time and effort.
@@ -579,8 +662,171 @@ print(f"Nice to meet you, {name}!")
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="mt-2 w-full"
+                          className="mt-2 w-full hover:bg-indigo-100"
                           onClick={() => setCode('for i in range(1, 6):\n    print(f"Count: {i}")\nprint("Done counting!")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 7: Lists */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950/20 dark:to-teal-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          📝 Lists
+                          <Badge variant="outline" className="text-xs">Lesson 7</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Store multiple items in one container! Like a shopping list.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          fruits = ["apple", "banana"]<br/>
+                          print(fruits[0])
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-teal-100"
+                          onClick={() => setCode('# My favorite things\nfruits = ["apple", "banana", "orange"]\ncolors = ["red", "blue", "green"]\n\nprint("My fruits:")\nfor fruit in fruits:\n    print(f"- {fruit}")\n\nprint("\\nMy colors:")\nfor color in colors:\n    print(f"- {color}")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 8: Functions */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          ⚙️ Functions
+                          <Badge variant="outline" className="text-xs">Lesson 8</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Create your own commands! Functions are like recipes you can use again.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          def say_hello():<br/>
+                          &nbsp;&nbsp;print("Hello!")
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-yellow-100"
+                          onClick={() => setCode('def greet(name):\n    print(f"Hello, {name}! Nice to meet you!")\n\ndef add_numbers(a, b):\n    result = a + b\n    print(f"{a} + {b} = {result}")\n    return result\n\n# Use the functions\ngreet("Alice")\ngreet("Bob")\nadd_numbers(5, 3)')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 9: Dictionaries */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          📚 Dictionaries
+                          <Badge variant="outline" className="text-xs">Lesson 9</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Store information with labels! Like a real dictionary with words and meanings.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          person = {"name": "Alice", "age": 12}<br/>
+                          print(person["name"])
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-red-100"
+                          onClick={() => setCode('# Student information\nstudent = {\n    "name": "Alice",\n    "age": 12,\n    "grade": "7th",\n    "favorite_subject": "Math"\n}\n\nprint(f"Student: {student[\'name\']}")\nprint(f"Age: {student[\'age\']}")\nprint(f"Grade: {student[\'grade\']}")\nprint(f"Loves: {student[\'favorite_subject\']}")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 10: While Loops */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-950/20 dark:to-cyan-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🔁 While Loops
+                          <Badge variant="outline" className="text-xs">Lesson 10</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Keep doing something until a condition is met! Great for games.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          count = 0<br/>
+                          while count < 3:<br/>
+                          &nbsp;&nbsp;print(count)
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-cyan-100"
+                          onClick={() => setCode('# Count down from 5\ncount = 5\nwhile count > 0:\n    print(f"Countdown: {count}")\n    count = count - 1\nprint("Blast off! 🚀")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 11: String Methods */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/20 dark:to-emerald-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          ✂️ String Magic
+                          <Badge variant="outline" className="text-xs">Lesson 11</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Do cool things with text! Make it UPPERCASE, lowercase, or split it apart.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          text = "Hello World"<br/>
+                          print(text.upper())
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-emerald-100"
+                          onClick={() => setCode('# Text magic!\nname = "alice wonderland"\n\nprint(f"Original: {name}")\nprint(f"Uppercase: {name.upper()}")\nprint(f"Title Case: {name.title()}")\nprint(f"Split words: {name.split()}")\nprint(f"Replace: {name.replace(\'alice\', \'bob\')}")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 12: Random Numbers */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950/20 dark:to-violet-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🎲 Random Fun
+                          <Badge variant="outline" className="text-xs">Lesson 12</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Generate random numbers and choices! Perfect for games and surprises.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          import random<br/>
+                          print(random.randint(1, 10))
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-violet-100"
+                          onClick={() => setCode('import random\n\n# Random number game\nprint("🎲 Random Magic!")\nprint(f"Random number 1-10: {random.randint(1, 10)}")\nprint(f"Random number 1-100: {random.randint(1, 100)}")\n\n# Random choice\ncolors = ["red", "blue", "green", "yellow"]\nprint(f"Random color: {random.choice(colors)}")\n\n# Flip a coin\ncoin = random.choice(["Heads", "Tails"])\nprint(f"Coin flip: {coin}")')}
+                        >
+                          Try it now!
+                        </Button>
+                      </div>
+                      
+                      {/* Lesson 13: Classes & Objects */}
+                      <div className="p-4 border rounded-lg bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/20 dark:to-rose-900/20 hover:shadow-lg transition-all duration-300">
+                        <h3 className="font-semibold mb-2 flex items-center gap-2">
+                          🏗️ Classes & Objects
+                          <Badge variant="outline" className="text-xs">Lesson 13</Badge>
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Create your own data types! Like making a blueprint for objects.
+                        </p>
+                        <code className="text-xs bg-background/80 p-2 rounded block border">
+                          class Pet:<br/>
+                          &nbsp;&nbsp;def __init__(self, name):<br/>
+                          &nbsp;&nbsp;&nbsp;&nbsp;self.name = name
+                        </code>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2 w-full hover:bg-rose-100"
+                          onClick={() => setCode('class Pet:\n    def __init__(self, name, animal_type):\n        self.name = name\n        self.type = animal_type\n        self.happiness = 50\n    \n    def feed(self):\n        self.happiness += 10\n        print(f"{self.name} is happy! Happiness: {self.happiness}")\n    \n    def play(self):\n        self.happiness += 15\n        print(f"{self.name} loves to play! Happiness: {self.happiness}")\n\n# Create pets\ndog = Pet("Buddy", "Dog")\ncat = Pet("Whiskers", "Cat")\n\ndog.feed()\ndog.play()\ncat.feed()')}
                         >
                           Try it now!
                         </Button>
