@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Folder, Calendar, Trash2, ExternalLink, Loader2 } from "lucide-react";
+import { Folder, Calendar, Trash2, ExternalLink, Loader2, Copy, Star, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -96,10 +96,48 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
 
   const handleLoadProject = (project: SavedProject) => {
     onLoadProject(project);
+    // Navigate to bot builder with loaded project
+    window.location.href = '/builder';
     toast({
       title: "Project loaded",
       description: `"${project.project_name}" has been loaded into the builder`
     });
+  };
+
+  const duplicateProject = async (project: SavedProject) => {
+    if (!user) return;
+
+    try {
+      const duplicatedData = {
+        ...project.project_data,
+        name: `${project.project_name} (Copy)`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('saved_projects')
+        .insert({
+          user_id: user.id,
+          project_name: `${project.project_name} (Copy)`,
+          project_data: duplicatedData
+        });
+
+      if (error) throw error;
+
+      await fetchProjects();
+      toast({
+        title: "Project duplicated",
+        description: "A copy of the project has been created"
+      });
+    } catch (error) {
+      console.error('Error duplicating project:', error);
+      toast({
+        title: "Error duplicating project",
+        description: "Failed to create a copy of the project",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -170,19 +208,30 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
                           {project.project_data.description || 'No description provided'}
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteProject(project.id)}
-                        disabled={deleting === project.id}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        {deleting === project.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => duplicateProject(project)}
+                          className="text-muted-foreground hover:text-primary"
+                          title="Duplicate project"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteProject(project.id)}
+                          disabled={deleting === project.id}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          {deleting === project.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                   

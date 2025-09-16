@@ -160,7 +160,17 @@ const Dashboard = () => {
         </div>
 
         {/* Saved Projects Dashboard */}
-        <SavedProjectsSection onLoadProject={() => {}} />
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Star className="h-6 w-6 text-yellow-500" />
+            Your AI Projects
+          </h3>
+          <SavedProjectsSection onLoadProject={(project) => {
+            // Store project data for bot builder
+            localStorage.setItem('loadedProject', JSON.stringify(project));
+            navigate('/builder');
+          }} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* AI Mascot */}

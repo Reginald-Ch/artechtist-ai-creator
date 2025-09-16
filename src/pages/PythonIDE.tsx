@@ -20,10 +20,11 @@ import {
   Target,
   Sparkles
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
+import { PythonIDEChallenges } from '@/components/enhanced/PythonIDEChallenges';
+import { toast } from 'sonner';
 
 const PythonIDE = () => {
   const [code, setCode] = useState(`# Welcome to Python IDE for Kids! 🐍
@@ -326,10 +327,7 @@ print(f"Nice to meet you, {name}!")
             if (c.id === selectedChallenge.id && !c.completed) {
               setUserScore(prev => prev + c.points);
               recordActivity('challenge', 85); // Record challenge completion
-              toast({
-                title: "Challenge Completed! 🎉",
-                description: `You earned ${c.points} points! Keep coding!`
-              });
+              toast.success(`Challenge Completed! 🎉 You earned ${c.points} points!`);
               return { ...c, completed: true };
             }
             return c;
@@ -366,10 +364,7 @@ print(f"Nice to meet you, {name}!")
     ];
     
     const randomExplanation = explanations[Math.floor(Math.random() * explanations.length)];
-    toast({
-      title: "AI Helper explains! 🤖",
-      description: randomExplanation
-    });
+    toast.success(`AI Helper explains! 🤖 ${randomExplanation}`);
   };
 
   const completedChallenges = challenges.filter(c => c.completed).length;
@@ -531,25 +526,13 @@ print(f"Nice to meet you, {name}!")
                 </div>
               </TabsContent>
 
-              <TabsContent value="challenges" className="space-y-4">
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                      <Trophy className="h-6 w-6 text-yellow-500" />
-                      Python Challenges
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        {completedChallenges}/{totalChallenges} Completed
-                      </Badge>
-                      <Badge variant="outline" className="flex items-center gap-1">
-                        <Star className="h-3 w-3" />
-                        {userScore} Points
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+              <TabsContent value="challenges" className="space-y-6">
+                <PythonIDEChallenges 
+                  onChallengeComplete={(challengeId, score) => {
+                    recordActivity('challenge', score, challengeId, 'python');
+                    toast.success(`Challenge completed! Earned ${score} points.`);
+                  }}
+                />
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {challenges.map((challenge) => (
