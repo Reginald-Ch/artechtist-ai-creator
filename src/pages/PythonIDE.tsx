@@ -610,13 +610,13 @@ print(f"Nice to meet you, {name}!")
                         </p>
                         <code className="text-xs bg-background/80 p-2 rounded block border">
                           name = input("What's your name? ")<br/>
-                          print(f"Hi {name}!")
+                          print(f"Hi {`{name}`}!")
                         </code>
                         <Button 
                           size="sm" 
                           variant="outline" 
                           className="mt-2 w-full hover:bg-pink-100"
-                          onClick={() => setCode('# Ask the user questions\nname = input("What\\'s your name? ")\nage = input("How old are you? ")\nprint(f"Hello {name}! You are {age} years old.")')}
+                          onClick={() => setCode('# Ask the user questions\nname = input("What\'s your name? ")\nage = input("How old are you? ")\nprint(f"Hello {name}! You are {age} years old.")')}
                         >
                           Try it now!
                         </Button>
@@ -633,14 +633,14 @@ print(f"Nice to meet you, {name}!")
                         </p>
                         <code className="text-xs bg-background/80 p-2 rounded block border">
                           age = 10<br/>
-                          if age < 13:<br/>
+                          if age &lt; 13:<br/>
                           &nbsp;&nbsp;print("You're a kid!")
                         </code>
                         <Button 
                           size="sm" 
                           variant="outline" 
                           className="mt-2 w-full hover:bg-purple-100"
-                          onClick={() => setCode('age = 12\nif age < 13:\n    print("You\\'re still a kid!")\nelif age < 20:\n    print("You\\'re a teenager!")\nelse:\n    print("You\\'re an adult!")')}
+                          onClick={() => setCode('age = 12\nif age < 13:\n    print("You\'re still a kid!")\nelif age < 20:\n    print("You\'re a teenager!")\nelse:\n    print("You\'re an adult!")')}
                         >
                           Try it now!
                         </Button>
@@ -725,7 +725,7 @@ print(f"Nice to meet you, {name}!")
                           Store information with labels! Like a real dictionary with words and meanings.
                         </p>
                         <code className="text-xs bg-background/80 p-2 rounded block border">
-                          person = {"name": "Alice", "age": 12}<br/>
+                          person = {`{"name": "Alice", "age": 12}`}<br/>
                           print(person["name"])
                         </code>
                         <Button 
@@ -749,7 +749,7 @@ print(f"Nice to meet you, {name}!")
                         </p>
                         <code className="text-xs bg-background/80 p-2 rounded block border">
                           count = 0<br/>
-                          while count < 3:<br/>
+                          while count &lt; 3:<br/>
                           &nbsp;&nbsp;print(count)
                         </code>
                         <Button 
