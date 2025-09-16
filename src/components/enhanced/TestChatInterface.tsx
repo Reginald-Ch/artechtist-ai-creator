@@ -299,8 +299,8 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message here..."
-              className="pr-12 w-full text-sm border-2 focus:border-primary/50 bg-background/50"
+              placeholder="Type your message here... 💬"
+              className="pr-12 w-full text-sm border-2 focus:border-primary/50 bg-background/50 rounded-xl transition-all hover:bg-background/80 focus:shadow-lg"
               disabled={isListening}
               style={{ 
                 wordWrap: 'break-word', 
@@ -310,8 +310,9 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
               }}
             />
             {isListening && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-red-500 font-medium">Listening...</span>
               </div>
             )}
           </div>
@@ -320,7 +321,12 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
             variant="outline"
             size="icon"
             onClick={toggleListening}
-            className={`flex-shrink-0 ${isListening ? 'bg-red-50 border-red-200' : ''}`}
+            className={`flex-shrink-0 rounded-xl transition-all hover:scale-105 ${
+              isListening 
+                ? 'bg-red-50 border-red-200 hover:bg-red-100' 
+                : 'hover:bg-primary/10 hover:border-primary/30'
+            }`}
+            title={isListening ? "Stop listening" : "Start voice input"}
           >
             {isListening ? (
               <MicOff className="h-4 w-4 text-red-500" />
@@ -332,22 +338,28 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
           <Button 
             onClick={handleSendMessage} 
             disabled={!input.trim() || isListening}
-            className="flex-shrink-0"
+            className="flex-shrink-0 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all hover:scale-105 hover:shadow-lg"
+            title="Send message"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Status Info */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>{nodes.length} intents loaded</span>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-gradient-to-r from-muted/30 to-muted/20 rounded-lg p-3 border border-border/30">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="font-medium">{nodes.length} intents loaded</span>
           </div>
-          <span>•</span>
-          <div className="flex items-center gap-1">
-            <Mic className="w-3 h-3" />
-            <span>Voice input available</span>
+          <span className="text-border">•</span>
+          <div className="flex items-center gap-2">
+            <Mic className="w-3 h-3 text-primary" />
+            <span className="font-medium">Voice ready</span>
+          </div>
+          <span className="text-border">•</span>
+          <div className="flex items-center gap-2">
+            <Bot className="w-3 h-3 text-secondary" />
+            <span className="font-medium">AI online</span>
           </div>
         </div>
       </CardContent>

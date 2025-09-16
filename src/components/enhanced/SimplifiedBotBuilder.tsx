@@ -685,7 +685,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               nodes={nodes}
               edges={edges}
               botName={botName}
-              botAvatar={botAvatar}
+              botAvatar={selectedAvatar || botAvatar}
+              className="border-2 border-primary/20 rounded-xl shadow-lg"
             />
           </div>
         </TabsContent>

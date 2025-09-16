@@ -41,7 +41,7 @@ print(f"Nice to meet you, {name}!")
   const [challenges, setChallenges] = useState([
     {
       id: 'hello',
-      title: 'Say Hello',
+      title: 'Say Hello! 👋',
       description: 'Write a program that says hello to the world',
       starterCode: 'print("Hello, World!")',
       solution: 'print("Hello, World!")',
@@ -51,7 +51,7 @@ print(f"Nice to meet you, {name}!")
     },
     {
       id: 'variables',
-      title: 'Make Variables',
+      title: 'Make Variables 📦',
       description: 'Create variables for your name and age',
       starterCode: '# Create variables here\nname = ""\nage = 0\nprint(f"My name is {name} and I am {age} years old")',
       solution: 'name = "Alice"\nage = 10\nprint(f"My name is {name} and I am {age} years old")',
@@ -60,18 +60,8 @@ print(f"Nice to meet you, {name}!")
       points: 15
     },
     {
-      id: 'loops',
-      title: 'Count with Loops',
-      description: 'Use a loop to count from 1 to 10',
-      starterCode: '# Write a loop here\nfor i in range(?):\n    print(?)',
-      solution: 'for i in range(1, 11):\n    print(i)',
-      completed: false,
-      difficulty: 'Medium',
-      points: 25
-    },
-    {
       id: 'math',
-      title: 'Calculator Fun',
+      title: 'Math Wizard 🧮',
       description: 'Create a simple calculator',
       starterCode: '# Calculator\nnum1 = 10\nnum2 = 5\n# Add your calculations here',
       solution: 'num1 = 10\nnum2 = 5\nprint(f"{num1} + {num2} = {num1 + num2}")',
@@ -80,8 +70,18 @@ print(f"Nice to meet you, {name}!")
       points: 20
     },
     {
+      id: 'conditionals',
+      title: 'Decision Maker 🤔',
+      description: 'Check if someone can vote based on age',
+      starterCode: 'age = 16\n# Use if/else to check voting eligibility',
+      solution: 'age = 16\nif age >= 18:\n    print("You can vote!")\nelse:\n    print("You cannot vote yet.")',
+      completed: false,
+      difficulty: 'Medium',
+      points: 25
+    },
+    {
       id: 'lists',
-      title: 'My Favorite Things',
+      title: 'My Favorite Things 💖',
       description: 'Create a list of your favorite things',
       starterCode: '# Create a list\nfavorites = []\n# Add items and print them',
       solution: 'favorites = ["pizza", "games", "coding"]\nfor item in favorites:\n    print(f"I love {item}!")',
@@ -90,14 +90,104 @@ print(f"Nice to meet you, {name}!")
       points: 30
     },
     {
-      id: 'conditionals',
-      title: 'Age Checker',
-      description: 'Check if someone can vote based on age',
-      starterCode: 'age = 16\n# Use if/else to check voting eligibility',
-      solution: 'age = 16\nif age >= 18:\n    print("You can vote!")\nelse:\n    print("You cannot vote yet.")',
+      id: 'loops',
+      title: 'Count with Loops 🔄',
+      description: 'Use a loop to count from 1 to 10',
+      starterCode: '# Write a loop here\nfor i in range(?):\n    print(?)',
+      solution: 'for i in range(1, 11):\n    print(i)',
       completed: false,
       difficulty: 'Medium',
       points: 25
+    },
+    {
+      id: 'functions',
+      title: 'Function Creator 🛠️',
+      description: 'Create a function that greets people',
+      starterCode: '# Define a function\ndef greet(name):\n    # Your code here\n    pass\n\n# Call the function\ngreet("Alice")',
+      solution: 'def greet(name):\n    print(f"Hello, {name}! Nice to meet you!")\n\ngreet("Alice")',
+      completed: false,
+      difficulty: 'Medium',
+      points: 35
+    },
+    {
+      id: 'guessing-game',
+      title: 'Number Guessing Game 🎯',
+      description: 'Create a simple guessing game',
+      starterCode: 'import random\n\nsecret = random.randint(1, 10)\nguess = int(input("Guess a number between 1-10: "))\n# Add your game logic here',
+      solution: 'import random\n\nsecret = random.randint(1, 10)\nguess = int(input("Guess a number between 1-10: "))\nif guess == secret:\n    print("You won!")\nelse:\n    print(f"Sorry! The number was {secret}")',
+      completed: false,
+      difficulty: 'Hard',
+      points: 40
+    },
+    {
+      id: 'string-fun',
+      title: 'String Magic ✨',
+      description: 'Play with text and strings',
+      starterCode: 'text = "Python is Fun"\n# Try different string methods',
+      solution: 'text = "Python is Fun"\nprint(text.upper())\nprint(text.lower())\nprint(text.replace("Fun", "Awesome"))',
+      completed: false,
+      difficulty: 'Easy',
+      points: 20
+    },
+    {
+      id: 'dictionaries',
+      title: 'Data Detective 🕵️',
+      description: 'Use dictionaries to store information',
+      starterCode: '# Create a student dictionary\nstudent = {}\n# Add name, age, grade information',
+      solution: 'student = {"name": "Alex", "age": 12, "grade": 7}\nprint(f"Student: {student[\'name\']}, Age: {student[\'age\']}")',
+      completed: false,
+      difficulty: 'Medium',
+      points: 30
+    },
+    {
+      id: 'classes',
+      title: 'Pet Creator 🐕',
+      description: 'Create a simple Pet class',
+      starterCode: 'class Pet:\n    def __init__(self, name, animal_type):\n        # Your code here\n        pass\n    \n    def speak(self):\n        # Your code here\n        pass\n\n# Create a pet\nmy_pet = Pet("Buddy", "dog")',
+      solution: 'class Pet:\n    def __init__(self, name, animal_type):\n        self.name = name\n        self.type = animal_type\n    \n    def speak(self):\n        print(f"{self.name} says hello!")\n\nmy_pet = Pet("Buddy", "dog")\nmy_pet.speak()',
+      completed: false,
+      difficulty: 'Hard',
+      points: 45
+    },
+    {
+      id: 'file-io',
+      title: 'File Master 📁',
+      description: 'Read and write files',
+      starterCode: '# Write to a file\nwith open("my_file.txt", "w") as file:\n    # Your code here\n    pass\n\n# Read from a file\n# Your code here',
+      solution: 'with open("my_file.txt", "w") as file:\n    file.write("Hello from Python!")\n\nwith open("my_file.txt", "r") as file:\n    content = file.read()\n    print(content)',
+      completed: false,
+      difficulty: 'Hard',
+      points: 40
+    },
+    {
+      id: 'error-handling',
+      title: 'Error Handler 🛡️',
+      description: 'Handle errors gracefully',
+      starterCode: 'try:\n    number = int(input("Enter a number: "))\n    result = 10 / number\n    # Add error handling\nexcept:\n    # Your code here\n    pass',
+      solution: 'try:\n    number = int(input("Enter a number: "))\n    result = 10 / number\n    print(f"Result: {result}")\nexcept ZeroDivisionError:\n    print("Cannot divide by zero!")\nexcept ValueError:\n    print("Please enter a valid number!")',
+      completed: false,
+      difficulty: 'Hard',
+      points: 50
+    },
+    {
+      id: 'api-basics',
+      title: 'Web Explorer 🌐',
+      description: 'Learn about working with web data',
+      starterCode: '# Simulate getting data from the web\ndata = {"weather": "sunny", "temperature": 75}\n# Process the data',
+      solution: 'data = {"weather": "sunny", "temperature": 75}\nprint(f"Today is {data[\'weather\']} and {data[\'temperature\']}°F")\nif data["temperature"] > 70:\n    print("Great weather for coding outside!")',
+      completed: false,
+      difficulty: 'Medium',
+      points: 35
+    },
+    {
+      id: 'final-project',
+      title: 'Final Challenge 🏆',
+      description: 'Build a complete mini-app combining everything!',
+      starterCode: '# Build a personal diary app\n# Features: add entries, view entries, save to file\n\nclass Diary:\n    def __init__(self):\n        # Your code here\n        pass\n    \n    def add_entry(self, entry):\n        # Your code here\n        pass\n    \n    def view_entries(self):\n        # Your code here\n        pass\n\n# Create and use your diary\nmy_diary = Diary()',
+      solution: 'class Diary:\n    def __init__(self):\n        self.entries = []\n    \n    def add_entry(self, entry):\n        from datetime import datetime\n        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")\n        self.entries.append(f"[{timestamp}] {entry}")\n        print("Entry added!")\n    \n    def view_entries(self):\n        if not self.entries:\n            print("No entries yet!")\n        for entry in self.entries:\n            print(entry)\n\nmy_diary = Diary()\nmy_diary.add_entry("Today I learned Python!")\nmy_diary.view_entries()',
+      completed: false,
+      difficulty: 'Expert',
+      points: 100
     },
     {
       id: 'functions',

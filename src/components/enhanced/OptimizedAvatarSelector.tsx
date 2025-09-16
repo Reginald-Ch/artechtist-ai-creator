@@ -86,7 +86,7 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
             <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            Choose Your Bot's Personality
+            Choose Your AI Friend's Personality 🌟
           </DialogTitle>
         </DialogHeader>
 
@@ -94,7 +94,7 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search personalities..."
+              placeholder="Search for your perfect AI friend... 🔍"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -168,11 +168,11 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
           <div className="border-t pt-4">
             <h3 className="font-medium mb-3 flex items-center gap-2">
               <User className="h-4 w-4" />
-              Or Create Custom Avatar
+              Or Create Your Own Special Friend 🎨
             </h3>
             <div className="flex gap-2">
               <Input
-                placeholder="Enter any emoji..."
+                placeholder="Enter any emoji... 😊🦄🌈"
                 value={customEmoji}
                 onChange={(e) => setCustomEmoji(e.target.value)}
                 className="flex-1"
