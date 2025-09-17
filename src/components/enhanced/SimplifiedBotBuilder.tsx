@@ -50,6 +50,10 @@ import TemplateGallery from "@/components/TemplateGallery";
 import { SavedProjectsSection } from "./SavedProjectsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { BeginnerModeToggle } from "./BeginnerModeToggle";
+import { VoiceFirstExperience } from "./VoiceFirstExperience";
+import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
+import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 
 // Removed duplicate nodeTypes definition
 
@@ -98,6 +102,8 @@ interface SimplifiedBotBuilderProps {
 
 const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [isBeginnerMode, setIsBeginnerMode] = useState(true);
+  const [showFirstTimeWizard, setShowFirstTimeWizard] = useState(false);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [botName, setBotName] = useState("My AI Assistant");
@@ -194,7 +200,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [template, setNodes]);
 
-  // Load saved project data
+  // Load saved project data and check for first-time users
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const savedProjectData = searchParams.get('project');
@@ -211,8 +217,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       } catch (error) {
         console.error('Error loading saved project:', error);
       }
+    } else {
+      // Check if this is a first-time user
+      const hasBuiltBot = localStorage.getItem('hasBuiltFirstBot');
+      if (!hasBuiltBot && isBeginnerMode) {
+        setShowFirstTimeWizard(true);
+      }
     }
-  }, []);
+  }, [isBeginnerMode]);
   
   const onConnect = useCallback((params: Connection) => 
     setEdges((eds) => addEdge({
@@ -676,6 +688,18 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Voice First Experience */}
+            <VoiceFirstExperience 
+              nodes={nodes}
+              onVoiceTest={() => setShowVoiceSettings(true)}
+              botName={botName}
+            />
+            
+            {/* Kid Friendly Progress Tracker */}
+            {isBeginnerMode && (
+              <KidFriendlyProgressTracker />
+            )}
           </div>
         </TabsContent>
 
@@ -757,6 +781,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* Beginner Mode Toggle */}
+            <BeginnerModeToggle 
+              isBeginnerMode={isBeginnerMode}
+              onToggle={setIsBeginnerMode}
+            />
             {/* Voice Settings Button */}
             <Button
               onClick={() => setShowVoiceSettings(true)}
@@ -1133,6 +1162,38 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             mood="helpful"
           />
         )}
+
+        {/* First Time Bot Wizard */}
+        <FirstTimeBotWizard
+          open={showFirstTimeWizard}
+          onOpenChange={setShowFirstTimeWizard}
+          onComplete={(botData) => {
+            setBotName(botData.name);
+            setBotDescription(botData.description);
+            setBotPersonality(botData.personality);
+            
+            // Create nodes based on wizard data
+            const greetNode = {
+              id: 'greet',
+              type: 'intent',
+              position: { x: 300, y: 100 },
+              data: {
+                label: 'Greet',
+                trainingPhrases: [botData.firstIntent, 'hello', 'hi', 'hey there'],
+                responses: [botData.responses[0]],
+                isDefault: true,
+              },
+            };
+            
+            setNodes([greetNode, ...initialNodes.slice(1)]);
+            localStorage.setItem('hasBuiltFirstBot', 'true');
+            
+            toast({
+              title: `🎉 ${botData.name} is ready!`,
+              description: "Your first chatbot has been created. Start building!"
+            });
+          }}
+        />
         </div>
       </TooltipProvider>
     </ErrorBoundary>
