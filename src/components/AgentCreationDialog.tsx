@@ -84,7 +84,6 @@ const botPersonalities: BotPersonality[] = [
 ];
 
 export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogProps) => {
-  const [step, setStep] = useState(1);
   const [agentData, setAgentData] = useState({
     name: "",
     description: "",
@@ -95,15 +94,7 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
   });
   const navigate = useNavigate();
 
-  const handleNext = () => {
-    if (step < 4) setStep(step + 1);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep(step - 1);
-  };
-
-  const handlePersonalitySelect = (personality: BotPersonality) => {
+  const handleAvatarSelect = (personality: BotPersonality) => {
     setAgentData(prev => ({
       ...prev,
       avatar: personality.avatar,
@@ -142,143 +133,59 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     onOpenChange(false);
   };
 
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Agent Name</Label>
-              <Input
-                id="name"
-                value={agentData.name}
-                onChange={(e) => setAgentData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Breakfast Guide, Study Buddy..."
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={agentData.description}
-                onChange={(e) => setAgentData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="What will your agent help with?"
-                className="mt-1"
-                rows={3}
-              />
-            </div>
-          </div>
-        );
+  const renderCreationForm = () => (
+    <div className="space-y-6">
+      {/* Agent Name */}
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-base font-medium">Agent Name</Label>
+        <Input
+          id="name"
+          value={agentData.name}
+          onChange={(e) => setAgentData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder="e.g., Breakfast Guide, Story Helper, Math Buddy..."
+          className="text-lg h-12"
+        />
+        <p className="text-sm text-muted-foreground">Give your agent a memorable name</p>
+      </div>
 
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <h4 className="text-lg font-semibold mb-2">Choose Your Agent's Personality</h4>
-              <p className="text-sm text-muted-foreground">This will determine how your agent communicates</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {botPersonalities.map((personality, index) => (
-                <Card 
-                  key={index}
-                  className={`cursor-pointer transition-all border-2 ${
-                    agentData.avatar === personality.avatar 
-                      ? 'border-primary shadow-lg' 
-                      : 'border-muted hover:border-primary/50'
-                  }`}
-                  onClick={() => handlePersonalitySelect(personality)}
-                >
-                  <CardContent className="p-3">
-                    <div className="text-center">
-                      <div className="text-3xl mb-2">{personality.avatar}</div>
-                      <h5 className="font-medium text-sm">{personality.name}</h5>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {personality.traits.slice(0, 2).map((trait, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {trait}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <h4 className="text-lg font-semibold mb-2">Agent Type</h4>
-              <p className="text-sm text-muted-foreground">What role will your agent play?</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              {[
-                { type: 'assistant', icon: Bot, title: 'Personal Assistant', desc: 'Helps with tasks and questions' },
-                { type: 'guide', icon: Star, title: 'Guide', desc: 'Provides guidance and directions' },
-                { type: 'tutor', icon: Brain, title: 'Tutor', desc: 'Teaches and explains concepts' },
-                { type: 'custom', icon: Sparkles, title: 'Custom', desc: 'Unique role you define' }
-              ].map(({ type, icon: Icon, title, desc }) => (
-                <Card 
-                  key={type}
-                  className={`cursor-pointer transition-all border-2 ${
-                    agentData.type === type 
-                      ? 'border-primary shadow-lg' 
-                      : 'border-muted hover:border-primary/50'
-                  }`}
-                  onClick={() => setAgentData(prev => ({ ...prev, type: type as any }))}
-                >
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <Icon className="h-8 w-8 text-primary" />
-                    <div>
-                      <h5 className="font-medium">{title}</h5>
-                      <p className="text-sm text-muted-foreground">{desc}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
-            <div className="text-center mb-4">
-              <h4 className="text-lg font-semibold mb-2">Review Your Agent</h4>
-              <p className="text-sm text-muted-foreground">Everything looks good? Let's create your AI!</p>
-            </div>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl">{agentData.avatar}</div>
-                  <div>
-                    <h5 className="text-xl font-semibold">{agentData.name}</h5>
-                    <p className="text-sm text-muted-foreground capitalize">{agentData.type}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Personality:</p>
-                  <p className="text-sm text-muted-foreground">{agentData.personality}</p>
-                </div>
-                {agentData.description && (
-                  <div>
-                    <p className="text-sm font-medium">Description:</p>
-                    <p className="text-sm text-muted-foreground">{agentData.description}</p>
-                  </div>
-                )}
+      {/* Avatar Selection */}
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Select an Avatar</Label>
+        <div className="grid grid-cols-3 gap-3">
+          {botPersonalities.map((personality, index) => (
+            <Card 
+              key={index}
+              className={`cursor-pointer transition-all border-2 ${
+                agentData.avatar === personality.avatar 
+                  ? 'border-primary shadow-md bg-primary/5' 
+                  : 'border-muted hover:border-primary/50'
+              }`}
+              onClick={() => handleAvatarSelect(personality)}
+            >
+              <CardContent className="p-4 text-center">
+                <div className="text-4xl mb-2">{personality.avatar}</div>
+                <p className="text-xs font-medium">{personality.name}</p>
               </CardContent>
             </Card>
-          </div>
-        );
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">Choose an avatar to represent your agent</p>
+      </div>
 
-      default:
-        return null;
-    }
-  };
+      {/* Description */}
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-base font-medium">What will your agent help with? (Optional)</Label>
+        <Textarea
+          id="description"
+          value={agentData.description}
+          onChange={(e) => setAgentData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="e.g., Helps students with breakfast recipes, answers cooking questions..."
+          className="min-h-20"
+          rows={3}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -290,55 +197,22 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
           </DialogTitle>
         </DialogHeader>
 
-        {/* Progress Indicator */}
-        <div className="flex items-center justify-between mb-6">
-          {[1, 2, 3, 4].map((stepNum) => (
-            <div key={stepNum} className="flex items-center">
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                  stepNum <= step 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {stepNum}
-              </div>
-              {stepNum < 4 && (
-                <div 
-                  className={`w-12 h-0.5 transition-colors ${
-                    stepNum < step ? 'bg-primary' : 'bg-muted'
-                  }`} 
-                />
-              )}
-            </div>
-          ))}
+        {/* Simple Creation Form */}
+        <div className="py-4">
+          {renderCreationForm()}
         </div>
 
-        {renderStep()}
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between pt-4">
+        {/* Create Button */}
+        <div className="flex justify-end pt-6 border-t">
           <Button 
-            variant="outline" 
-            onClick={handleBack}
-            disabled={step === 1}
+            onClick={handleCreate}
+            disabled={!agentData.name.trim()}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-2"
+            size="lg"
           >
-            Back
+            <Sparkles className="h-4 w-4 mr-2" />
+            Create the AI
           </Button>
-          
-          {step < 4 ? (
-            <Button onClick={handleNext}>
-              Next
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleCreate}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Create AI Agent
-            </Button>
-          )}
         </div>
       </DialogContent>
     </Dialog>

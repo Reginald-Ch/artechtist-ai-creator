@@ -765,7 +765,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             <div>
               <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                Bot Builder
+                Playground - {botName}
               </h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="font-medium">{projectName}</span>
@@ -835,7 +835,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-foreground">Conversation Flow Playground</h2>
+                <h2 className="font-semibold text-foreground">Conversation Diagram</h2>
                 <Badge variant="secondary" className="text-xs">
                   {nodes.length} intents
                 </Badge>

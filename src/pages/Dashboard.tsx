@@ -76,32 +76,48 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome back, Young AI Builder! 🚀</h2>
-          <p className="text-muted-foreground text-lg">Ready to create amazing AI agents? Let's build something incredible together!</p>
+          <h2 className="text-3xl font-bold mb-2">Welcome to AI Made By You! 🚀</h2>
+          <p className="text-muted-foreground text-lg">Create your own conversational agents for middle school and beyond!</p>
         </div>
 
-        {/* Quick Actions - AMBY Navigation */}
+        {/* AMBY-Style Main Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card 
-            className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300"
+            className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300 group"
             onClick={() => setShowAgentCreation(true)}
           >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
-                <Plus className="h-6 w-6 text-white" />
+              <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Plus className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-orange-600">Create New Project</CardTitle>
-              <CardDescription>Build a brand-new conversational agent</CardDescription>
+              <CardTitle className="text-orange-600 text-xl">Create New Agent</CardTitle>
+              <CardDescription>Start building your own conversational AI from scratch</CardDescription>
             </CardHeader>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-blue-200 hover:border-blue-300">
+          <Card 
+            className="hover:shadow-lg transition-shadow cursor-pointer border-blue-200 hover:border-blue-300 group"
+            onClick={() => {
+              // Show saved projects section
+              document.getElementById('saved-projects')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
             <CardHeader className="text-center">
-              <div className="mx-auto mb-2 w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                <Star className="h-6 w-6 text-white" />
+              <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Star className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-blue-600">Sample Project</CardTitle>
-              <CardDescription>Explore or tinker with pre-built chatbots to learn</CardDescription>
+              <CardTitle className="text-blue-600 text-xl">Open Previous Projects</CardTitle>
+              <CardDescription>Continue working on your saved conversational agents</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300 group">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-green-600 text-xl">Sample Project</CardTitle>
+              <CardDescription>Tinker with pre-built bots to learn how they work</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
               <TemplateGallery onUseTemplate={handleUseTemplate} />
@@ -159,14 +175,17 @@ const Dashboard = () => {
 
         </div>
 
-        {/* Saved Projects Dashboard */}
-        <div className="mb-8">
+        {/* Saved Projects Dashboard - AMBY Style */}
+        <div className="mb-8" id="saved-projects">
           <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Star className="h-6 w-6 text-yellow-500" />
-            Your AI Projects
+            <Bot className="h-6 w-6 text-blue-500" />
+            Your Conversational Agents
           </h3>
+          <div className="text-sm text-muted-foreground mb-4">
+            Continue working on your projects or create a new one
+          </div>
           <SavedProjectsSection onLoadProject={(project) => {
-            // Store project data for bot builder
+            // Store project data for bot builder - go to playground page
             localStorage.setItem('loadedProject', JSON.stringify(project));
             navigate('/builder');
           }} />
