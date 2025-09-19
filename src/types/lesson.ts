@@ -72,4 +72,15 @@ export interface SearchResult {
   title: string;
   content: string;
   relevance: number;
+  metadata?: {
+    difficulty?: string;
+    duration?: string;
+    character?: string;
+    panelCount?: number;
+    flashcardCount?: number;
+    lessonTitle?: string;
+    answer?: string;
+    cardIndex?: number;
+    panelIndex?: number;
+  };
 }

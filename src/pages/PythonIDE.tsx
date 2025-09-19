@@ -24,6 +24,8 @@ import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { PythonIDEChallenges } from '@/components/enhanced/PythonIDEChallenges';
+import { PythonLessons } from '@/components/enhanced/PythonLessons';
+import { EnhancedCodeEditor } from '@/components/enhanced/EnhancedCodeEditor';
 import { toast } from 'sonner';
 
 const PythonIDE = () => {

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
 import AppNavigation from '@/components/layout/AppNavigation';
 import { 
@@ -24,6 +25,7 @@ import {
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
+import { ImprovedSearchInterface } from '@/components/enhanced/ImprovedSearchInterface';
 import { ProgressAnalytics } from '@/components/enhanced/ProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
@@ -35,6 +37,9 @@ const AILessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('browse');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'title' | 'difficulty' | 'duration' | 'progress'>('title');
   
   const {
     lessonProgress,
@@ -89,6 +94,47 @@ const AILessons = () => {
     }
   ], []);
 
+  // Enhanced lesson filtering and sorting
+  const filteredLessons = useMemo(() => {
+    let lessons = Object.values(enhancedComicLessons);
+    
+    // Filter by search query
+    if (searchQuery) {
+      lessons = lessons.filter(lesson => 
+        lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lesson.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lesson.character.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Filter by difficulty
+    if (selectedDifficulty !== 'all') {
+      lessons = lessons.filter(lesson => 
+        lesson.difficulty.toLowerCase() === selectedDifficulty.toLowerCase()
+      );
+    }
+    
+    // Sort lessons
+    lessons.sort((a, b) => {
+      switch (sortBy) {
+        case 'difficulty':
+          const difficultyOrder = { 'beginner': 1, 'intermediate': 2, 'advanced': 3 };
+          return (difficultyOrder[a.difficulty.toLowerCase() as keyof typeof difficultyOrder] || 4) - 
+                 (difficultyOrder[b.difficulty.toLowerCase() as keyof typeof difficultyOrder] || 4);
+        case 'duration':
+          return parseInt(a.duration) - parseInt(b.duration);
+        case 'progress':
+          const scoreA = getLessonScore(a.id);
+          const scoreB = getLessonScore(b.id);
+          return scoreB - scoreA;
+        default:
+          return a.title.localeCompare(b.title);
+      }
+    });
+    
+    return lessons;
+  }, [searchQuery, selectedDifficulty, sortBy, enhancedComicLessons, getLessonScore]);
+
   // Get lesson details
   const getLessonById = (id: string) => 
     enhancedComicLessons[id as keyof typeof enhancedComicLessons] as any;
@@ -97,6 +143,7 @@ const AILessons = () => {
   const totalLessons = Object.keys(enhancedComicLessons).length;
   const completedCount = Object.values(lessonProgress).filter(p => p.completed).length;
   const progress = getTotalProgress();
+  const averageScore = analytics?.averageScore || 0;
 
   const handleStartLesson = (lessonId: string) => {
     setSelectedLesson(lessonId);
@@ -265,13 +312,47 @@ const AILessons = () => {
             </TabsContent>
 
             <TabsContent value="all" className="space-y-6">
+              {/* Enhanced Filters and Search */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Search lessons..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <select 
+                    value={selectedDifficulty}
+                    onChange={(e) => setSelectedDifficulty(e.target.value)}
+                    className="px-3 py-2 border rounded-md bg-background"
+                  >
+                    <option value="all">All Levels</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="px-3 py-2 border rounded-md bg-background"
+                  >
+                    <option value="title">Sort by Title</option>
+                    <option value="difficulty">Sort by Difficulty</option>
+                    <option value="duration">Sort by Duration</option>
+                    <option value="progress">Sort by Progress</option>
+                  </select>
+                </div>
+              </div>
+
               {isLoading ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {[1, 2, 3, 4, 5, 6].map(i => <LessonCardSkeleton key={i} />)}
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {Object.values(enhancedComicLessons).map((lesson) => (
+                  {filteredLessons.map((lesson) => (
                     <Card key={lesson.id} className="comic-card group hover:shadow-lg transition-all duration-300">
                       <CardHeader>
                         <div className="flex items-start justify-between">
@@ -327,7 +408,7 @@ const AILessons = () => {
             </TabsContent>
 
             <TabsContent value="search" className="space-y-6">
-              <SearchInterface 
+              <ImprovedSearchInterface 
                 lessons={enhancedComicLessons as Record<string, any>}
                 onSelectResult={handleSearchResult}
                 isLoading={isLoading}
