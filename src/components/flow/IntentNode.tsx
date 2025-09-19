@@ -142,21 +142,44 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           </div>
         </div>
 
-        {/* Delete button for non-default nodes - improved positioning */}
-        {!isDefault && (isHovered || selected) && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelete?.(id || '');
-            }}
-            title="Delete intent"
-          >
-            <X className="h-3 w-3 text-destructive-foreground" />
-          </Button>
+        {/* Action buttons for node management */}
+        {(isHovered || selected) && (
+          <div className="absolute -top-2 -right-2 flex gap-1 z-30">
+            {/* Add Follow-up Intent Button (Blue Plus) - Ambi style */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 w-6 p-0 rounded-full bg-blue-500 border-2 border-background shadow-lg hover:bg-blue-600 z-30"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // Trigger add follow-up intent
+                if ((window as any).addFollowUpIntent) {
+                  (window as any).addFollowUpIntent(id || '');
+                }
+              }}
+              title="Add follow-up intent"
+            >
+              <span className="text-white text-sm font-bold">+</span>
+            </Button>
+            
+            {/* Delete button for non-default nodes */}
+            {!isDefault && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete?.(id || '');
+                }}
+                title="Delete intent"
+              >
+                <X className="h-3 w-3 text-destructive-foreground" />
+              </Button>
+            )}
+          </div>
         )}
       </div>
 

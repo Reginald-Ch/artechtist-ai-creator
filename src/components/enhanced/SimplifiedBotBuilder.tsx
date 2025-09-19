@@ -138,6 +138,86 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   // Undo/Redo functionality
   const undoRedo = useUndoRedo();
 
+  // Define updateSelectedNode first
+  const updateSelectedNode = useCallback((field: string, value: any) => {
+    if (!selectedNode) return;
+    
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === selectedNode.id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                [field]: value,
+              },
+            }
+          : node
+      )
+    );
+    
+    setSelectedNode({
+      ...selectedNode,
+      data: {
+        ...selectedNode.data,
+        [field]: value,
+      },
+    });
+  }, [selectedNode, setNodes]);
+
+  // Voice recognition for training phrases
+  const startVoiceRecognition = useCallback(() => {
+    if (!selectedNode) return;
+    
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const currentPhrases = (selectedNode.data.trainingPhrases as string[]) || [];
+        const newPhrases = [...currentPhrases, transcript];
+        updateSelectedNode('trainingPhrases', newPhrases);
+        
+        toast({
+          title: "Training phrase added",
+          description: `"${transcript}" has been added to ${selectedNode.data.label}`
+        });
+      };
+
+      recognition.onerror = () => {
+        setIsListening(false);
+        toast({
+          title: "Voice recognition error",
+          description: "Could not access microphone",
+          variant: "destructive"
+        });
+      };
+
+      recognition.start();
+    } else {
+      toast({
+        title: "Voice not supported",
+        description: "Your browser doesn't support voice recognition",
+        variant: "destructive"
+      });
+    }
+  }, [selectedNode, updateSelectedNode]);
+
+  // Handle voice recognition toggle
+  useEffect(() => {
+    if (isListening && selectedNode) {
+      startVoiceRecognition();
+    }
+  }, [isListening, selectedNode, startVoiceRecognition]);
+
   // Auto-save functionality
   useEffect(() => {
     if (autoSave) {
@@ -244,22 +324,54 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     setSelectedNode(prev => prev?.id === node.id ? null : node);
   }, []);
 
-  const addNewIntent = () => {
+  const addNewIntent = (parentId?: string) => {
     const newId = `intent-${Date.now()}`;
+    const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
+    
     const newNode: Node = {
       id: newId,
       type: 'intent',
-      position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
+      position: parentNode 
+        ? { x: parentNode.position.x + 150, y: parentNode.position.y + 100 }
+        : { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
       data: {
-        label: 'New Intent',
+        label: parentId ? `${parentNode?.data.label} Follow-up` : 'New Intent',
         trainingPhrases: [],
         responses: [],
         isDefault: false,
       },
     };
-    setNodes((nds) => [...nds, newNode]);
-    undoRedo.saveState([...nodes, newNode], edges);
+    
+    const newNodes = [...nodes, newNode];
+    let newEdges = [...edges];
+    
+    // If adding as follow-up, create connection
+    if (parentId) {
+      const newEdge: Edge = {
+        id: `e${parentId}-${newId}`,
+        source: parentId,
+        target: newId,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { 
+          stroke: 'hsl(var(--primary))',
+          strokeWidth: 2,
+        }
+      };
+      newEdges = [...edges, newEdge];
+      setEdges(newEdges);
+    }
+    
+    setNodes(newNodes);
+    undoRedo.saveState(newNodes, newEdges);
   };
+
+  // Add global function for follow-up intents
+  useEffect(() => {
+    (window as any).addFollowUpIntent = (parentId: string) => addNewIntent(parentId);
+    return () => {
+      delete (window as any).addFollowUpIntent;
+    };
+  }, [nodes, edges]);
 
   const deleteNode = useCallback((nodeId: string) => {
     console.log('deleteNode called with nodeId:', nodeId);
@@ -365,31 +477,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     intent: IntentNode,
   }), []);
 
-  const updateSelectedNode = useCallback((field: string, value: any) => {
-    if (!selectedNode) return;
-    
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === selectedNode.id
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                [field]: value,
-              },
-            }
-          : node
-      )
-    );
-    
-    setSelectedNode({
-      ...selectedNode,
-      data: {
-        ...selectedNode.data,
-        [field]: value,
-      },
-    });
-  }, [selectedNode, setNodes]);
 
   const handleSave = async () => {
     if (!user) {
@@ -605,13 +692,44 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                           </div>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <Textarea
-                            placeholder="Enter training phrases (one per line)"
-                            value={(selectedNode.data.trainingPhrases as string[])?.join('\n') || ''}
-                            onChange={(e) => updateSelectedNode('trainingPhrases', e.target.value.split('\n').filter(p => p.trim()))}
-                            className="mt-1"
-                            rows={4}
-                          />
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <Textarea
+                                placeholder="Enter training phrases (one per line)"
+                                value={(selectedNode.data.trainingPhrases as string[])?.join('\n') || ''}
+                                onChange={(e) => updateSelectedNode('trainingPhrases', e.target.value.split('\n').filter(p => p.trim()))}
+                                className="flex-1"
+                                rows={4}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsListening(!isListening)}
+                                className={`px-3 ${isListening ? 'bg-red-50 border-red-200' : ''}`}
+                                title="Use voice to add training phrases"
+                              >
+                                {isListening ? (
+                                  <>
+                                    <StopCircle className="h-4 w-4 text-red-500" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Mic className="h-4 w-4" />
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            {isListening && (
+                              <div className="text-xs text-red-500 flex items-center gap-1">
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                Say a training phrase - it will be added automatically
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              Add at least 5 training phrases to train your model effectively
+                            </p>
+                          </div>
                         </CollapsibleContent>
                       </Collapsible>
 
@@ -759,7 +877,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             <Link to="/">
               <Button variant="ghost" size="sm" className="hover:bg-muted">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                Dashboard
               </Button>
             </Link>
             <div>
@@ -768,12 +886,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 Playground - {botName}
               </h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-medium">{projectName}</span>
+                <span className="font-medium">Conversation Builder</span>
                 <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
                   {completionPercentage}% Complete
                 </Badge>
                 <span className="text-xs opacity-75">
-                  Saved: {lastSaved.toLocaleTimeString()}
+                  Auto-saved: {lastSaved.toLocaleTimeString()}
                 </span>
               </div>
             </div>
@@ -847,7 +965,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={addNewIntent}
+                  onClick={() => addNewIntent()}
                   className="text-xs hover:bg-primary hover:text-primary-foreground"
                 >
                   <Plus className="h-3 w-3 mr-1" />
