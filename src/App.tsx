@@ -8,7 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import BotBuilder from "./pages/BotBuilder";
-import VoiceTraining from "./pages/VoiceTraining";
+import AIPlayground from "./pages/AIPlayground";
 import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
 import PythonIDE from "./pages/PythonIDE";
@@ -31,7 +31,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/builder" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
             <Route path="/builder/:id" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
-            <Route path="/voice-training" element={<ProtectedRoute><VoiceTraining /></ProtectedRoute>} />
+            <Route path="/ai-playground" element={<ProtectedRoute><AIPlayground /></ProtectedRoute>} />
             <Route path="/ai-lessons" element={<ProtectedRoute><AILessons /></ProtectedRoute>} />
             <Route path="/cultural-hub" element={<ProtectedRoute><CulturalHub /></ProtectedRoute>} />
             <Route path="/python-ide" element={<ProtectedRoute><PythonIDE /></ProtectedRoute>} />

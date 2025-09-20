@@ -1,16 +1,16 @@
 import React from 'react';
 import AppNavigation from '@/components/layout/AppNavigation';
-import EnhancedVoiceTraining from '@/components/voice-training/EnhancedVoiceTraining';
+import AIModelPlayground from '@/components/ai-playground/AIModelPlayground';
 
-const VoiceTraining = () => {
+const AIPlayground = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
-      <AppNavigation showBackButton={true} title="Voice Training Studio" />
+      <AppNavigation showBackButton={true} title="AI Model Playground" />
       <div className="container mx-auto px-4 py-8">
-        <EnhancedVoiceTraining />
+        <AIModelPlayground />
       </div>
     </div>
   );
 };
 
-export default VoiceTraining;
+export default AIPlayground;

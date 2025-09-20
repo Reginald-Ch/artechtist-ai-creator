@@ -124,14 +124,14 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Link to="/voice-training">
+          <Link to="/ai-playground">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer border-green-200 hover:border-green-300">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                  <Mic className="h-6 w-6 text-white" />
+                  <Brain className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-green-600">Voice Training</CardTitle>
-                <CardDescription>Train your AI with voice in African languages</CardDescription>
+                <CardTitle className="text-green-600">AI Model Playground</CardTitle>
+                <CardDescription>Build, train & play with AI models - kid-friendly!</CardDescription>
               </CardHeader>
             </Card>
           </Link>
