@@ -18,7 +18,9 @@ import {
   Star,
   CheckCircle,
   Target,
-  Sparkles
+  Sparkles,
+  Trash2,
+  Upload
 } from "lucide-react";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
@@ -288,6 +290,13 @@ print(f"Nice to meet you, {name}!")
   const [aiHelperVisible, setAiHelperVisible] = useState(true);
   const [currentTopic, setCurrentTopic] = useState<string | null>(null);
   const [userScore, setUserScore] = useState(0);
+  const [savedProjects, setSavedProjects] = useState<Array<{
+    id: string;
+    name: string;
+    code: string;
+    dateModified: string;
+  }>>([]);
+  const [projectName, setProjectName] = useState('');
   
   const { recordActivity } = useProgressiveStreak();
 
@@ -367,6 +376,34 @@ print(f"Nice to meet you, {name}!")
     
     const randomExplanation = explanations[Math.floor(Math.random() * explanations.length)];
     toast.success(`AI Helper explains! 🤖 ${randomExplanation}`);
+  };
+
+  const saveProject = () => {
+    if (!projectName.trim()) {
+      toast.error('Please enter a project name');
+      return;
+    }
+
+    const newProject = {
+      id: Date.now().toString(),
+      name: projectName,
+      code: code,
+      dateModified: new Date().toLocaleDateString()
+    };
+
+    setSavedProjects(prev => [...prev, newProject]);
+    setProjectName('');
+    toast.success(`Project "${newProject.name}" saved!`);
+  };
+
+  const loadProject = (project: any) => {
+    setCode(project.code);
+    toast.success(`Loaded project "${project.name}"`);
+  };
+
+  const deleteProject = (projectId: string) => {
+    setSavedProjects(prev => prev.filter(p => p.id !== projectId));
+    toast.success('Project deleted');
   };
 
   const completedChallenges = challenges.filter(c => c.completed).length;
@@ -496,6 +533,23 @@ print(f"Nice to meet you, {name}!")
                           <Button size="sm" variant="outline" onClick={clearCode}>
                             <RotateCcw className="h-4 w-4" />
                           </Button>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              placeholder="Project name..."
+                              value={projectName}
+                              onChange={(e) => setProjectName(e.target.value)}
+                              className="px-2 py-1 text-xs border rounded w-24"
+                            />
+                            <Button
+                              onClick={saveProject}
+                              variant="outline"
+                              size="sm"
+                              disabled={!projectName.trim()}
+                            >
+                              <Save className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </CardHeader>

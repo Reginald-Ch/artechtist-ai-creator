@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { CodeSnippets } from './CodeSnippets';
 
 interface EnhancedCodeEditorProps {
   onCodeRun: (code: string) => void;
@@ -39,6 +40,7 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
   const [fontSize, setFontSize] = useState(14);
   const [theme, setTheme] = useState('default');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSnippets, setShowSnippets] = useState(false);
 
   useEffect(() => {
     setCode(initialCode);
@@ -239,21 +241,42 @@ export const EnhancedCodeEditor: React.FC<EnhancedCodeEditorProps> = ({
         </div>
       </div>
 
-      {/* Code Snippets */}
-      <div className="flex flex-wrap gap-2">
-        {codeSnippets.map(snippet => (
-          <Button
-            key={snippet.name}
-            size="sm"
-            variant="outline"
-            onClick={() => insertSnippet(snippet.code)}
-            className="text-xs"
-          >
-            <Zap className="h-3 w-3 mr-1" />
-            {snippet.name}
-          </Button>
-        ))}
+      {/* Code Snippets Toggle */}
+      <div className="flex justify-between items-center">
+        <div className="flex flex-wrap gap-2">
+          {codeSnippets.slice(0, 4).map(snippet => (
+            <Button
+              key={snippet.name}
+              size="sm"
+              variant="outline"
+              onClick={() => insertSnippet(snippet.code)}
+              className="text-xs"
+            >
+              <Zap className="h-3 w-3 mr-1" />
+              {snippet.name}
+            </Button>
+          ))}
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setShowSnippets(!showSnippets)}
+        >
+          <Upload className="h-3 w-3 mr-1" />
+          {showSnippets ? 'Hide' : 'Show'} Library
+        </Button>
       </div>
+
+      {/* Expandable Snippets Library */}
+      {showSnippets && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+        >
+          <CodeSnippets onInsertSnippet={insertSnippet} />
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Code Input */}

@@ -85,6 +85,15 @@ const AIModelPlayground = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [achievements, setAchievements] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [savedModels, setSavedModels] = useState<Array<{
+    id: string;
+    name: string;
+    type: string;
+    dateCreated: string;
+    accuracy: number;
+  }>>([]);
+  const [streakCount, setStreakCount] = useState(0);
+  const [dailyGoal, setDailyGoal] = useState(3);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -127,6 +136,19 @@ const AIModelPlayground = () => {
     });
 
     setTotalPoints(prev => prev + model.points);
+    
+    // Update streak count
+    setStreakCount(prev => prev + 1);
+    
+    // Save trained model
+    const savedModel = {
+      id: `${modelId}-${Date.now()}`,
+      name: `My ${model.name}`,
+      type: model.name,
+      dateCreated: new Date().toLocaleDateString(),
+      accuracy: score
+    };
+    setSavedModels(prev => [...prev, savedModel]);
 
     // Check for achievements
     checkAchievements(modelId, score);
@@ -172,10 +194,11 @@ const AIModelPlayground = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">🏠 Overview</TabsTrigger>
           <TabsTrigger value="models">🤖 AI Models</TabsTrigger>
           <TabsTrigger value="playground">🎮 Playground</TabsTrigger>
+          <TabsTrigger value="saved">💾 My Models</TabsTrigger>
           <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
         </TabsList>
 
@@ -216,6 +239,16 @@ const AIModelPlayground = () => {
                   {userProgress.filter(p => p.completed).length}/{AI_MODELS.length}
                 </CardTitle>
                 <CardDescription>Models Completed</CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-2xl text-orange-600">{savedModels.length}</CardTitle>
+                <CardDescription>Models Created</CardDescription>
               </CardHeader>
             </Card>
 
@@ -381,6 +414,61 @@ const AIModelPlayground = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="saved" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                My Saved Models
+              </CardTitle>
+              <CardDescription>
+                Models you've trained and saved to your collection
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {savedModels.length === 0 ? (
+                <div className="text-center py-12">
+                  <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Models Yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Complete training on any AI model to save it here!
+                  </p>
+                  <Button onClick={() => setActiveTab('models')}>
+                    Train Your First Model →
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {savedModels.map((model) => (
+                    <Card key={model.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">{model.name}</CardTitle>
+                          <Badge variant="outline">{model.accuracy}% accuracy</Badge>
+                        </div>
+                        <CardDescription>{model.type}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>Created: {model.dateCreated}</span>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              Download
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              Retrain
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-4">
