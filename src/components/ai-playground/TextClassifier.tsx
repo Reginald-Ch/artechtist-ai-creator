@@ -46,7 +46,7 @@ const SAMPLE_TEXTS = {
 };
 
 const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'setup' | 'train' | 'test' | 'complete'>('setup');
+  const [step, setStep] = useState<'data' | 'training' | 'testing' | 'play'>('data');
   const [trainingTexts, setTrainingTexts] = useState<TrainingText[]>([]);
   const [newText, setNewText] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState<string>('');
@@ -99,7 +99,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
 
     setIsTraining(true);
     setTrainingProgress(0);
-    setStep('train');
+    setStep('training');
 
     // Simulate training process
     const interval = setInterval(() => {
@@ -108,7 +108,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
         if (newProgress >= 100) {
           clearInterval(interval);
           setIsTraining(false);
-          setStep('test');
+          setStep('testing');
           toast.success('🎉 Text classifier trained! Now test it with your own text!');
           return 100;
         }
@@ -147,7 +147,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
     setScore(finalScore);
     
     setTimeout(() => {
-      setStep('complete');
+      setStep('play');
       onComplete(finalScore);
     }, 2000);
   };
@@ -378,7 +378,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
         </div>
 
         <Button onClick={() => {
-          setStep('setup');
+          setStep('data');
           setTrainingTexts([]);
           setTestText('');
           setPrediction(null);
@@ -392,10 +392,10 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
   );
 
   switch (step) {
-    case 'setup': return renderSetup();
-    case 'train': return renderTraining();
-    case 'test': return renderTest();
-    case 'complete': return renderComplete();
+    case 'data': return renderSetup();
+    case 'training': return renderTraining();
+    case 'testing': return renderTest();
+    case 'play': return renderComplete();
     default: return renderSetup();
   }
 };

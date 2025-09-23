@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -234,6 +235,8 @@ export const PythonLessons: React.FC<PythonLessonsProps> = ({
   const [selectedLesson, setSelectedLesson] = useState<PythonLesson | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [currentExercise, setCurrentExercise] = useState(0);
+  const [showSolution, setShowSolution] = useState(false);
+  const [userCode, setUserCode] = useState('');
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -438,25 +441,88 @@ export const PythonLessons: React.FC<PythonLessonsProps> = ({
               </pre>
             </ScrollArea>
             
-            {/* Exercise Section */}
+            {/* Interactive Exercise Section */}
             {selectedLesson.exercises.length > 0 && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <h4 className="font-medium flex items-center gap-2">
                   <Lightbulb className="h-4 w-4" />
-                  Try This Exercise:
+                  Try This Exercise ({currentExercise + 1}/{selectedLesson.exercises.length}):
                 </h4>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    {selectedLesson.exercises[currentExercise].question}
-                  </p>
-                  <details className="mt-2">
-                    <summary className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
-                      💡 Need a hint?
-                    </summary>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                      {selectedLesson.exercises[currentExercise].hint}
+                
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-3">
+                      {selectedLesson.exercises[currentExercise].question}
                     </p>
-                  </details>
+                    
+                    {/* Code Input Area */}
+                    <textarea
+                      value={userCode}
+                      onChange={(e) => setUserCode(e.target.value)}
+                      placeholder="Write your Python code here..."
+                      className="w-full h-20 p-2 text-sm font-mono bg-white dark:bg-gray-800 border rounded"
+                    />
+                    
+                    <div className="flex gap-2 mt-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => setShowSolution(!showSolution)}
+                        variant="outline"
+                      >
+                        {showSolution ? 'Hide' : 'Show'} Solution
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          setUserCode(selectedLesson.exercises[currentExercise].solution);
+                          toast.success('💡 Solution copied to editor!');
+                        }}
+                        variant="ghost"
+                      >
+                        Copy Solution
+                      </Button>
+                    </div>
+                    
+                    {showSolution && (
+                      <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                        <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Solution:</p>
+                        <pre className="text-xs font-mono text-green-800 dark:text-green-200">
+                          {selectedLesson.exercises[currentExercise].solution}
+                        </pre>
+                      </div>
+                    )}
+                    
+                    <details className="mt-2">
+                      <summary className="text-xs text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
+                        💡 Need a hint?
+                      </summary>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                        {selectedLesson.exercises[currentExercise].hint}
+                      </p>
+                    </details>
+                  </div>
+                  
+                  {/* Exercise Navigation */}
+                  {selectedLesson.exercises.length > 1 && (
+                    <div className="flex justify-between items-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentExercise(Math.max(0, currentExercise - 1))}
+                        disabled={currentExercise === 0}
+                      >
+                        ← Previous Exercise
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentExercise(Math.min(selectedLesson.exercises.length - 1, currentExercise + 1))}
+                        disabled={currentExercise === selectedLesson.exercises.length - 1}
+                      >
+                        Next Exercise →
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

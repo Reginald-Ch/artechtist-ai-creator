@@ -20,7 +20,7 @@ interface TrainingImage {
 }
 
 const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'setup' | 'upload' | 'train' | 'test' | 'complete'>('setup');
+  const [step, setStep] = useState<'data' | 'training' | 'testing' | 'play'>('data');
   const [categories, setCategories] = useState<string[]>(['cats', 'dogs']);
   const [newCategory, setNewCategory] = useState('');
   const [trainingImages, setTrainingImages] = useState<TrainingImage[]>([]);
@@ -80,7 +80,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
 
     setIsTraining(true);
     setTrainingProgress(0);
-    setStep('train');
+    setStep('training');
 
     // Simulate training process
     const interval = setInterval(() => {
@@ -89,7 +89,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
         if (newProgress >= 100) {
           clearInterval(interval);
           setIsTraining(false);
-          setStep('test');
+          setStep('testing');
           toast.success('🎉 Model training complete! Now let\'s test it!');
           return 100;
         }
@@ -114,7 +114,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
         setScore(finalScore);
         
         setTimeout(() => {
-          setStep('complete');
+          setStep('play');
           onComplete(finalScore);
         }, 2000);
       }, 1000);
@@ -174,8 +174,8 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
           </div>
         </div>
 
-        <Button onClick={() => setStep('upload')} className="w-full" size="lg">
-          Next: Upload Training Images →
+        <Button onClick={() => setStep('data')} className="w-full" size="lg">
+          📂 Start: Collect Training Data →
         </Button>
       </CardContent>
     </Card>
@@ -239,7 +239,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
         ))}
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setStep('setup')}>
+          <Button variant="outline" onClick={() => setStep('data')}>
             ← Back
           </Button>
           <Button 
@@ -247,7 +247,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
             className="flex-1"
             disabled={trainingImages.length < 4}
           >
-            Start Training AI! 🧠
+            ⚙️ Start Training AI! 🧠
           </Button>
         </div>
       </CardContent>
@@ -365,28 +365,76 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
           </div>
         </div>
 
-        <Button onClick={() => {
-          setStep('setup');
-          setTrainingImages([]);
-          setTestImage(null);
-          setPrediction(null);
-          setScore(0);
-          setTrainingProgress(0);
-        }} className="w-full" size="lg">
-          Train Another Model 🔄
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => {
+            setStep('data');
+            setTrainingImages([]);
+            setTestImage(null);
+            setPrediction(null);
+            setScore(0);
+            setTrainingProgress(0);
+          }} className="flex-1" size="lg">
+            🔄 Train Another Model
+          </Button>
+          <Button onClick={() => {
+            // Simulate saving to "My Models"
+            toast.success('🎉 Model saved to My Models!');
+          }} variant="outline" className="flex-1" size="lg">
+            💾 Save Model
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
 
-  switch (step) {
-    case 'setup': return renderSetup();
-    case 'upload': return renderUpload();
-    case 'train': return renderTraining();
-    case 'test': return renderTest();
-    case 'complete': return renderComplete();
-    default: return renderSetup();
-  }
+  // Render step indicator
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center mb-6">
+      <div className="flex items-center space-x-4">
+        {[
+          { key: 'data', icon: '📂', label: 'Data' },
+          { key: 'training', icon: '⚙️', label: 'Training' },
+          { key: 'testing', icon: '🧪', label: 'Testing' },
+          { key: 'play', icon: '🎮', label: 'Play' }
+        ].map((stepItem, index) => (
+          <div key={stepItem.key} className="flex items-center">
+            <div className={`
+              w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium
+              ${step === stepItem.key 
+                ? 'bg-primary text-primary-foreground' 
+                : ['data', 'training', 'testing', 'play'].indexOf(step) > index 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-muted text-muted-foreground'
+              }
+            `}>
+              {stepItem.icon}
+            </div>
+            <span className="ml-2 text-sm font-medium">{stepItem.label}</span>
+            {index < 3 && (
+              <div className={`
+                w-8 h-0.5 mx-4
+                ${['data', 'training', 'testing', 'play'].indexOf(step) > index 
+                  ? 'bg-green-500' 
+                  : 'bg-muted'
+                }
+              `} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {renderStepIndicator()}
+      {step === 'data' && renderSetup()}
+      {step === 'data' && renderUpload()}
+      {step === 'training' && renderTraining()}
+      {step === 'testing' && renderTest()}
+      {step === 'play' && renderComplete()}
+    </div>
+  );
 };
 
 export default ImageClassifier;

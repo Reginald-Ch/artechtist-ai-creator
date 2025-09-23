@@ -60,7 +60,7 @@ const SAMPLE_DATASETS = [
 ];
 
 const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
-  const [step, setStep] = useState<'setup' | 'data' | 'train' | 'test' | 'complete'>('setup');
+  const [step, setStep] = useState<'data' | 'training' | 'testing' | 'play'>('data');
   const [selectedDataset, setSelectedDataset] = useState(0);
   const [customData, setCustomData] = useState<DataPoint[]>([]);
   const [newInput, setNewInput] = useState('');
@@ -103,7 +103,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
 
     setIsTraining(true);
     setTrainingProgress(0);
-    setStep('train');
+    setStep('training');
 
     // Simulate training with progress
     const interval = setInterval(() => {
@@ -115,7 +115,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
           
           // Calculate linear regression (simple AI model)
           calculateLinearRegression();
-          setStep('test');
+          setStep('testing');
           toast.success('🎉 Model trained! Now make predictions!');
           return 100;
         }
@@ -161,7 +161,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
     
     const score = baseScore + dataBonus + testBonus;
     setFinalScore(score);
-    setStep('complete');
+    setStep('play');
     onComplete(score);
   };
 
@@ -305,7 +305,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
         </Card>
 
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setStep('setup')}>
+          <Button variant="outline" onClick={() => setStep('data')}>
             ← Back
           </Button>
           <Button onClick={trainModel} className="flex-1" disabled={trainingData.length < 3}>
@@ -484,7 +484,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
         </Card>
 
         <Button onClick={() => {
-          setStep('setup');
+          setStep('data');
           setCustomData([]);
           setModel(null);
           setPrediction(null);
@@ -499,11 +499,11 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
   );
 
   switch (step) {
-    case 'setup': return renderSetup();
+    case 'data': return renderSetup();
     case 'data': return renderData();
-    case 'train': return renderTraining();
-    case 'test': return renderTest();
-    case 'complete': return renderComplete();
+    case 'training': return renderTraining();
+    case 'testing': return renderTest();
+    case 'play': return renderComplete();
     default: return renderSetup();
   }
 };
