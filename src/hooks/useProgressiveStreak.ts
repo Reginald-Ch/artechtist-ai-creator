@@ -85,7 +85,7 @@ export const useProgressiveStreak = () => {
     localStorage.setItem('progressiveStreak', JSON.stringify(streakData));
   }, [streakData]);
 
-  const recordActivity = (activityType: 'lesson' | 'challenge', score?: number, lessonId?: string, category?: string) => {
+  const recordActivity = (activityType: 'lesson' | 'challenge' | 'code_run' | 'project', score?: number, lessonId?: string, category?: string) => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     const currentHour = new Date().getHours();
