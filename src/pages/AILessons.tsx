@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
+import { ageLevelLessons } from '@/data/ageLevelLessons';
 import AppNavigation from '@/components/layout/AppNavigation';
 import { 
   Brain, 
@@ -94,9 +95,23 @@ const AILessons = () => {
     }
   ], []);
 
-  // Enhanced lesson filtering and sorting
+  // Enhanced lesson filtering and sorting with age groups
   const filteredLessons = useMemo(() => {
     let lessons = Object.values(enhancedComicLessons);
+    
+    // Add age-based lessons
+    Object.entries(ageLevelLessons).forEach(([ageGroup, data]) => {
+      Object.values(data.lessons).forEach(lesson => {
+        lessons.push(lesson as any);
+      });
+    });
+    
+    // Filter by age group
+    if (selectedAgeGroup !== 'all') {
+      lessons = lessons.filter(lesson => 
+        lesson.ageGroup === selectedAgeGroup || !lesson.ageGroup
+      );
+    }
     
     // Filter by search query
     if (searchQuery) {
@@ -135,9 +150,20 @@ const AILessons = () => {
     return lessons;
   }, [searchQuery, selectedDifficulty, sortBy, enhancedComicLessons, getLessonScore]);
 
-  // Get lesson details
-  const getLessonById = (id: string) => 
-    enhancedComicLessons[id as keyof typeof enhancedComicLessons] as any;
+  // Get lesson details from both sources
+  const getLessonById = (id: string) => {
+    // First check enhanced lessons
+    const enhancedLesson = enhancedComicLessons[id as keyof typeof enhancedComicLessons];
+    if (enhancedLesson) return enhancedLesson;
+    
+    // Then check age-based lessons
+    for (const ageGroup of Object.values(ageLevelLessons)) {
+      const lesson = ageGroup.lessons[id as keyof typeof ageGroup.lessons];
+      if (lesson) return lesson;
+    }
+    
+    return null;
+  };
 
   // Calculate progress
   const totalLessons = Object.keys(enhancedComicLessons).length;
@@ -212,41 +238,49 @@ const AILessons = () => {
 
         {/* Lesson Content */}
         {selectedLesson ? (
-          <Suspense fallback={<div className="animate-pulse">Loading lesson...</div>}>
-            <AccessibleLessonView 
-              lesson={getLessonById(selectedLesson)!} 
-              completedLessons={completedCount}
-              isBookmarked={isLessonBookmarked(selectedLesson)}
-              averageScore={analytics?.averageScore || 0}
-              streakDays={analytics?.streakDays || 0}
-              onComplete={() => handleCompleteLesson(selectedLesson)}
-              onBack={() => setSelectedLesson(null)}
-              onToggleBookmark={() => toggleBookmark(selectedLesson)}
-            />
-          </Suspense>
+              <Suspense fallback={<div className="animate-pulse">Loading lesson...</div>}>
+                <AccessibleLessonView 
+                  lesson={getLessonById(selectedLesson)!} 
+                  completedLessons={completedCount}
+                  isBookmarked={isLessonBookmarked(selectedLesson)}
+                  averageScore={analytics?.averageScore || 0}
+                  streakDays={analytics?.streakDays || 0}
+                  onComplete={() => handleCompleteLesson(selectedLesson)}
+                  onBack={() => setSelectedLesson(null)}
+                  onToggleBookmark={() => toggleBookmark(selectedLesson)}
+                />
+              </Suspense>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-3">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
-                  <TabsTrigger value="browse">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Topics
-                  </TabsTrigger>
-                  <TabsTrigger value="all">
-                    <Star className="w-4 h-4 mr-2" />
-                    All Lessons
-                  </TabsTrigger>
-                  <TabsTrigger value="search">
-                    <Search className="w-4 h-4 mr-2" />
-                    Search
-                  </TabsTrigger>
-                  <TabsTrigger value="analytics">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Analytics
-                  </TabsTrigger>
-                </TabsList>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-6 max-w-4xl mx-auto">
+                    <TabsTrigger value="browse">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Topics
+                    </TabsTrigger>
+                    <TabsTrigger value="all">
+                      <Star className="w-4 h-4 mr-2" />
+                      All Lessons
+                    </TabsTrigger>
+                    <TabsTrigger value="search">
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </TabsTrigger>
+                    <TabsTrigger value="analytics">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      Analytics
+                    </TabsTrigger>
+                    <TabsTrigger value="ai-tutor">
+                      <Brain className="w-4 h-4 mr-2" />
+                      AI Tutor
+                    </TabsTrigger>
+                    <TabsTrigger value="voice">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Voice
+                    </TabsTrigger>
+                  </TabsList>
 
             <TabsContent value="browse" className="space-y-6">
               {isLoading ? (

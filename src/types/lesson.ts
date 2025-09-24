@@ -22,7 +22,7 @@ export interface Flashcard {
   question: string;
   answer: string;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: 'easy' | 'medium' | 'hard' | string;
 }
 
 export interface Character {
@@ -43,6 +43,7 @@ export interface Lesson {
   tags?: string[];
   panels: Panel[];
   flashcards: Flashcard[];
+  ageGroup?: 'little-explorers' | 'young-builders' | 'ai-ambassadors';
 }
 
 export interface LessonProgress {
