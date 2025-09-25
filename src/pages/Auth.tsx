@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Mail, Lock, User, ArrowLeft, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import { Brain, Mail, Lock, User, ArrowLeft, Eye, EyeOff, AlertCircle, CheckCircle, Sparkles, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -221,10 +222,46 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-gradient-to-r from-primary/10 to-secondary/10"
+            style={{
+              width: Math.random() * 300 + 100,
+              height: Math.random() * 300 + 100,
+              left: Math.random() * 100 + '%',
+              top: Math.random() * 100 + '%',
+            }}
+            animate={{
+              x: [0, Math.random() * 100 - 50],
+              y: [0, Math.random() * 100 - 50],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+        ))}
+      </div>
+
+      <motion.div 
+        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         {/* Header */}
-        <div className="text-center mb-8">
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           <Link 
             to="/" 
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
@@ -233,19 +270,46 @@ const Auth = () => {
             Back to Home
           </Link>
           
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Brain className="h-12 w-12 text-primary" />
+          <motion.div 
+            className="flex items-center justify-center gap-3 mb-4"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            >
+              <Brain className="h-12 w-12 text-primary" />
+            </motion.div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Artechtist AI
             </h1>
-          </div>
+            <motion.div
+              animate={{ 
+                scale: [1, 1.2, 1],
+                rotate: [0, 10, -10, 0]
+              }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity,
+                delay: 1 
+              }}
+            >
+              <Sparkles className="h-6 w-6 text-accent" />
+            </motion.div>
+          </motion.div>
           
           <p className="text-muted-foreground">
             Join thousands of young African innovators building AI
           </p>
-        </div>
+        </motion.div>
 
         {/* Auth Tabs */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="login" className="flex items-center gap-2">
@@ -260,7 +324,13 @@ const Auth = () => {
 
           {/* Login Form */}
           <TabsContent value="login">
-            <Card className="border-border/50 shadow-lg">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+            <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Welcome back!</CardTitle>
                 <CardDescription>
@@ -322,13 +392,45 @@ const Auth = () => {
                     </div>
                   </div>
 
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full relative overflow-hidden"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing in..." : "Sign In"}
+                    <AnimatePresence mode="wait">
+                      {isLoading ? (
+                        <motion.div
+                          key="loading"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="flex items-center gap-2"
+                        >
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Star className="h-4 w-4" />
+                          </motion.div>
+                          Signing in...
+                        </motion.div>
+                      ) : (
+                        <motion.span
+                          key="text"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          Sign In
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </Button>
+                  </motion.div>
                 </form>
 
                 <div className="mt-6">
@@ -370,11 +472,18 @@ const Auth = () => {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
 
           {/* Signup Form */}
           <TabsContent value="signup">
-            <Card className="border-border/50 shadow-lg">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+            <Card className="border-border/50 shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="space-y-1">
                 <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
                 <CardDescription>
@@ -578,9 +687,11 @@ const Auth = () => {
                 </p>
               </CardContent>
             </Card>
+            </motion.div>
           </TabsContent>
         </Tabs>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
