@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -6,26 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Mail, Lock, User, Users, ArrowLeft } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Brain, Mail, Lock, User, ArrowLeft, Eye, EyeOff, CheckCircle, X, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "@/hooks/use-toast";
 
-const Auth = () => {
+const EnhancedAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
+  const [authErrors, setAuthErrors] = useState<string[]>([]);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-    parentEmail: ''
-  });
-  const [changePasswordForm, setChangePasswordForm] = useState({
-    newPassword: '',
     confirmPassword: ''
   });
   
-  const { user, signIn, signUp, signInWithGoogle, changePassword } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
@@ -37,73 +38,208 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginForm.email || !loginForm.password) return;
-    
+    setAuthErrors([]);
     setIsLoading(true);
-    const { error } = await signIn(loginForm.email, loginForm.password);
-    setIsLoading(false);
     
-    if (!error) {
+    try {
+      // Input validation
+      if (!loginForm.email || !loginForm.password) {
+        throw new Error('Please fill in all required fields');
+      }
+      
+      // Enhanced email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(loginForm.email)) {
+        throw new Error('Please enter a valid email address');
+      }
+      
+      // Password validation
+      if (loginForm.password.length < 6) {
+        throw new Error('Password must be at least 6 characters long');
+      }
+      
+      const { error } = await signIn(loginForm.email, loginForm.password);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in.",
+      });
       navigate('/dashboard');
+      
+    } catch (error: any) {
+      console.error('Login error:', error);
+      const errorMessage = error.message?.toLowerCase() || '';
+      
+      let userFriendlyMessage = 'Login failed. Please try again.';
+      if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid credentials')) {
+        userFriendlyMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (errorMessage.includes('email not confirmed')) {
+        userFriendlyMessage = 'Please check your email and click the confirmation link before signing in.';
+        setEmailConfirmationSent(true);
+      } else if (errorMessage.includes('too many requests')) {
+        userFriendlyMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+      } else if (errorMessage.includes('user not found')) {
+        userFriendlyMessage = 'No account found with this email address. Please sign up first.';
+      } else if (error.message) {
+        userFriendlyMessage = error.message;
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Login Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupForm.email || !signupForm.password || !signupForm.firstName || !signupForm.lastName) return;
+    setAuthErrors([]);
+    
+    // Validation
+    if (!signupForm.email || !signupForm.password || !signupForm.firstName || !signupForm.lastName) {
+      setAuthErrors(['Please fill in all required fields']);
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupForm.email)) {
+      setAuthErrors(['Please enter a valid email address']);
+      return;
+    }
+    
+    if (signupForm.password !== signupForm.confirmPassword) {
+      setAuthErrors(['Passwords do not match']);
+      return;
+    }
+    
+    if (signupForm.password.length < 8) {
+      setAuthErrors(['Password must be at least 8 characters long']);
+      return;
+    }
+    
+    // Name validation
+    if (signupForm.firstName.length < 2 || signupForm.lastName.length < 2) {
+      setAuthErrors(['First and last names must be at least 2 characters long']);
+      return;
+    }
     
     setIsLoading(true);
     const { error } = await signUp(
       signupForm.email,
       signupForm.password,
       signupForm.firstName,
-      signupForm.lastName,
-      signupForm.parentEmail || undefined
+      signupForm.lastName
     );
     setIsLoading(false);
     
-      if (!error) {
-        toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link. Please check your email and click the link to complete your registration.",
-        });
+    if (error) {
+      console.error('Signup error:', error);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Signup failed. Please try again.';
+      if (errorMessage.includes('email already registered') || errorMessage.includes('user already registered')) {
+        userFriendlyMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (errorMessage.includes('password') && errorMessage.includes('weak')) {
+        userFriendlyMessage = 'Password is too weak. Please use a stronger password with at least 8 characters, including uppercase, lowercase, numbers, and special characters.';
+      } else if (errorMessage.includes('invalid email')) {
+        userFriendlyMessage = 'Please enter a valid email address.';
       }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Signup Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    } else {
+      setEmailConfirmationSent(true);
+      toast({
+        title: "Account Created!",
+        description: "Please check your email to confirm your account before signing in.",
+      });
+    }
   };
 
   const handleGoogleAuth = async () => {
+    setAuthErrors([]);
     setIsLoading(true);
-    await signInWithGoogle();
+    const { error } = await signInWithGoogle();
     setIsLoading(false);
+    
+    if (error) {
+      console.error('Google auth error:', error);
+      const errorMessage = error.message.toLowerCase();
+      
+      let userFriendlyMessage = 'Google sign-in failed. Please try again.';
+      if (errorMessage.includes('popup') && errorMessage.includes('closed')) {
+        userFriendlyMessage = 'Sign-in was cancelled. Please try again and complete the Google authentication.';
+      } else if (errorMessage.includes('network')) {
+        userFriendlyMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (errorMessage.includes('configuration')) {
+        userFriendlyMessage = 'Google sign-in is not properly configured. Please contact support.';
+      }
+      
+      setAuthErrors([userFriendlyMessage]);
+      toast({
+        title: "Google Sign-In Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!changePasswordForm.newPassword || !changePasswordForm.confirmPassword) return;
-    
-    if (changePasswordForm.newPassword !== changePasswordForm.confirmPassword) {
-      toast({
-        title: "Password mismatch",
-        description: "The passwords you entered don't match. Please try again.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    const { error } = await changePassword(changePasswordForm.newPassword);
-    setIsLoading(false);
-    
-    if (!error) {
-      setChangePasswordForm({ newPassword: '', confirmPassword: '' });
-    }
-  };
+  // Email confirmation message
+  if (emailConfirmationSent) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="shadow-xl">
+            <CardHeader className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <Mail className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl font-bold">Check Your Email!</CardTitle>
+              <CardDescription className="text-base">
+                We've sent a confirmation link to your email address. Please click the link to activate your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Don't forget to check your spam folder if you don't see the email in your inbox.
+                </AlertDescription>
+              </Alert>
+              
+              <Button
+                onClick={() => setEmailConfirmationSent(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950/20 dark:via-yellow-950/20 dark:to-red-950/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to Home
           </Link>
@@ -122,10 +258,15 @@ const Auth = () => {
 
         {/* Auth Tabs */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            <TabsTrigger value="change-password">Change Password</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="login" className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger value="signup" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Sign Up
+            </TabsTrigger>
           </TabsList>
 
           {/* Login Form */}
@@ -138,6 +279,20 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Error Display */}
+                {authErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {authErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
@@ -161,19 +316,26 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="login-password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="pl-10"
+                        className="pl-10 pr-10"
                         value={loginForm.password}
                         onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -192,7 +354,7 @@ const Auth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent"
+                    className="w-full mt-4"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
@@ -231,6 +393,20 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Error Display */}
+                {authErrors.length > 0 && (
+                  <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <ul className="list-disc list-inside space-y-1">
+                        {authErrors.map((error, index) => (
+                          <li key={index}>{error}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -288,37 +464,66 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Create a strong password"
-                        className="pl-10"
+                        className="pl-10 pr-10"
                         value={signupForm.password}
                         onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="parent-email">Parent/Guardian Email</Label>
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
                     <div className="relative">
-                      <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="parent-email"
-                        type="email"
-                        placeholder="parent@example.com (optional)"
-                        className="pl-10"
-                        value={signupForm.parentEmail}
-                        onChange={(e) => setSignupForm(prev => ({ ...prev, parentEmail: e.target.value }))}
+                        id="confirm-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm your password"
+                        className="pl-10 pr-10"
+                        value={signupForm.confirmPassword}
+                        onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Recommended for learners under 16 years old
-                    </p>
+                    
+                    {/* Password Match Indicator */}
+                    {signupForm.confirmPassword && (
+                      <div className="flex items-center gap-2 text-sm">
+                        {signupForm.password === signupForm.confirmPassword ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-green-600">Passwords match</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-4 w-4 text-red-500" />
+                            <span className="text-red-500">Passwords don't match</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-primary hover:bg-primary/90"
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
@@ -337,7 +542,7 @@ const Auth = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full mt-4 border-border hover:bg-accent"
+                    className="w-full mt-4"
                     onClick={handleGoogleAuth}
                     disabled={isLoading}
                   >
@@ -369,79 +574,10 @@ const Auth = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Change Password Form */}
-          <TabsContent value="change-password">
-            <Card className="border-border/50 shadow-lg">
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold">Change Password</CardTitle>
-                <CardDescription>
-                  {user ? "Update your account password" : "You must be signed in to change your password"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user ? (
-                  <form onSubmit={handleChangePassword} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="new-password"
-                          type="password"
-                          placeholder="Enter new password"
-                          className="pl-10"
-                          value={changePasswordForm.newPassword}
-                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="confirm-password"
-                          type="password"
-                          placeholder="Confirm new password"
-                          className="pl-10"
-                          value={changePasswordForm.confirmPassword}
-                          onChange={(e) => setChangePasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      {changePasswordForm.newPassword && changePasswordForm.confirmPassword && 
-                       changePasswordForm.newPassword !== changePasswordForm.confirmPassword && (
-                        <p className="text-sm text-destructive">Passwords do not match</p>
-                      )}
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-primary hover:bg-primary/90"
-                      disabled={isLoading || !changePasswordForm.newPassword || !changePasswordForm.confirmPassword || 
-                                changePasswordForm.newPassword !== changePasswordForm.confirmPassword}
-                    >
-                      {isLoading ? "Updating Password..." : "Update Password"}
-                    </Button>
-                  </form>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-muted-foreground mb-4">Please sign in to change your password</p>
-                    <Button variant="outline" onClick={() => (document.querySelector('[value="login"]') as HTMLElement)?.click()}>
-                      Go to Sign In
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </div>
   );
 };
 
-export default Auth;
+export default EnhancedAuth;

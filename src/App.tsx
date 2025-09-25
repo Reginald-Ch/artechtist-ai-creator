@@ -13,7 +13,7 @@ import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
 import PythonIDE from "./pages/PythonIDE";
 import CreateAgent from "./pages/CreateAgent";
-import Auth from "./pages/Auth";
+import EnhancedAuth from "./components/auth/EnhancedAuth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,12 +27,12 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={<EnhancedAuth />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/builder" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
             <Route path="/builder/:id" element={<ProtectedRoute><BotBuilder /></ProtectedRoute>} />
             <Route path="/ai-playground" element={<ProtectedRoute><AIPlayground /></ProtectedRoute>} />
-            <Route path="/ai-lessons" element={<AILessons />} />
+            <Route path="/ai-lessons" element={<ProtectedRoute><AILessons /></ProtectedRoute>} />
             <Route path="/cultural-hub" element={<ProtectedRoute><CulturalHub /></ProtectedRoute>} />
             <Route path="/python-ide" element={<ProtectedRoute><PythonIDE /></ProtectedRoute>} />
             <Route path="/create-agent" element={<ProtectedRoute><CreateAgent /></ProtectedRoute>} />
