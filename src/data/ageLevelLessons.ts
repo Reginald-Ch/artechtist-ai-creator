@@ -216,7 +216,7 @@ export const ageLevelLessons = {
             background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
             animation: 'celebration',
             interactiveElement: {
-              type: 'quiz',
+              type: 'quiz' as const,
               content: 'What do you need to train AI to recognize dogs?',
               options: ['Lots of clear dog photos', 'Just one dog photo', 'Only dog videos', 'Pictures of cats'],
               correctAnswer: 'Lots of clear dog photos',
@@ -396,7 +396,7 @@ export const ageLevelLessons = {
             background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
             animation: 'celebration',
             interactiveElement: {
-              type: 'quiz',
+              type: 'quiz' as const,
               content: 'What is backpropagation?',
               options: [
                 'A method to train neural networks by adjusting weights based on errors',

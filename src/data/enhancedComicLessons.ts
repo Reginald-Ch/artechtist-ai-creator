@@ -199,7 +199,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
         animation: 'celebration',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What are the three main types of machine learning?',
           options: [
             'Supervised, Unsupervised, Reinforcement Learning',
@@ -317,7 +317,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)',
         animation: 'celebration',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What types of data can AI work with?',
           options: [
             'Text, images, audio, video, and sensor data',
@@ -372,7 +372,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'How can we reduce bias in AI systems?',
           options: [
             'Use diverse, representative training data',
@@ -427,7 +427,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What makes a good chatbot?',
           options: [
             'Understanding user intent and providing helpful responses',
@@ -482,7 +482,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'For a pizza ordering bot, which intent would "I want a large pepperoni" belong to?',
           options: [
             'order.pizza',
@@ -537,7 +537,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What type of intent would "Can you help me?" be?',
           options: [
             'System intent (help)',
@@ -592,7 +592,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What is context retention in chatbots?',
           options: [
             'Remembering previous conversation elements to understand current messages',
@@ -647,7 +647,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What makes a conversation feel natural?',
           options: [
             'Clear prompts, acknowledgments, and appropriate responses',
@@ -702,7 +702,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What should guide chatbot personality design?',
           options: [
             'Brand values and user needs',
@@ -757,7 +757,7 @@ export const enhancedComicLessons = {
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
         animation: 'slideRight',
         interactiveElement: {
-          type: 'question',
+          type: 'question' as const,
           content: 'What is the first stage of design thinking?',
           options: [
             'Empathize - understanding user needs',

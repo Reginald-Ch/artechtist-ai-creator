@@ -40,6 +40,7 @@ const AILessons = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'title' | 'difficulty' | 'duration' | 'progress'>('title');
   
   const {
@@ -109,7 +110,7 @@ const AILessons = () => {
     // Filter by age group
     if (selectedAgeGroup !== 'all') {
       lessons = lessons.filter(lesson => 
-        lesson.ageGroup === selectedAgeGroup || !lesson.ageGroup
+        (lesson as any).ageGroup === selectedAgeGroup || !(lesson as any).ageGroup
       );
     }
     
@@ -239,16 +240,16 @@ const AILessons = () => {
         {/* Lesson Content */}
         {selectedLesson ? (
               <Suspense fallback={<div className="animate-pulse">Loading lesson...</div>}>
-                <AccessibleLessonView 
-                  lesson={getLessonById(selectedLesson)!} 
-                  completedLessons={completedCount}
-                  isBookmarked={isLessonBookmarked(selectedLesson)}
-                  averageScore={analytics?.averageScore || 0}
-                  streakDays={analytics?.streakDays || 0}
-                  onComplete={() => handleCompleteLesson(selectedLesson)}
-                  onBack={() => setSelectedLesson(null)}
-                  onToggleBookmark={() => toggleBookmark(selectedLesson)}
-                />
+                 <AccessibleLessonView 
+                   lesson={getLessonById(selectedLesson) as any} 
+                   completedLessons={completedCount}
+                   isBookmarked={isLessonBookmarked(selectedLesson)}
+                   averageScore={analytics?.averageScore || 0}
+                   streakDays={analytics?.streakDays || 0}
+                   onComplete={() => handleCompleteLesson(selectedLesson)}
+                   onBack={() => setSelectedLesson(null)}
+                   onToggleBookmark={() => toggleBookmark(selectedLesson)}
+                 />
               </Suspense>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
