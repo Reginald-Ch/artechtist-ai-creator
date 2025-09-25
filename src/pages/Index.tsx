@@ -44,6 +44,11 @@ const Index = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
+            <Link to="/ai-lessons">
+              <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-border hover:bg-accent">
+                Test AI Lessons (Direct)
+              </Button>
+            </Link>
             <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-border hover:bg-accent">
               Explore Templates
             </Button>
