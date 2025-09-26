@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Mic, MicOff, Bot, User, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Send, Mic, MicOff, Bot, User, RotateCcw } from "lucide-react";
 import { Node, Edge } from '@xyflow/react';
 import { useToast } from "@/hooks/use-toast";
-import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
 interface TestChatInterfaceProps {
   nodes: Node[];
@@ -35,10 +34,8 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -137,14 +134,6 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
 
     setMessages(prev => [...prev, userMessage, botMessage]);
     setInput('');
-
-    // Speak the bot's response if voice is enabled and supported
-    if (voiceEnabled && isSupported && botResponse) {
-      // Small delay to let the message render first
-      setTimeout(() => {
-        speak(botResponse);
-      }, 100);
-    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -331,24 +320,6 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`flex-shrink-0 rounded-xl transition-all hover:scale-105 ${
-              voiceEnabled && isSupported
-                ? 'bg-green-50 border-green-200 hover:bg-green-100' 
-                : 'hover:bg-muted/50'
-            }`}
-            title={voiceEnabled ? "Disable audio responses" : "Enable audio responses"}
-          >
-            {voiceEnabled && isSupported ? (
-              <Volume2 className="h-4 w-4 text-green-600" />
-            ) : (
-              <VolumeX className="h-4 w-4 text-muted-foreground" />
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
             onClick={toggleListening}
             className={`flex-shrink-0 rounded-xl transition-all hover:scale-105 ${
               isListening 
@@ -382,14 +353,8 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
           </div>
           <span className="text-border">•</span>
           <div className="flex items-center gap-2">
-            {voiceEnabled && isSupported ? (
-              <Volume2 className="w-3 h-3 text-green-500" />
-            ) : (
-              <VolumeX className="w-3 h-3 text-muted-foreground" />
-            )}
-            <span className="font-medium">
-              Audio {voiceEnabled && isSupported ? (isPlaying ? 'speaking' : 'ready') : 'disabled'}
-            </span>
+            <Mic className="w-3 h-3 text-primary" />
+            <span className="font-medium">Voice ready</span>
           </div>
           <span className="text-border">•</span>
           <div className="flex items-center gap-2">
