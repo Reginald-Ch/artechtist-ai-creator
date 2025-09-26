@@ -13,7 +13,7 @@ import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
 import PythonIDE from "./pages/PythonIDE";
 import CreateAgent from "./pages/CreateAgent";
-import EnhancedAuth from "./components/auth/EnhancedAuth";
+import EnhancedAuth from "./pages/EnhancedAuth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
