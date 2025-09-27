@@ -36,9 +36,22 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [voiceSettings, setVoiceSettings] = useState<any>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
+
+  // Load voice settings from localStorage
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('aiAgentVoiceSettings');
+    if (savedSettings) {
+      try {
+        setVoiceSettings(JSON.parse(savedSettings));
+      } catch (error) {
+        console.error('Failed to load voice settings:', error);
+      }
+    }
+  }, []);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -138,9 +151,37 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
     setMessages(prev => [...prev, userMessage, botMessage]);
     setInput('');
     
-    // Speak the bot response if audio is enabled
+    // Speak the bot response if audio is enabled with custom voice settings
     if (audioEnabled && isSupported && botResponse) {
-      setTimeout(() => speak(botResponse), 500);
+      setTimeout(() => {
+        if ('speechSynthesis' in window && voiceSettings) {
+          window.speechSynthesis.cancel();
+          
+          const utterance = new SpeechSynthesisUtterance(botResponse);
+          
+          // Apply saved voice settings
+          utterance.pitch = voiceSettings.pitch || 1.0;
+          utterance.rate = voiceSettings.speakingSpeed || 1.0;
+          utterance.volume = 0.8;
+          
+          // Set voice gender preference
+          const voices = window.speechSynthesis.getVoices();
+          const preferredVoice = voices.find(voice => 
+            voice.lang.includes('en') && 
+            (voiceSettings.voiceGender === 'female' ? 
+              voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman') : 
+              voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+          ) || voices.find(voice => voice.lang.includes('en'));
+          
+          if (preferredVoice) {
+            utterance.voice = preferredVoice;
+          }
+          
+          window.speechSynthesis.speak(utterance);
+        } else {
+          speak(botResponse);
+        }
+      }, 500);
     }
   };
 
@@ -166,7 +207,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
       stop(); // Stop current speech when disabling
     }
     toast({
-      title: audioEnabled ? "Audio disabled" : "Audio enabled",
+      title: audioEnabled ? "🔇 Audio disabled" : "🔊 Audio enabled",
       description: audioEnabled ? "Bot responses will no longer be spoken" : "Bot responses will be spoken aloud"
     });
   };
@@ -232,10 +273,18 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
               variant="ghost" 
               size="sm" 
               onClick={toggleAudio}
-              className={`rounded-full ${audioEnabled ? 'hover:bg-primary/10' : 'hover:bg-muted/20'}`}
+              className={`rounded-full transition-all duration-200 ${
+                audioEnabled 
+                  ? 'hover:bg-primary/10 text-primary' 
+                  : 'hover:bg-muted/20 text-muted-foreground'
+              }`}
               title={audioEnabled ? "Disable audio responses" : "Enable audio responses"}
             >
-              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              {audioEnabled ? (
+                <Volume2 className={`h-4 w-4 ${isPlaying ? 'animate-pulse text-green-500' : ''}`} />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
             </Button>
             <Button 
               variant="ghost" 

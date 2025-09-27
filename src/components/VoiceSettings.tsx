@@ -110,11 +110,13 @@ const VoiceSettings = ({ open, onOpenChange }: VoiceSettingsProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-lg mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Volume2 className="h-5 w-5" />
-            Voice Settings
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
+              <Volume2 className="h-5 w-5 text-primary" />
+            </div>
+            Voice Settings ✨
           </DialogTitle>
         </DialogHeader>
 
@@ -184,14 +186,18 @@ const VoiceSettings = ({ open, onOpenChange }: VoiceSettingsProps) => {
 
           {/* Test Voice */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Test Your Voice</Label>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Play className="h-4 w-4" />
+              Test Your Voice
+            </Label>
             <p className="text-sm text-muted-foreground">Hear how your chatbot will sound</p>
             <Button 
               onClick={handleTestVoice}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground shadow-lg transition-all duration-200"
+              size="lg"
             >
               <Play className="h-4 w-4 mr-2" />
-              Test
+              🎤 Test Voice
             </Button>
           </div>
 
@@ -219,9 +225,10 @@ const VoiceSettings = ({ open, onOpenChange }: VoiceSettingsProps) => {
           {/* Save Button */}
           <Button 
             onClick={handleSaveSettings}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg transition-all duration-200"
+            size="lg"
           >
-            Save Voice Settings
+            ✅ Save Voice Settings
           </Button>
         </div>
       </DialogContent>

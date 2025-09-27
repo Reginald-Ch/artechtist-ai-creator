@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Bot, Brain, ArrowRight, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Brain, ArrowRight, Save, Volume2 } from "lucide-react";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
 import VoiceSettings from "@/components/VoiceSettings";
 import { toast } from "@/hooks/use-toast";
@@ -102,8 +103,11 @@ const SimpleAgentCreator = () => {
 
               <Separator />
               
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Avatar & Personality</Label>
+              <div className="space-y-4">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  Avatar & Personality
+                </Label>
                 <OptimizedAvatarSelector
                   selectedAvatar={botAvatar}
                   onAvatarChange={(avatar, personality) => {
@@ -111,9 +115,11 @@ const SimpleAgentCreator = () => {
                     setBotPersonality(personality);
                   }}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Current personality: {botPersonality}
-                </p>
+                <div className="bg-muted/30 rounded-lg p-3 border border-border/30">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Current personality:</span> {botPersonality}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -139,18 +145,27 @@ const SimpleAgentCreator = () => {
 
               <Separator />
 
-              <div className="space-y-3">
-                <Button
-                  onClick={() => setShowVoiceSettings(true)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Configure Voice Settings
-                </Button>
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <Button
+                    onClick={() => setShowVoiceSettings(true)}
+                    variant="outline"
+                    className="w-full border-2 border-dashed hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                    size="lg"
+                  >
+                    <Volume2 className="h-4 w-4 mr-2" />
+                    Configure Voice Settings
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    ✨ Set up how your AI agent will speak and sound to users
+                  </p>
+                </div>
                 
-                <p className="text-xs text-muted-foreground text-center">
-                  Set up how your AI agent will speak and sound
-                </p>
+                <div className="flex items-center justify-center gap-2 p-2 bg-muted/30 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-muted-foreground">Voice ready for testing</span>
+                </div>
               </div>
 
               <Separator />
@@ -158,42 +173,46 @@ const SimpleAgentCreator = () => {
               <div className="space-y-3">
                 <Button
                   onClick={handleCreateAgent}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground shadow-lg"
                   size="lg"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Create Agent
-                </Button>
-                
-                <Button
-                  onClick={handleCreateAgent}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <ArrowRight className="h-4 w-4 mr-2" />
                   Create & Start Building
                 </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  Your agent will be saved and you'll be taken to the conversation builder
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Quick Preview */}
-        <Card>
+        <Card className="border-2 border-dashed border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
           <CardHeader>
-            <CardTitle>Preview</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              Live Preview
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="text-3xl">{botAvatar}</div>
+            <div className="flex items-center gap-4 p-4 bg-card rounded-lg border shadow-sm">
+              <div className="text-4xl animate-bounce">{botAvatar}</div>
               <div className="flex-1">
-                <h4 className="font-medium">{agentName || "Your AI Agent"}</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="font-semibold text-lg">{agentName || "Your AI Agent"}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {agentDescription || "Ready to help users with conversational AI"}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Personality: {botPersonality}
-                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className="text-xs">
+                    {botPersonality}
+                  </Badge>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Ready to chat</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
