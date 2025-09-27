@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Mic, MicOff, Bot, User, RotateCcw } from "lucide-react";
+import { Send, Mic, MicOff, Bot, User, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { Node, Edge } from '@xyflow/react';
 import { useToast } from "@/hooks/use-toast";
+import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 
 interface TestChatInterfaceProps {
   nodes: Node[];
@@ -34,8 +35,10 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -134,6 +137,11 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
 
     setMessages(prev => [...prev, userMessage, botMessage]);
     setInput('');
+    
+    // Speak the bot response if audio is enabled
+    if (audioEnabled && isSupported && botResponse) {
+      setTimeout(() => speak(botResponse), 500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -145,9 +153,21 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
 
   const clearChat = () => {
     setMessages([]);
+    stop(); // Stop any ongoing speech
     toast({
       title: "Chat cleared",
       description: "Conversation history has been reset"
+    });
+  };
+
+  const toggleAudio = () => {
+    setAudioEnabled(!audioEnabled);
+    if (!audioEnabled) {
+      stop(); // Stop current speech when disabling
+    }
+    toast({
+      title: audioEnabled ? "Audio disabled" : "Audio enabled",
+      description: audioEnabled ? "Bot responses will no longer be spoken" : "Bot responses will be spoken aloud"
     });
   };
 
@@ -207,15 +227,26 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
               </p>
             </div>
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={clearChat}
-            className="hover:bg-destructive/10 hover:text-destructive rounded-full"
-            title="Clear conversation"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleAudio}
+              className={`rounded-full ${audioEnabled ? 'hover:bg-primary/10' : 'hover:bg-muted/20'}`}
+              title={audioEnabled ? "Disable audio responses" : "Enable audio responses"}
+            >
+              {audioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearChat}
+              className="hover:bg-destructive/10 hover:text-destructive rounded-full"
+              title="Clear conversation"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       
@@ -358,8 +389,14 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
           </div>
           <span className="text-border">•</span>
           <div className="flex items-center gap-2">
-            <Bot className="w-3 h-3 text-secondary" />
-            <span className="font-medium">AI online</span>
+            {isPlaying ? (
+              <Volume2 className="w-3 h-3 text-green-500 animate-pulse" />
+            ) : (
+              <Bot className="w-3 h-3 text-secondary" />
+            )}
+            <span className="font-medium">
+              {isPlaying ? 'Speaking...' : audioEnabled ? 'Audio on' : 'Audio off'}
+            </span>
           </div>
         </div>
       </CardContent>
