@@ -173,7 +173,7 @@ const SimpleAgentCreator = () => {
               <div className="space-y-3">
                 <Button
                   onClick={handleCreateAgent}
-                  className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground shadow-lg"
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
                   size="lg"
                 >
                   <Save className="h-4 w-4 mr-2" />
