@@ -68,28 +68,33 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       onMouseLeave={() => setIsHovered(false)}
     >
       
-      {/* Main Card - Exact match to reference */}
+      {/* Main Card - Enhanced with better spacing and colors */}
       <div 
         className={cn(
-          "bg-background border-2 rounded-xl shadow-sm p-4 space-y-3",
+          "bg-card border-2 rounded-xl shadow-md p-5 space-y-4 transition-all duration-200",
           selected 
-            ? 'border-primary shadow-lg ring-2 ring-primary/20' 
+            ? 'border-primary shadow-xl ring-2 ring-primary/30 bg-primary/5' 
             : isDefault 
-              ? 'border-primary/60' 
-              : 'border-accent',
-          "hover:shadow-lg hover:border-primary/80"
+              ? 'border-primary/70 bg-primary/5' 
+              : 'border-border bg-background',
+          "hover:shadow-xl hover:border-primary/80 hover:bg-card"
         )}
       >
         {/* Header with Icon and Title */}
         <div className="flex items-center gap-3">
-          <span className="text-xl">{getIntentIcon()}</span>
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-800">{label} Intent</h3>
-            {isDefault && (
-              <Badge className="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 font-medium">
-                Default
-              </Badge>
-            )}
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-lg">{getIntentIcon()}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-foreground text-sm truncate">{label}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              {isDefault && (
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 font-medium">
+                  Core Intent
+                </Badge>
+              )}
+              <span className="text-xs text-muted-foreground">Intent Node</span>
+            </div>
           </div>
           {/* Edit Button - improved UX */}
           <div className="flex items-center gap-1">
@@ -116,30 +121,30 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <MessageSquare className="h-4 w-4" />
-            <span>{trainingPhrases.length} phrases</span>
+        {/* Stats with improved visual hierarchy */}
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MessageSquare className="h-4 w-4 text-blue-500" />
+              <span className="font-medium">{trainingPhrases.length}</span>
+              <span className="text-xs">phrases</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Bot className="h-4 w-4 text-green-500" />
+              <span className="font-medium">{responses.length}</span>
+              <span className="text-xs">responses</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Bot className="h-4 w-4" />
-            <span>{responses.length} responses</span>
-          </div>
-        </div>
-
-        {/* Example */}
-        <div className="text-xs text-gray-500">
-          <span className="font-medium">Example: </span>
-          <span className="italic">{getExamplePhrase()}</span>
-        </div>
-
-        {/* Status */}
-        <div className="flex items-center justify-between">
-          <div className={cn("flex items-center gap-1 text-sm font-medium", statusInfo.color)}>
+          <div className={cn("flex items-center gap-1.5 text-xs font-medium", statusInfo.color)}>
             <span>{statusInfo.icon}</span>
             <span>{statusInfo.text}</span>
           </div>
+        </div>
+
+        {/* Example phrase preview */}
+        <div className="bg-background border border-border rounded-md p-2">
+          <div className="text-xs text-muted-foreground font-medium mb-1">Example trigger:</div>
+          <div className="text-sm text-foreground italic">"{getExamplePhrase()}"</div>
         </div>
 
         {/* Action buttons for node management */}

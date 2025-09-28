@@ -149,13 +149,13 @@ export const BotBuilderToolbar: React.FC<BotBuilderToolbarProps> = ({
           {/* Right Section - Test & Settings */}
           <div className="flex items-center gap-2">
             <Button 
-              variant="outline" 
+              variant="default" 
               size="sm"
               onClick={onTestBot}
-              className="hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Play className="h-4 w-4 mr-2" />
-              Test Bot
+              Test Chat
             </Button>
             
             <Button 

@@ -760,12 +760,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 </Card>
               </Collapsible>
             ) : (
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Select an Intent</h3>
-                <p className="text-muted-foreground text-sm">
-                  Click on an intent node to edit its properties
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold mb-3 text-foreground">Ready to Build Your Bot</h3>
+                <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
+                  Click on any intent node in the workspace to configure its training phrases and responses
                 </p>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => addNewIntent()}
+                    size="sm"
+                    className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-md"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Intent
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Or select an existing intent to edit
+                  </p>
+                </div>
               </div>
             )}
 
@@ -947,42 +962,35 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
         </div>
 
-        <div className="flex-1 flex gap-1">
+        <div className="flex-1 flex gap-0">
           {/* Enhanced Left Panel - Expanded Flow Playground */}
           <div className="flex-1 border-r bg-background">
-            <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-foreground">Conversation Diagram</h2>
-                <Badge variant="secondary" className="text-xs">
-                  {nodes.length} intents
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {edges.length} connections
-                </Badge>
+            <div className="h-12 px-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
+              <div className="flex items-center gap-3">
+                <Brain className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold text-foreground">Conversation Flow Builder</h2>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs font-medium">
+                    {nodes.length} intents
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {edges.length} connections
+                  </Badge>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => addNewIntent()}
-                  className="text-xs hover:bg-primary hover:text-primary-foreground"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Intent
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
                   onClick={autoLayoutNodes}
-                  className="text-xs"
+                  className="text-xs hover:bg-muted"
                 >
                   <Layout className="h-3 w-3 mr-1" />
                   Auto Layout
                 </Button>
               </div>
             </div>
-            <div className="h-[calc(100vh-15rem)]">
+            <div className="h-[calc(100vh-14rem)]">
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -992,74 +1000,81 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onNodeClick={onNodeClick}
                 nodeTypes={memoizedNodeTypes}
                 fitView
-                minZoom={0.3}
-                maxZoom={1.5}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+                minZoom={0.2}
+                maxZoom={2.0}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
                 proOptions={{ hideAttribution: true }}
-                className="bg-muted/20"
+                className="bg-gradient-to-br from-muted/10 to-muted/30"
                 nodesDraggable={true}
                 nodesConnectable={true}
                 elementsSelectable={true}
                 connectionLineStyle={{ 
-                  stroke: '#3b82f6', 
+                  stroke: 'hsl(var(--primary))', 
                   strokeWidth: 3,
-                  strokeDasharray: '8,4',
-                  animation: 'dash 1s linear infinite'
+                  strokeDasharray: '6,6',
                 }}
                 connectionMode={"loose" as any}
                 snapToGrid={true}
-                snapGrid={[15, 15]}
-                onConnectStart={() => console.log('Connection started')}
-                onConnectEnd={() => console.log('Connection ended')}
+                snapGrid={[20, 20]}
+                panOnScroll={true}
+                panOnScrollSpeed={0.5}
+                zoomOnScroll={true}
+                zoomOnPinch={true}
               >
                 <Background 
                   variant={BackgroundVariant.Dots} 
-                  gap={20} 
-                  size={1.5} 
-                  color="#e2e8f0"
-                  className="opacity-40"
+                  gap={25} 
+                  size={2} 
+                  color="hsl(var(--muted-foreground) / 0.2)"
+                  className="opacity-60"
                 />
                 <MiniMap 
                   nodeColor={(node) => {
-                    if (node.data.isDefault && node.data.label === 'Fallback') return '#f97316';
-                    if (node.data.isDefault) return '#3b82f6';
-                    return '#6366f1';
+                    if (node.data.isDefault && node.data.label === 'Fallback') return 'hsl(var(--destructive))';
+                    if (node.data.isDefault) return 'hsl(var(--primary))';
+                    return 'hsl(var(--accent-foreground))';
                   }}
-                  className="bg-background border border-border rounded-lg shadow-lg"
-                  style={{ width: 160, height: 100 }}
+                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-xl"
+                  style={{ width: 180, height: 120 }}
                   position="bottom-right"
                   pannable
                   zoomable
                 />
                 <Controls 
-                  className="bg-background border border-border rounded-lg shadow-lg" 
+                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-xl" 
                   showZoom={true}
                   showFitView={true}
                   showInteractive={true}
+                  position="top-left"
                 />
               </ReactFlow>
             </div>
           </div>
 
           {/* Compact Right Panel - Properties & Settings */}
-          <div className="w-[400px] p-4 bg-gradient-to-br from-background to-muted/20 overflow-y-auto border-l">
+          <div className="w-[420px] p-6 bg-gradient-to-br from-background to-muted/20 overflow-y-auto border-l shadow-sm">
             {selectedNode ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="pb-4 border-b">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-primary" />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm">{String(selectedNode.data.label)}</h3>
-                      <p className="text-xs text-muted-foreground">Configure intent properties</p>
+                      <h3 className="font-semibold text-base text-foreground">{String(selectedNode.data.label)}</h3>
+                      <p className="text-sm text-muted-foreground">Configure this intent's behavior</p>
                     </div>
                   </div>
-                  {selectedNode.data.isDefault && (
+                  <div className="flex gap-2">
+                    {selectedNode.data.isDefault && (
+                      <Badge variant="secondary" className="text-xs">
+                        Core Intent
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="text-xs">
-                      Default Intent
+                      Intent Node
                     </Badge>
-                  )}
+                  </div>
                 </div>
 
                 <div className="space-y-6">
