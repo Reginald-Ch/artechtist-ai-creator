@@ -149,27 +149,60 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
       </div>
 
       {/* Avatar Selection */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Select an Avatar</Label>
-        <div className="grid grid-cols-3 gap-3">
+      <div className="space-y-4">
+        <Label className="text-base font-medium">Select an Avatar & Personality</Label>
+        <div className="grid grid-cols-2 gap-4">
           {botPersonalities.map((personality, index) => (
             <Card 
               key={index}
-              className={`cursor-pointer transition-all border-2 ${
+              className={`cursor-pointer transition-all duration-200 border-2 hover:shadow-lg ${
                 agentData.avatar === personality.avatar 
-                  ? 'border-primary shadow-md bg-primary/5' 
-                  : 'border-muted hover:border-primary/50'
+                  ? 'border-orange-500 shadow-lg bg-orange-50 dark:bg-orange-950/20' 
+                  : 'border-border hover:border-orange-300'
               }`}
               onClick={() => handleAvatarSelect(personality)}
             >
-              <CardContent className="p-4 text-center">
-                <div className="text-4xl mb-2">{personality.avatar}</div>
-                <p className="text-xs font-medium">{personality.name}</p>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl flex-shrink-0">{personality.avatar}</div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm mb-1">{personality.name}</h4>
+                    <p className="text-xs text-muted-foreground leading-tight">
+                      {personality.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {personality.traits.slice(0, 2).map((trait, i) => (
+                        <Badge key={i} variant="outline" className="text-xs px-1 py-0">
+                          {trait}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  {agentData.avatar === personality.avatar && (
+                    <div className="flex-shrink-0">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">Choose an avatar to represent your agent</p>
+        
+        {/* Selected Personality Preview */}
+        {agentData.avatar && (
+          <div className="bg-muted/30 border border-border rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">{agentData.avatar}</span>
+              <div>
+                <h5 className="font-medium text-sm">Selected Personality</h5>
+                <p className="text-xs text-muted-foreground">{agentData.personality}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <p className="text-sm text-muted-foreground">Choose an avatar and personality that fits your agent's role</p>
       </div>
 
       {/* Description */}
@@ -189,7 +222,7 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
@@ -203,16 +236,19 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
         </div>
 
         {/* Create Button */}
-        <div className="flex justify-end pt-6 border-t">
+        <div className="flex flex-col gap-3 pt-6 border-t">
           <Button 
             onClick={handleCreate}
             disabled={!agentData.name.trim()}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-2"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg"
             size="lg"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            Create the AI
+            Create AI Agent & Start Building
           </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            Your agent will be created and you'll be taken to the conversation builder
+          </p>
         </div>
       </DialogContent>
     </Dialog>
