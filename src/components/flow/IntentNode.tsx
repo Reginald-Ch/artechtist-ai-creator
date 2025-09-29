@@ -112,11 +112,16 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
               )}
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit?.(id || '');
+                // Open training dialog instead of inline editing
+                if ((window as any).openIntentTraining) {
+                  (window as any).openIntentTraining(id || '');
+                } else {
+                  onEdit?.(id || '');
+                }
               }}
             >
-              <Edit className="h-3 w-3 mr-1" />
-              {selected ? 'Editing' : 'Edit'}
+              <Brain className="h-3 w-3 mr-1" />
+              Train
             </Button>
           </div>
         </div>

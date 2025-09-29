@@ -13,6 +13,7 @@ import {
   BackgroundVariant,
   MiniMap,
 } from '@xyflow/react';
+import { IntentTrainingDialog } from './IntentTrainingDialog';
 import '@xyflow/react/dist/style.css';
 
 import { Button } from "@/components/ui/button";
@@ -127,6 +128,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [showHelpMascot, setShowHelpMascot] = useState(false);
   const [showMascot, setShowMascot] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
+  const [intentTrainingDialog, setIntentTrainingDialog] = useState<{
+    open: boolean;
+    intentData: { id: string; label: string; trainingPhrases: string[]; responses: string[] } | null;
+  }>({ open: false, intentData: null });
   
   // Voice settings state
   const [voiceApiKey, setVoiceApiKey] = useState("");
@@ -324,6 +329,34 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     setSelectedNode(prev => prev?.id === node.id ? null : node);
   }, []);
 
+  const openIntentTraining = useCallback((nodeId: string) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      setIntentTrainingDialog({
+        open: true,
+        intentData: {
+          id: node.id,
+          label: node.data.label as string,
+          trainingPhrases: (node.data.trainingPhrases as string[]) || [],
+          responses: (node.data.responses as string[]) || []
+        }
+      });
+    }
+  }, [nodes]);
+
+  const handleIntentTrainingSave = useCallback((data: { trainingPhrases: string[]; responses: string[] }) => {
+    if (intentTrainingDialog.intentData) {
+      setNodes(prevNodes => 
+        prevNodes.map(node => 
+          node.id === intentTrainingDialog.intentData!.id
+            ? { ...node, data: { ...node.data, ...data } }
+            : node
+        )
+      );
+      undoRedo.saveState(nodes, edges);
+    }
+  }, [intentTrainingDialog.intentData, nodes, edges, undoRedo, setNodes]);
+
   const addNewIntent = (parentId?: string) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
@@ -365,13 +398,15 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     undoRedo.saveState(newNodes, newEdges);
   };
 
-  // Add global function for follow-up intents
+  // Add global function for follow-up intents and training
   useEffect(() => {
     (window as any).addFollowUpIntent = (parentId: string) => addNewIntent(parentId);
+    (window as any).openIntentTraining = openIntentTraining;
     return () => {
       delete (window as any).addFollowUpIntent;
+      delete (window as any).openIntentTraining;
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, openIntentTraining]);
 
   const deleteNode = useCallback((nodeId: string) => {
     console.log('deleteNode called with nodeId:', nodeId);
@@ -1000,9 +1035,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onNodeClick={onNodeClick}
                 nodeTypes={memoizedNodeTypes}
                 fitView
-                minZoom={0.2}
-                maxZoom={2.0}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
+                minZoom={0.1}
+                maxZoom={2}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+                panOnScroll={true}
+                selectionOnDrag={true}
+                panOnDrag={[1, 2]}
                 proOptions={{ hideAttribution: true }}
                 className="bg-gradient-to-br from-muted/10 to-muted/30"
                 nodesDraggable={true}
@@ -1016,7 +1054,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 connectionMode={"loose" as any}
                 snapToGrid={true}
                 snapGrid={[20, 20]}
-                panOnScroll={true}
                 panOnScrollSpeed={0.5}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
@@ -1326,6 +1363,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               description: "Your first chatbot has been created. Start building!"
             });
           }}
+        />
+
+        {/* Intent Training Dialog */}
+        <IntentTrainingDialog
+          open={intentTrainingDialog.open}
+          onOpenChange={(open) => setIntentTrainingDialog(prev => ({ ...prev, open }))}
+          intentData={intentTrainingDialog.intentData || { id: '', label: '', trainingPhrases: [], responses: [] }}
+          onSave={handleIntentTrainingSave}
         />
         </div>
       </TooltipProvider>
