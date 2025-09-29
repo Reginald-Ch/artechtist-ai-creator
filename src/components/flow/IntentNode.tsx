@@ -103,26 +103,33 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
                 Selected
               </Badge>
             )}
-            <Button
-              size="sm"
-              variant={selected ? "default" : "outline"}
-              className={cn(
-                "px-3 py-1 text-xs font-medium",
-                selected ? "bg-primary text-primary-foreground" : "hover:bg-primary hover:text-primary-foreground"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                // Open training dialog instead of inline editing
-                if ((window as any).openIntentTraining) {
-                  (window as any).openIntentTraining(id || '');
-                } else {
-                  onEdit?.(id || '');
-                }
-              }}
-            >
-              <Brain className="h-3 w-3 mr-1" />
-              Train
-            </Button>
+            {/* Lock fallback intent - only allow training for greet intent */}
+            {label.toLowerCase().includes('fallback') ? (
+              <Badge variant="secondary" className="text-xs px-2 py-1">
+                🔒 Locked
+              </Badge>
+            ) : (
+              <Button
+                size="sm"
+                variant={selected ? "default" : "outline"}
+                className={cn(
+                  "px-3 py-1 text-xs font-medium",
+                  selected ? "bg-primary text-primary-foreground" : "hover:bg-primary hover:text-primary-foreground"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Open training dialog instead of inline editing
+                  if ((window as any).openIntentTraining) {
+                    (window as any).openIntentTraining(id || '');
+                  } else {
+                    onEdit?.(id || '');
+                  }
+                }}
+              >
+                <Brain className="h-3 w-3 mr-1" />
+                Train
+              </Button>
+            )}
           </div>
         </div>
 

@@ -239,29 +239,87 @@ export const IntentTrainingDialog = ({
           </div>
         </div>
 
-        {/* Training Section */}
+        {/* Training Section - Enhanced for kids with cool animations */}
         <div className="border-t pt-6 mt-6">
           {isTraining && (
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-sm font-medium">Training AI Model...</span>
+            <div className="space-y-6 mb-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl border border-blue-200 dark:border-blue-800">
+              <div className="text-center space-y-4">
+                {/* Animated Robot Training */}
+                <div className="relative">
+                  <div className="text-6xl animate-bounce">🤖</div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                      <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center gap-3">
+                  <Brain className="h-5 w-5 animate-pulse text-purple-500" />
+                  <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Training Your AI Brain...
+                  </span>
+                  <Brain className="h-5 w-5 animate-pulse text-blue-500" />
+                </div>
+                
+                {/* Enhanced Progress Bar with Sparkles */}
+                <div className="relative">
+                  <Progress value={trainingProgress} className="h-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-bold text-white mix-blend-difference">{Math.round(trainingProgress)}%</span>
+                  </div>
+                  {/* Animated sparkles */}
+                  <div className="absolute -top-1 left-0 w-full h-6 overflow-hidden">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping absolute top-1" style={{ left: `${trainingProgress}%`, animationDelay: '0s' }}>✨</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center gap-2 text-sm">
+                  <span className="animate-pulse">🧠</span>
+                  <span className="text-purple-600 dark:text-purple-400 font-medium">
+                    Teaching {trainingPhrases.length} phrases & {responses.length} responses
+                  </span>
+                  <span className="animate-pulse">⚡</span>
+                </div>
               </div>
-              <Progress value={trainingProgress} className="h-2" />
-              <p className="text-xs text-muted-foreground">
-                Processing {trainingPhrases.length} training phrases and {responses.length} responses
-              </p>
             </div>
           )}
 
           {trainingComplete && (
-            <div className="flex items-center gap-2 mb-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="font-medium text-green-800 dark:text-green-200">Training Complete!</p>
-                <p className="text-sm text-green-600 dark:text-green-300">
-                  Intent successfully trained and ready to use
+            <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-xl border border-green-200 dark:border-green-800">
+              <div className="text-center space-y-4">
+                {/* Celebration Animation */}
+                <div className="relative">
+                  <div className="text-6xl animate-bounce">🎉</div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
+                    <div className="text-2xl animate-pulse">✨</div>
+                  </div>
+                  <div className="absolute top-0 right-1/4 transform translate-x-1/2 -translate-y-2">
+                    <div className="text-xl animate-pulse" style={{ animationDelay: '0.5s' }}>🌟</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 animate-pulse" />
+                  <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    AI Training Complete!
+                  </span>
+                  <CheckCircle className="h-6 w-6 text-green-600 animate-pulse" />
+                </div>
+                
+                <p className="text-green-700 dark:text-green-300 font-medium">
+                  🚀 Your chatbot is now super smart and ready to chat!
                 </p>
+                
+                <div className="flex justify-center items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                  <span>🎯</span>
+                  <span>Trained with {trainingPhrases.length} examples</span>
+                  <span>•</span>
+                  <span>{responses.length} response options</span>
+                  <span>🎯</span>
+                </div>
               </div>
             </div>
           )}

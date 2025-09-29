@@ -112,6 +112,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [botDescription, setBotDescription] = useState("helpful and friendly");
   const [selectedAvatar, setSelectedAvatar] = useState("");
+  
+  // Avatar consistency - use selected avatar in conversations
+  useEffect(() => {
+    if (selectedAvatar) {
+      setBotAvatar(selectedAvatar);
+    }
+  }, [selectedAvatar]);
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
@@ -332,6 +339,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const openIntentTraining = useCallback((nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
+      // Block training for fallback intent
+      if (typeof node.data.label === 'string' && node.data.label.toLowerCase().includes('fallback')) {
+        toast({
+          title: "Fallback Intent Locked",
+          description: "The fallback intent cannot be modified to ensure consistent error handling.",
+          variant: "default"
+        });
+        return;
+      }
+      
       setIntentTrainingDialog({
         open: true,
         intentData: {
@@ -361,12 +378,28 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
     
+    // Enhanced positioning for tree layout
+    let newPosition;
+    if (parentNode) {
+      // Create tree-like structure
+      const childrenCount = edges.filter(e => e.source === parentId).length;
+      newPosition = {
+        x: parentNode.position.x + (childrenCount * 280) - 140,
+        y: parentNode.position.y + 180
+      };
+    } else {
+      // Auto-connect to the most recent non-default node or greet
+      const connectableNodes = nodes.filter(n => !n.data.isDefault || n.id === 'greet');
+      const targetNode = connectableNodes[connectableNodes.length - 1] || nodes.find(n => n.id === 'greet');
+      newPosition = targetNode 
+        ? { x: targetNode.position.x + 280, y: targetNode.position.y }
+        : { x: 600, y: 100 };
+    }
+    
     const newNode: Node = {
       id: newId,
       type: 'intent',
-      position: parentNode 
-        ? { x: parentNode.position.x + 150, y: parentNode.position.y + 100 }
-        : { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
+      position: newPosition,
       data: {
         label: parentId ? `${parentNode?.data.label} Follow-up` : 'New Intent',
         trainingPhrases: [],
@@ -378,23 +411,32 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newNodes = [...nodes, newNode];
     let newEdges = [...edges];
     
-    // If adding as follow-up, create connection
-    if (parentId) {
+    // Auto-connect logic - always connect new nodes
+    let sourceNodeId = parentId;
+    if (!parentId) {
+      // Auto-connect to most recent non-fallback node
+      const nonFallbackNodes = nodes.filter(n => n.id !== 'fallback');
+      const lastNode = nonFallbackNodes[nonFallbackNodes.length - 1];
+      sourceNodeId = lastNode?.id || 'greet';
+    }
+    
+    if (sourceNodeId) {
       const newEdge: Edge = {
-        id: `e${parentId}-${newId}`,
-        source: parentId,
+        id: `e${sourceNodeId}-${newId}`,
+        source: sourceNodeId,
         target: newId,
         markerEnd: { type: MarkerType.ArrowClosed },
         style: { 
           stroke: 'hsl(var(--primary))',
           strokeWidth: 2,
+          strokeDasharray: parentId ? undefined : '5,5', // Dashed for auto-connections
         }
       };
       newEdges = [...edges, newEdge];
-      setEdges(newEdges);
     }
     
     setNodes(newNodes);
+    setEdges(newEdges);
     undoRedo.saveState(newNodes, newEdges);
   };
 
@@ -998,8 +1040,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         </div>
 
         <div className="flex-1 flex gap-0">
-          {/* Enhanced Left Panel - Expanded Flow Playground */}
-          <div className="flex-1 border-r bg-background">
+          {/* Expanded Full Workspace - Intent panel removed */}
+          <div className="flex-[2] border-r bg-background">
             <div className="h-12 px-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex items-center gap-3">
                 <Brain className="h-5 w-5 text-primary" />
@@ -1025,7 +1067,37 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 </Button>
               </div>
             </div>
-            <div className="h-[calc(100vh-14rem)]">
+            <div className="h-[calc(100vh-14rem)] relative">
+              {/* Empty state with engaging design for kids */}
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+                  <div className="text-center space-y-6 p-8 max-w-md">
+                    <div className="relative">
+                      <div className="text-8xl animate-bounce">🤖</div>
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4">
+                        <div className="text-3xl animate-pulse">✨</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Let's Build Your First Chatbot!
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Create conversation flows by adding intents. Each intent teaches your bot what to say when users ask different questions.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => addNewIntent()} 
+                      className="mt-6 px-8 py-3 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                      size="lg"
+                    >
+                      <Plus className="h-5 w-5 mr-2" />
+                      Create First Intent
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -1035,26 +1107,26 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onNodeClick={onNodeClick}
                 nodeTypes={memoizedNodeTypes}
                 fitView
-                minZoom={0.1}
+                fitViewOptions={{ padding: 0.3, minZoom: 0.4, maxZoom: 1.0 }}
+                minZoom={0.2}
                 maxZoom={2}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
                 panOnScroll={true}
-                selectionOnDrag={true}
+                selectionOnDrag={false}
                 panOnDrag={[1, 2]}
                 proOptions={{ hideAttribution: true }}
-                className="bg-gradient-to-br from-muted/10 to-muted/30"
+                className="bg-gradient-to-br from-background via-muted/5 to-primary/5"
                 nodesDraggable={true}
                 nodesConnectable={true}
                 elementsSelectable={true}
                 connectionLineStyle={{ 
                   stroke: 'hsl(var(--primary))', 
                   strokeWidth: 3,
-                  strokeDasharray: '6,6',
+                  strokeDasharray: '8,4',
                 }}
-                connectionMode={"loose" as any}
                 snapToGrid={true}
-                snapGrid={[20, 20]}
-                panOnScrollSpeed={0.5}
+                snapGrid={[25, 25]}
+                panOnScrollSpeed={0.8}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
               >
