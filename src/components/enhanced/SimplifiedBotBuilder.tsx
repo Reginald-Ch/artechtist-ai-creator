@@ -62,27 +62,30 @@ const initialNodes: Node[] = [
   {
     id: 'greet',
     type: 'intent',
-    position: { x: 300, y: 100 },
+    position: { x: 200, y: 100 },
     data: {
       label: 'Greet',
-      trainingPhrases: ['hello', 'hi', 'hey there', 'good morning'],
-      responses: ['Hello! How can I help you today?', 'Hi there! What can I do for you?'],
+      trainingPhrases: ['hello', 'hi', 'hey there', 'good morning', 'what\'s up'],
+      responses: ['Hello! How can I help you today?', 'Hi there! What can I do for you?', 'Hey! Great to see you! How can I assist?'],
       isDefault: true,
     },
+    draggable: true,
   },
   {
     id: 'fallback',
     type: 'intent',
-    position: { x: 300, y: 400 },
+    position: { x: 200, y: 400 },
     data: {
       label: 'Fallback',
       trainingPhrases: [],
-      responses: ["I didn't understand that. Can you try asking differently?", "Sorry, I'm not sure about that. What else can I help with?"],
+      responses: ["I didn't understand that. Can you try asking differently?", "Sorry, I'm not sure about that. What else can I help with?", "Could you rephrase that? I want to make sure I help you properly!"],
       isDefault: true,
     },
+    draggable: true,
   },
 ];
 
+// Enhanced initial edges for tree flow
 const initialEdges: Edge[] = [
   {
     id: 'greet-fallback',
@@ -90,10 +93,11 @@ const initialEdges: Edge[] = [
     target: 'fallback',
     markerEnd: { type: MarkerType.ArrowClosed },
     style: { 
-      stroke: 'hsl(var(--primary))',
+      stroke: 'hsl(var(--muted-foreground))',
       strokeWidth: 2,
-      strokeDasharray: '5,5',
-    }
+      strokeDasharray: '8,4',
+    },
+    animated: false,
   }
 ];
 
@@ -113,12 +117,23 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [botDescription, setBotDescription] = useState("helpful and friendly");
   const [selectedAvatar, setSelectedAvatar] = useState("");
   
-  // Avatar consistency - use selected avatar in conversations
+  // Enhanced avatar consistency - sync between creation and conversation
   useEffect(() => {
     if (selectedAvatar) {
       setBotAvatar(selectedAvatar);
+      // Store avatar choice for conversation consistency
+      localStorage.setItem('bot-avatar-selection', selectedAvatar);
     }
   }, [selectedAvatar]);
+  
+  // Load saved avatar on component mount for consistency
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('bot-avatar-selection');
+    if (savedAvatar) {
+      setSelectedAvatar(savedAvatar);
+      setBotAvatar(savedAvatar);
+    }
+  }, []);
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
@@ -388,22 +403,34 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
     
-    // Enhanced positioning for tree layout
+    // Enhanced tree-based positioning for conversational flow
     let newPosition;
     if (parentNode) {
-      // Create tree-like structure
+      // Create tree-like structure with better spacing
       const childrenCount = edges.filter(e => e.source === parentId).length;
+      const angle = (childrenCount * 60) - 30; // Spread children in fan pattern
+      const distance = 250;
+      const radians = (angle * Math.PI) / 180;
+      
       newPosition = {
-        x: parentNode.position.x + (childrenCount * 280) - 140,
-        y: parentNode.position.y + 180
+        x: parentNode.position.x + Math.cos(radians) * distance,
+        y: parentNode.position.y + Math.sin(radians) * distance + 150
       };
     } else {
-      // Auto-connect to the most recent non-default node or greet
-      const connectableNodes = nodes.filter(n => !n.data.isDefault || n.id === 'greet');
+      // Auto-connect to the most recent non-fallback node in tree layout
+      const connectableNodes = nodes.filter(n => n.id !== 'fallback');
       const targetNode = connectableNodes[connectableNodes.length - 1] || nodes.find(n => n.id === 'greet');
-      newPosition = targetNode 
-        ? { x: targetNode.position.x + 280, y: targetNode.position.y }
-        : { x: 600, y: 100 };
+      
+      if (targetNode) {
+        // Position new nodes to the right and slightly down for tree flow
+        const existingChildren = edges.filter(e => e.source === targetNode.id).length;
+        newPosition = { 
+          x: targetNode.position.x + 280 + (existingChildren * 150), 
+          y: targetNode.position.y + 120 
+        };
+      } else {
+        newPosition = { x: 600, y: 100 };
+      }
     }
     
     const newNode: Node = {
@@ -416,15 +443,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         responses: [],
         isDefault: false,
       },
+      draggable: true, // Enable drag & rearrange
     };
     
     const newNodes = [...nodes, newNode];
     let newEdges = [...edges];
     
-    // Auto-connect logic - always connect new nodes
+    // Enhanced auto-connect logic for tree structure
     let sourceNodeId = parentId;
     if (!parentId) {
-      // Auto-connect to most recent non-fallback node
+      // Auto-connect to most recent node (excluding fallback for clean tree)
       const nonFallbackNodes = nodes.filter(n => n.id !== 'fallback');
       const lastNode = nonFallbackNodes[nonFallbackNodes.length - 1];
       sourceNodeId = lastNode?.id || 'greet';
@@ -439,8 +467,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         style: { 
           stroke: 'hsl(var(--primary))',
           strokeWidth: 2,
-          strokeDasharray: parentId ? undefined : '5,5', // Dashed for auto-connections
-        }
+          strokeDasharray: parentId ? undefined : '5,5',
+        },
+        animated: true, // Add animation for better visual flow
       };
       newEdges = [...edges, newEdge];
     }
@@ -448,6 +477,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     setNodes(newNodes);
     setEdges(newEdges);
     undoRedo.saveState(newNodes, newEdges);
+    
+    toast({
+      title: "New Intent Added",
+      description: `"${newNode.data.label}" has been connected to your conversation flow`,
+    });
   };
 
   // Add global function for follow-up intents and training
