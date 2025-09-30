@@ -339,11 +339,21 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const openIntentTraining = useCallback((nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
     if (node) {
-      // Block training for fallback intent
+      // Block training for fallback intent - always locked
       if (typeof node.data.label === 'string' && node.data.label.toLowerCase().includes('fallback')) {
         toast({
           title: "Fallback Intent Locked",
           description: "The fallback intent cannot be modified to ensure consistent error handling.",
+          variant: "default"
+        });
+        return;
+      }
+      
+      // Only allow training for "Greet" intent (and any custom intents)
+      if (typeof node.data.label === 'string' && !node.data.label.toLowerCase().includes('greet') && node.data.isDefault) {
+        toast({
+          title: "Intent Locked",
+          description: "Only the Greet intent can be trained for new agents.",
           variant: "default"
         });
         return;
@@ -1160,150 +1170,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             </div>
           </div>
 
-          {/* Compact Right Panel - Properties & Settings */}
-          <div className="w-[420px] p-6 bg-gradient-to-br from-background to-muted/20 overflow-y-auto border-l shadow-sm">
-            {selectedNode ? (
-              <div className="space-y-6">
-                <div className="pb-4 border-b">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-base text-foreground">{String(selectedNode.data.label)}</h3>
-                      <p className="text-sm text-muted-foreground">Configure this intent's behavior</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {selectedNode.data.isDefault && (
-                      <Badge variant="secondary" className="text-xs">
-                        Core Intent
-                      </Badge>
-                    )}
-                    <Badge variant="outline" className="text-xs">
-                      Intent Node
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  {/* Intent Name */}
-                  <div>
-                    <Label htmlFor="intent-name" className="text-sm font-medium">Intent Name</Label>
-                    <Input
-                      id="intent-name"
-                      value={selectedNode.data.label as string}
-                      onChange={(e) => updateSelectedNode('label', e.target.value)}
-                      className="mt-1"
-                      disabled={Boolean(selectedNode.data.isDefault)}
-                    />
-                    {selectedNode.data.isDefault && (
-                      <p className="text-xs text-muted-foreground mt-1">Default intents cannot be renamed</p>
-                    )}
-                  </div>
-
-                  {/* Training Phrases */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <MessageSquare className="h-4 w-4 text-primary" />
-                      <Label className="text-sm font-medium">Training Phrases</Label>
-                      <Badge variant="outline" className="text-xs">
-                        {(selectedNode.data.trainingPhrases as string[])?.length || 0} phrases
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Add examples of what users might say to trigger this intent. Aim for at least 5 varied phrases.
-                    </p>
-                    
-                    {(selectedNode.data.trainingPhrases as string[])?.map((phrase, index) => (
-                      <div key={index} className="flex items-center gap-2 mb-2">
-                        <Input
-                          value={phrase}
-                          onChange={(e) => {
-                            const newPhrases = [...(selectedNode.data.trainingPhrases as string[])];
-                            newPhrases[index] = e.target.value;
-                            updateSelectedNode('trainingPhrases', newPhrases.filter(p => p.trim()));
-                          }}
-                          placeholder="e.g. How do I make pancakes?"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const newPhrases = (selectedNode.data.trainingPhrases as string[]).filter((_, i) => i !== index);
-                            updateSelectedNode('trainingPhrases', newPhrases);
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const newPhrases = [...(selectedNode.data.trainingPhrases as string[] || []), ''];
-                        updateSelectedNode('trainingPhrases', newPhrases);
-                      }}
-                      className="w-full mt-2"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Training Phrase
-                    </Button>
-                  </div>
-
-                  {/* Bot Responses */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-green-600" />
-                      <Label className="text-sm font-medium">Bot Responses</Label>
-                      <Badge variant="outline" className="text-xs">
-                        {(selectedNode.data.responses as string[])?.length || 0} responses
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      What should your bot say when this intent is triggered? Add multiple responses for variety.
-                    </p>
-                    
-                    {(selectedNode.data.responses as string[])?.map((response, index) => (
-                      <div key={index} className="mb-2">
-                        <Textarea
-                          value={response}
-                          onChange={(e) => {
-                            const newResponses = [...(selectedNode.data.responses as string[])];
-                            newResponses[index] = e.target.value;
-                            updateSelectedNode('responses', newResponses.filter(r => r.trim()));
-                          }}
-                          placeholder="e.g. You'll need flour, eggs, milk, and butter. Ready for the full recipe?"
-                          rows={2}
-                        />
-                      </div>
-                    ))}
-                    
-                    <Button
-                      onClick={() => {
-                        const newResponses = [...(selectedNode.data.responses as string[] || []), ''];
-                        updateSelectedNode('responses', newResponses);
-                      }}
-                      className="w-full mt-2"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Response
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <h4 className="font-medium mb-1">Select an Intent</h4>
-                <p className="text-xs text-muted-foreground">
-                  Click on an intent node above to edit its properties and responses
-                </p>
-              </div>
-            )}
-            
-          </div>
 
           {/* Enhanced Right Panel - Real-time Testing */}
           <div className="w-96 border-l bg-background">
