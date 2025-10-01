@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -58,10 +57,19 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
   });
   const [googleAssistantConnected, setGoogleAssistantConnected] = useState(false);
   const [botLanguage, setBotLanguage] = useState('en');
+  const [savedBotAvatar, setSavedBotAvatar] = useState('🤖');
   
   const { toast } = useToast();
   const recognition = useRef<any>(null);
   const synthesis = useRef<any>(null);
+  
+  // Load saved avatar for consistency
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('bot-avatar-selection');
+    if (savedAvatar) {
+      setSavedBotAvatar(savedAvatar);
+    }
+  }, []);
   
   // Initialize conversation engine
   const { processUserInput, resetConversation } = useConversationEngine(nodes, edges, botPersonality);
@@ -270,30 +278,38 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
-                    <div
+                     <div
                       key={message.id}
-                      className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex gap-3 max-w-full ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       {message.sender === 'bot' && (
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-blue-500 text-white text-xs">
-                            <Bot className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+                            {savedBotAvatar}
+                          </div>
+                        </div>
                       )}
                       
-                      <div className="flex flex-col gap-1">
+                      <div className={`flex flex-col gap-1 min-w-0 max-w-[75%] ${message.sender === 'user' ? 'items-end' : 'items-start'}`}>
                         <div
-                          className={`max-w-xs rounded-lg p-3 text-sm ${
+                          className={`rounded-xl px-4 py-3 shadow-sm break-words hyphens-auto overflow-wrap-anywhere ${
                             message.sender === 'user'
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-muted text-foreground'
+                              ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground'
+                              : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                           }`}
+                          style={{ 
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
+                            hyphens: 'auto',
+                            whiteSpace: 'pre-wrap'
+                          }}
                         >
-                          {message.text}
-                          {message.isVoice && (
-                            <Mic className="h-3 w-3 ml-2 inline opacity-70" />
-                          )}
+                          <p className="text-sm leading-relaxed break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                            {message.text}
+                            {message.isVoice && (
+                              <Mic className="h-3 w-3 ml-2 inline opacity-70" />
+                            )}
+                          </p>
                         </div>
                         {message.sender === 'bot' && voiceSettings.enabled && (
                           <Button 
@@ -309,23 +325,23 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                       </div>
                       
                       {message.sender === 'user' && (
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-orange-500 text-white text-xs">
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                            <User className="h-4 w-4 text-primary-foreground" />
+                          </div>
+                        </div>
                       )}
                     </div>
                   ))}
                   
                   {isTyping && (
                     <div className="flex gap-3 justify-start">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-blue-500 text-white text-xs">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="bg-muted text-foreground rounded-lg p-3 text-sm">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+                          {savedBotAvatar}
+                        </div>
+                      </div>
+                      <div className="bg-muted text-foreground rounded-xl px-4 py-3 shadow-sm">
                         <div className="flex gap-1">
                           <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
                           <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -337,13 +353,13 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                 </div>
               </ScrollArea>
 
-              {/* Input Area */}
-              <div className="border-t p-4 space-y-3">
+              {/* Input Area - Improved responsiveness */}
+              <div className="border-t p-4 space-y-3 flex-shrink-0">
                 <div className="flex gap-2">
                   <Button 
                     variant={isListening ? "destructive" : "outline"} 
                     size="sm" 
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     onClick={handleVoiceInput}
                   >
                     {isListening ? <MicOff className="h-4 w-4 mr-1" /> : <Mic className="h-4 w-4 mr-1" />}
@@ -352,7 +368,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     onClick={() => setVoiceSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
                   >
                     {voiceSettings.enabled ? <Volume2 className="h-4 w-4 mr-1" /> : <VolumeX className="h-4 w-4 mr-1" />}
@@ -366,18 +382,24 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={`Type in ${languages.find(l => l.code === botLanguage)?.name}...`}
-                    className="flex-1"
+                    className="flex-1 min-w-0 text-sm"
+                    style={{ 
+                      wordWrap: 'break-word', 
+                      overflowWrap: 'break-word',
+                      maxWidth: '100%'
+                    }}
                   />
                   <Button 
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim()}
                     size="sm"
+                    className="flex-shrink-0"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
                 
-                <div className="text-xs text-muted-foreground text-center">
+                <div className="text-xs text-muted-foreground text-center break-words">
                   {isRecording && "🎤 Voice message will be sent"}
                   {!isRecording && "Test your AI in multiple African languages"}
                 </div>

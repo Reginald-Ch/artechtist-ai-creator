@@ -37,9 +37,20 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [voiceSettings, setVoiceSettings] = useState<any>(null);
+  const [displayAvatar, setDisplayAvatar] = useState(botAvatar);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
+
+  // Load saved avatar for consistency across the app
+  useEffect(() => {
+    const savedAvatar = localStorage.getItem('bot-avatar-selection');
+    if (savedAvatar) {
+      setDisplayAvatar(savedAvatar);
+    } else {
+      setDisplayAvatar(botAvatar);
+    }
+  }, [botAvatar]);
 
   // Load voice settings from localStorage
   useEffect(() => {
@@ -259,7 +270,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl border-2 border-primary/20">
-              {botAvatar}
+              {displayAvatar}
             </div>
             <div>
               <span className="font-semibold">Test Chat</span>
@@ -319,7 +330,7 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
                 {message.type === 'bot' && (
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-lg">
-                      {botAvatar}
+                      {displayAvatar}
                     </div>
                   </div>
                 )}

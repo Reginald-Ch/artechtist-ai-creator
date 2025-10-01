@@ -33,7 +33,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
 import TestPanel from "@/components/TestPanel";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import { OptimizedVoiceSettings } from "@/components/enhanced/OptimizedVoiceSettings";
 import { TestChatInterface } from "@/components/enhanced/TestChatInterface";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
@@ -41,14 +40,10 @@ import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
 import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
-// Removed Google Speaker Integration
 import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
-import { ConnectionFlowVisualization } from '@/components/flow/ConnectionFlowVisualization';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { ImprovedGoogleAssistantIntegration } from "./ImprovedGoogleAssistantIntegration";
-import TemplateGallery from "@/components/TemplateGallery";
-import { SavedProjectsSection } from "./SavedProjectsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { BeginnerModeToggle } from "./BeginnerModeToggle";
@@ -154,6 +149,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     open: boolean;
     intentData: { id: string; label: string; trainingPhrases: string[]; responses: string[] } | null;
   }>({ open: false, intentData: null });
+  const [followUpNameDialog, setFollowUpNameDialog] = useState<{
+    open: boolean;
+    parentId: string | null;
+  }>({ open: false, parentId: null });
+  const [followUpIntentName, setFollowUpIntentName] = useState('');
   
   // Voice settings state
   const [voiceApiKey, setVoiceApiKey] = useState("");
@@ -399,7 +399,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [intentTrainingDialog.intentData, nodes, edges, undoRedo, setNodes]);
 
-  const addNewIntent = (parentId?: string) => {
+  const addNewIntent = (parentId?: string, customName?: string) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
     
@@ -433,12 +433,15 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       }
     }
     
+    // Use custom name if provided, otherwise use default naming
+    const intentLabel = customName || (parentId ? `${parentNode?.data.label} Follow-up` : 'New Intent');
+    
     const newNode: Node = {
       id: newId,
       type: 'intent',
       position: newPosition,
       data: {
-        label: parentId ? `${parentNode?.data.label} Follow-up` : 'New Intent',
+        label: intentLabel,
         trainingPhrases: [],
         responses: [],
         isDefault: false,
@@ -480,13 +483,28 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     
     toast({
       title: "New Intent Added",
-      description: `"${newNode.data.label}" has been connected to your conversation flow`,
+      description: `"${intentLabel}" has been connected to your conversation flow`,
     });
+  };
+
+  // Handler for showing the follow-up intent naming dialog
+  const handleAddFollowUpIntent = (parentId: string) => {
+    setFollowUpNameDialog({ open: true, parentId });
+    setFollowUpIntentName('');
+  };
+
+  // Handler for confirming the follow-up intent creation with custom name
+  const confirmFollowUpIntent = () => {
+    if (followUpIntentName.trim() && followUpNameDialog.parentId) {
+      addNewIntent(followUpNameDialog.parentId, followUpIntentName.trim());
+      setFollowUpNameDialog({ open: false, parentId: null });
+      setFollowUpIntentName('');
+    }
   };
 
   // Add global function for follow-up intents and training
   useEffect(() => {
-    (window as any).addFollowUpIntent = (parentId: string) => addNewIntent(parentId);
+    (window as any).addFollowUpIntent = handleAddFollowUpIntent;
     (window as any).openIntentTraining = openIntentTraining;
     return () => {
       delete (window as any).addFollowUpIntent;
@@ -720,6 +738,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       setNodes(previousState.nodes);
       setEdges(previousState.edges);
       toast({ title: "Undone", description: "Previous action undone" });
+    } else {
+      toast({ title: "Nothing to undo", description: "You're at the beginning of history", variant: "default" });
     }
   };
 
@@ -729,8 +749,20 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       setNodes(nextState.nodes);
       setEdges(nextState.edges);
       toast({ title: "Redone", description: "Action redone" });
+    } else {
+      toast({ title: "Nothing to redo", description: "You're at the latest state", variant: "default" });
     }
   };
+
+  // Save state whenever nodes or edges change
+  useEffect(() => {
+    if (nodes.length > 0) {
+      const timeoutId = setTimeout(() => {
+        undoRedo.saveState(nodes, edges);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [nodes, edges]);
 
   const autoLayoutNodes = () => {
     const layoutedNodes = nodes.map((node, index) => ({
@@ -1285,6 +1317,57 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           onConfirm={confirmDelete}
           destructive
         />
+
+        {/* Follow-up Intent Name Dialog - Amby Style */}
+        <Dialog open={followUpNameDialog.open} onOpenChange={(open) => setFollowUpNameDialog(prev => ({ ...prev, open }))}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                Name Your Follow-Up Intent
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="followup-name" className="text-sm font-medium">
+                  What should this intent be called?
+                </Label>
+                <Input
+                  id="followup-name"
+                  placeholder="e.g., Order Pizza, Check Weather, Help"
+                  value={followUpIntentName}
+                  onChange={(e) => setFollowUpIntentName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && followUpIntentName.trim()) {
+                      confirmFollowUpIntent();
+                    }
+                  }}
+                  autoFocus
+                  className="text-base"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Choose a clear, descriptive name that explains what this intent will handle.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setFollowUpNameDialog({ open: false, parentId: null })}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmFollowUpIntent}
+                disabled={!followUpIntentName.trim()}
+                className="bg-gradient-to-r from-primary to-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Intent
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Tutorial */}
         <BotBuilderTutorial 
