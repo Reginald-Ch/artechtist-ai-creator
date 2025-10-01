@@ -14,6 +14,7 @@ import {
   MiniMap,
 } from '@xyflow/react';
 import { IntentTrainingDialog } from './IntentTrainingDialog';
+import { ConversationTemplates, type Template } from './ConversationTemplates';
 import '@xyflow/react/dist/style.css';
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker } from "lucide-react";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
@@ -154,6 +155,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     parentId: string | null;
   }>({ open: false, parentId: null });
   const [followUpIntentName, setFollowUpIntentName] = useState('');
+  const [showTemplates, setShowTemplates] = useState(false);
   
   // Voice settings state
   const [voiceApiKey, setVoiceApiKey] = useState("");
@@ -1135,6 +1137,15 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={() => setShowTemplates(true)}
+                  className="text-xs hover:bg-muted gap-2"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  Templates
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={autoLayoutNodes}
                   className="text-xs hover:bg-muted"
                 >
@@ -1427,6 +1438,66 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           intentData={intentTrainingDialog.intentData || { id: '', label: '', trainingPhrases: [], responses: [] }}
           onSave={handleIntentTrainingSave}
         />
+
+        {/* Templates Dialog */}
+        {showTemplates && (
+          <ConversationTemplates
+            onSelectTemplate={(template: Template) => {
+              // Clear existing nodes except greet and fallback
+              const baseNodes = nodes.filter(n => 
+                n.data.label === 'Greet' || n.data.label === 'Fallback'
+              );
+              
+              // Create nodes from template
+              const templateNodes: Node[] = template.intents.map((intent, index) => {
+                const id = `intent-${Date.now()}-${index}`;
+                return {
+                  id,
+                  type: 'intent',
+                  position: { 
+                    x: 400, 
+                    y: 150 + (index * 150) 
+                  },
+                  data: {
+                    label: intent.name,
+                    trainingPhrases: intent.trainingPhrases,
+                    responses: intent.responses,
+                    onTrain: () => openIntentTraining(id),
+                    onAddFollowUp: () => handleAddFollowUpIntent(id)
+                  }
+                };
+              });
+
+              // Create edges connecting to greet node
+              const greetNode = baseNodes.find(n => n.data.label === 'Greet');
+              const templateEdges: Edge[] = greetNode ? templateNodes.map((node) => ({
+                id: `edge-greet-${node.id}`,
+                source: greetNode.id,
+                target: node.id,
+                type: 'smoothstep',
+                animated: true,
+                markerEnd: { type: MarkerType.ArrowClosed },
+                style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 }
+              })) : [];
+
+              setNodes([...baseNodes, ...templateNodes]);
+              setEdges([
+                ...edges.filter(e => {
+                  const sourceNode = baseNodes.find(n => n.id === e.source);
+                  const targetNode = baseNodes.find(n => n.id === e.target);
+                  return sourceNode && targetNode;
+                }),
+                ...templateEdges
+              ]);
+
+              toast({
+                title: "Template applied!",
+                description: `${template.name} loaded with ${template.intents.length} intents. You can now customize and test it!`
+              });
+            }}
+            onClose={() => setShowTemplates(false)}
+          />
+        )}
         </div>
       </TooltipProvider>
     </ErrorBoundary>

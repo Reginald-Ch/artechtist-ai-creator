@@ -275,6 +275,12 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
             
             <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
               {/* Messages */}
+              <div className="flex-none mb-4">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  Test Your Chatbot
+                </h2>
+              </div>
+
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   {messages.map((message) => (

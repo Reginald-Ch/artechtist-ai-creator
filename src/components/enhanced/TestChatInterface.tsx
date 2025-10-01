@@ -265,8 +265,8 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   };
 
   return (
-    <Card className={`flex flex-col h-full border-2 border-dashed border-muted hover:border-primary/30 transition-colors ${className}`}>
-      <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+    <Card className={`flex flex-col h-full ${className}`}>
+      <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-secondary/5 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-2xl border-2 border-primary/20">
@@ -437,18 +437,13 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
         </div>
 
         {/* Status Info */}
-        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-gradient-to-r from-muted/30 to-muted/20 rounded-lg p-3 border border-border/30">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground bg-gradient-to-r from-muted/30 to-muted/20 rounded-lg p-2 border border-border/30">
+          <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="font-medium">{nodes.length} intents loaded</span>
+            <span className="font-medium">{nodes.length} intents</span>
           </div>
           <span className="text-border">•</span>
-          <div className="flex items-center gap-2">
-            <Mic className="w-3 h-3 text-primary" />
-            <span className="font-medium">Voice ready</span>
-          </div>
-          <span className="text-border">•</span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {isPlaying ? (
               <Volume2 className="w-3 h-3 text-green-500 animate-pulse" />
             ) : (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,9 @@ import {
   Brain, 
   CheckCircle, 
   AlertCircle, 
-  Loader2 
+  Loader2,
+  Mic,
+  MicOff
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -52,6 +54,68 @@ export const IntentTrainingDialog = ({
   const [isTraining, setIsTraining] = useState(false);
   const [trainingProgress, setTrainingProgress] = useState(0);
   const [trainingComplete, setTrainingComplete] = useState(false);
+  const [isListeningPhrase, setIsListeningPhrase] = useState(false);
+  const [isListeningResponse, setIsListeningResponse] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+    }
+  }, []);
+
+  const startVoiceInput = (type: 'phrase' | 'response') => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "Voice input not supported",
+        description: "Your browser doesn't support voice recognition",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const isPhrase = type === 'phrase';
+    isPhrase ? setIsListeningPhrase(true) : setIsListeningResponse(true);
+
+    recognitionRef.current.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (isPhrase) {
+        setNewPhrase(transcript);
+      } else {
+        setNewResponse(transcript);
+      }
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListeningPhrase(false);
+      setIsListeningResponse(false);
+    };
+
+    recognitionRef.current.onerror = () => {
+      setIsListeningPhrase(false);
+      setIsListeningResponse(false);
+      toast({
+        title: "Voice recognition error",
+        description: "Could not recognize speech",
+        variant: "destructive"
+      });
+    };
+
+    recognitionRef.current.start();
+  };
+
+  const stopVoiceInput = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListeningPhrase(false);
+      setIsListeningResponse(false);
+    }
+  };
 
   const addTrainingPhrase = () => {
     if (newPhrase.trim()) {
@@ -160,7 +224,16 @@ export const IntentTrainingDialog = ({
                 onChange={(e) => setNewPhrase(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addTrainingPhrase()}
                 className="flex-1"
+                disabled={isListeningPhrase}
               />
+              <Button 
+                onClick={isListeningPhrase ? stopVoiceInput : () => startVoiceInput('phrase')} 
+                size="sm"
+                variant="outline"
+                className={isListeningPhrase ? 'bg-red-50 border-red-200' : ''}
+              >
+                {isListeningPhrase ? <MicOff className="h-4 w-4 text-red-500" /> : <Mic className="h-4 w-4" />}
+              </Button>
               <Button onClick={addTrainingPhrase} size="sm">
                 <Plus className="h-4 w-4" />
               </Button>
@@ -197,22 +270,35 @@ export const IntentTrainingDialog = ({
               <Badge variant="secondary">{responses.length}</Badge>
             </div>
             
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="Enter a bot response..."
-                value={newResponse}
-                onChange={(e) => setNewResponse(e.target.value)}
-                className="flex-1 min-h-[60px]"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    addResponse();
-                  }
-                }}
-              />
-              <Button onClick={addResponse} size="sm" className="self-end">
-                <Plus className="h-4 w-4" />
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Textarea
+                  placeholder="Enter a bot response..."
+                  value={newResponse}
+                  onChange={(e) => setNewResponse(e.target.value)}
+                  className="flex-1 min-h-[60px]"
+                  disabled={isListeningResponse}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      addResponse();
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  onClick={isListeningResponse ? stopVoiceInput : () => startVoiceInput('response')} 
+                  size="sm"
+                  variant="outline"
+                  className={isListeningResponse ? 'bg-red-50 border-red-200' : ''}
+                >
+                  {isListeningResponse ? <MicOff className="h-4 w-4 text-red-500" /> : <Mic className="h-4 w-4" />}
+                </Button>
+                <Button onClick={addResponse} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2 max-h-40 overflow-y-auto">
