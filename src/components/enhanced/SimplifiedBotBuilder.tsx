@@ -1265,7 +1265,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <div className="text-sm text-muted-foreground space-y-2">
                 <p className="font-medium">🎯 Test Your Bot Instantly</p>
                 <div className="flex items-center gap-2 text-xs">
-                  <Mic className="h-3 w-3" />                </div>
+                  <Mic className="h-3 w-3" />  <span>Voice input enabled</span>             
+                </div>
               </div>
             </div>
             <div className="h-[calc(100vh-13rem)] border-t">
