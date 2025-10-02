@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Brain, ArrowRight, Save, Volume2 } from "lucide-react";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import VoiceSettings from "@/components/VoiceSettings";
+import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { toast } from "@/hooks/use-toast";
 
 const SimpleAgentCreator = () => {
@@ -147,15 +147,7 @@ const SimpleAgentCreator = () => {
 
               <div className="space-y-4">
                 <div className="text-center space-y-2">
-                  <Button
-                    onClick={() => setShowVoiceSettings(true)}
-                    variant="outline"
-                    className="w-full border-2 border-dashed hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                    size="lg"
-                  >
-                    <Volume2 className="h-4 w-4 mr-2" />
-                    Configure Voice Settings
-                  </Button>
+                  <VoiceChatbotSettings />
                   
                   <p className="text-xs text-muted-foreground">
                     ✨ Set up how your AI agent will speak and sound to users
@@ -219,11 +211,8 @@ const SimpleAgentCreator = () => {
         </Card>
       </div>
 
-      {/* Voice Settings Dialog */}
-      <VoiceSettings
-        open={showVoiceSettings}
-        onOpenChange={setShowVoiceSettings}
-      />
+      {/* Voice Settings Dialog - using VoiceChatbotSettings component */}
+      {showVoiceSettings && <VoiceChatbotSettings />}
     </div>
   );
 };

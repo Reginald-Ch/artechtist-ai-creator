@@ -28,8 +28,6 @@ interface BotBuilderToolbarProps {
   onSave: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onExport: () => void;
-  onImport: () => void;
   onAddIntent: () => void;
   canUndo: boolean;
   canRedo: boolean;
@@ -43,29 +41,12 @@ export const BotBuilderToolbar: React.FC<BotBuilderToolbarProps> = ({
   onSave,
   onUndo,
   onRedo,
-  onExport,
-  onImport,
   onAddIntent,
   canUndo,
   canRedo,
   isConnected = false,
   nodeCount
 }) => {
-  const handleExport = () => {
-    onExport();
-    toast({
-      title: "Bot Configuration Exported",
-      description: "Your bot has been saved to downloads",
-    });
-  };
-
-  const handleImport = () => {
-    onImport();
-    toast({
-      title: "Import Bot Configuration",
-      description: "Select a configuration file to load",
-    });
-  };
 
   return (
     <div className="glassmorphism border-b bg-background/95 backdrop-blur">
@@ -103,31 +84,6 @@ export const BotBuilderToolbar: React.FC<BotBuilderToolbarProps> = ({
                 className="hover:bg-muted transition-colors"
               >
                 <Redo className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Separator orientation="vertical" className="h-6" />
-
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleExport}
-                title="Export bot configuration"
-                className="hover:bg-muted transition-colors"
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Export
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleImport}
-                title="Import bot configuration"
-                className="hover:bg-muted transition-colors"
-              >
-                <Upload className="h-4 w-4 mr-1" />
-                Import
               </Button>
             </div>
           </div>

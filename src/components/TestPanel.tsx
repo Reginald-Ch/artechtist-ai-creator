@@ -219,6 +219,31 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
     utterance.lang = botLanguage === 'en' ? 'en-US' : 
                      botLanguage === 'fr' ? 'fr-FR' : 'en-US';
     
+    // Select voice based on voiceId setting
+    const voices = synthesis.current.getVoices();
+    let selectedVoice = null;
+    
+    if (voiceSettings.voiceId.includes('female') || voiceSettings.voiceId === 'EXAVITQu4vr4xnSDxMaL' || voiceSettings.voiceId === '9BWtsMINqrJLrRacOk9x' || voiceSettings.voiceId === 'FGY2WhTYpPnrIDTdsKH5') {
+      selectedVoice = voices.find(voice => 
+        voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en') && 
+        (voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman'))
+      );
+    } else if (voiceSettings.voiceId.includes('male') || voiceSettings.voiceId === 'CwhRBWXzGAHq8TQ4Fs17') {
+      selectedVoice = voices.find(voice => 
+        voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en') && 
+        (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+      );
+    }
+    
+    // Fallback to first available voice in the language
+    if (!selectedVoice) {
+      selectedVoice = voices.find(voice => voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en'));
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    
     synthesis.current.speak(utterance);
     
     toast({

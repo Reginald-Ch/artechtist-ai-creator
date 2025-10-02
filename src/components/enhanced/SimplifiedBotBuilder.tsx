@@ -1032,8 +1032,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           onSave={handleSave}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onExport={handleExport}
-          onImport={handleImport}
           onAddIntent={addNewIntent}
           canUndo={undoRedo.canUndo}
           canRedo={undoRedo.canRedo}
@@ -1119,7 +1117,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
         <div className="flex-1 flex gap-0">
           {/* Expanded Full Workspace - Intent panel removed */}
-          <div className="flex-[2] border-r bg-background">
+          <div className="flex-[2] border-l border-r bg-background">
             <div className="h-12 px-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex items-center gap-3">
                 <Brain className="h-5 w-5 text-primary" />
