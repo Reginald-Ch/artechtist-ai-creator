@@ -1,9 +1,9 @@
-# ✅ Amby Workflow Implementation - 100% Match!
+# ✅  Workflow Implementation - !
 
 ## 🎯 **Our App vs Amby YouTube Script** (Perfect Alignment!)
 
 ### **Dashboard Page** ✅
-- **Amby**: "Create new projects, open previous projects, or tinker with sample project"
+- **Artech**: "Create new projects, open previous projects, or tinker with sample project"
 - **Our App**: ✅ Exact same 3 options with matching flow
 
 ### **Agent Creation** ✅  
@@ -11,27 +11,27 @@
 - **Our App**: ✅ Identical - Name field, avatar selection, "Create the AI" button
 
 ### **Playground Page** ✅
-- **Amby**: "Left = conversation diagram (tree layout), Right = testing panel"
+- **Artech**: "Left = conversation diagram (tree layout), Right = testing panel"
 - **Our App**: ✅ Perfect match - "Playground - [Agent Name]" title, left/right layout
 
 ---
 
-## 🎮 **Key Features - Exact Ambi Implementation**
+## 🎮 **Key Features **
 
 ### **1. Default Intents** ✅
-- **Amby**: "Greet and Default Fallback"
+- **Artech**: "Greet and Default Fallback"
 - **Our App**: ✅ Same two system default intents
 
 ### **2. Intent Structure** ✅  
-- **Amby**: "Training phrases teach recognition, responses give replies"
+- **Artech**: "Training phrases teach recognition, responses give replies"
 - **Our App**: ✅ Identical - Training Phrases + Responses sections
 
 ### **3. Voice-to-Text for Training** ✅
-- **Amby**: "Use voice to text feature: 'How do I make pancakes'"
+- **Artech**: "Use voice to text feature: 'How do I make pancakes'"
 - **Our App**: ✅ Voice button next to training phrases with mic icon
 
 ### **4. Add Intent Flow** ✅
-- **Amby**: "Click add intent, name it 'Pancakes', add phrases, add responses"
+- **Artech**: "Click add intent, name it 'Pancakes', add phrases, add responses"
 - **Our App**: ✅ Same flow - Add Intent button creates new intent cards
 
 ### **5. Follow-up Intents** ✅
@@ -39,15 +39,15 @@
 - **Our App**: ✅ Blue plus button appears on hover, creates connected follow-up
 
 ### **6. Testing Panel** ✅
-- **Ambi**: "Test in testing panel: 'Hi' → 'I'm Breakfast Guide, what would you like to make?'"
+- **Artech**: "Test in testing panel: 'Hi' → 'I'm Breakfast Guide, what would you like to make?'"
 - **Our App**: ✅ Right panel testing with real-time conversation matching
 
 ### **7. Voice Personalization** ✅
-- **Amby**: "Change gender, pitch, speaking rate"
+- **Artech**: "Change gender, pitch, speaking rate"
 - **Our App**: ✅ Voice settings with gender, pitch, rate controls
 
 ### **8. Google Assistant Integration** ✅
-- **Amby**: "Integrations button at top right corner"
+- **Artech**: "Integrations button at top right corner"
 - **Our App**: ✅ "Integrations" button in top right, Google Assistant deployment
 
 ---
@@ -72,9 +72,9 @@
 
 ---
 
-## 📝 **User Journey - Exact Ambi Match**
+## 📝 **User Journey **
 
-### **Amby Flow:**
+### **Artech Flow:**
 1. Dashboard → "Create new agent" → Name + Avatar → "Create the AI"
 2. Playground → Edit "Greet" intent → Add "Pancakes" intent → Test
 3. Add follow-up intents → Voice personalization → Deploy to Google Assistant
