@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LessonProgress } from '@/types/lesson';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AnalyticsData {
   totalTimeSpent: number;
@@ -11,11 +12,19 @@ interface AnalyticsData {
   strongAreas: string[];
 }
 
+interface OfflineQueue {
+  action: 'update' | 'complete' | 'bookmark';
+  lessonId: string;
+  data: Partial<LessonProgress>;
+  timestamp: number;
+}
+
 export const useEnhancedLessonProgress = () => {
   const [lessonProgress, setLessonProgress] = useState<Record<string, LessonProgress>>({});
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error'>('idle');
+  const [offlineQueue, setOfflineQueue] = useState<OfflineQueue[]>([]);
 
   // Monitor online status
   useEffect(() => {
@@ -31,10 +40,17 @@ export const useEnhancedLessonProgress = () => {
     };
   }, []);
 
-  // Load progress from localStorage
+  // Load progress from localStorage and Supabase
   useEffect(() => {
     loadProgress();
   }, []);
+
+  // Process offline queue when online
+  useEffect(() => {
+    if (isOnline && offlineQueue.length > 0) {
+      processOfflineQueue();
+    }
+  }, [isOnline, offlineQueue]);
 
   const loadProgress = async () => {
     // Load from localStorage first for immediate display
@@ -47,8 +63,83 @@ export const useEnhancedLessonProgress = () => {
       }
     }
 
-    // TODO: Future Supabase integration will be added here
-    // when the types are updated after the migration
+    // Sync with Supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('lesson_progress')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        if (data) {
+          const progressMap: Record<string, LessonProgress> = {};
+          data.forEach((item: any) => {
+            progressMap[item.lesson_id] = {
+              lessonId: item.lesson_id,
+              completed: item.completed,
+              score: item.score,
+              currentPanel: item.current_panel,
+              timeSpent: item.time_spent,
+              attempts: item.attempts,
+              completedAt: item.completed_at ? new Date(item.completed_at) : undefined,
+              bookmarked: item.bookmarked,
+              lastVisited: item.last_visited ? new Date(item.last_visited) : undefined,
+            };
+          });
+          setLessonProgress(progressMap);
+          localStorage.setItem('lessonProgress', JSON.stringify(progressMap));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load progress from Supabase:', error);
+    }
+  };
+
+  const processOfflineQueue = async () => {
+    setSyncStatus('syncing');
+    try {
+      for (const item of offlineQueue) {
+        await syncToSupabase(item.lessonId, item.data);
+      }
+      setOfflineQueue([]);
+      localStorage.removeItem('offlineQueue');
+      setSyncStatus('idle');
+      toast.success('Progress synced! ☁️');
+    } catch (error) {
+      console.error('Failed to process offline queue:', error);
+      setSyncStatus('error');
+    }
+  };
+
+  const syncToSupabase = async (lessonId: string, data: Partial<LessonProgress>) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('lesson_progress')
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          completed: data.completed ?? false,
+          score: data.score ?? 0,
+          current_panel: data.currentPanel ?? 0,
+          time_spent: data.timeSpent ?? 0,
+          attempts: data.attempts ?? 0,
+          completed_at: data.completedAt?.toISOString(),
+          bookmarked: data.bookmarked ?? false,
+          last_visited: data.lastVisited?.toISOString() ?? new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,lesson_id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const updateProgress = useCallback((lessonId: string, updates: Partial<LessonProgress>) => {
@@ -68,9 +159,30 @@ export const useEnhancedLessonProgress = () => {
         },
       };
       localStorage.setItem('lessonProgress', JSON.stringify(updated));
+      
+      // Sync to Supabase or queue for offline
+      if (isOnline) {
+        syncToSupabase(lessonId, updated[lessonId]).catch(err => {
+          console.error('Sync error:', err);
+          setSyncStatus('error');
+        });
+      } else {
+        const queue: OfflineQueue = {
+          action: 'update',
+          lessonId,
+          data: updated[lessonId],
+          timestamp: Date.now(),
+        };
+        setOfflineQueue(prev => {
+          const newQueue = [...prev, queue];
+          localStorage.setItem('offlineQueue', JSON.stringify(newQueue));
+          return newQueue;
+        });
+      }
+      
       return updated;
     });
-  }, []);
+  }, [isOnline]);
 
   const completeLesson = useCallback((lessonId: string, score: number) => {
     updateProgress(lessonId, {

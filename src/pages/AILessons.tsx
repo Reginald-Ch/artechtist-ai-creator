@@ -30,6 +30,7 @@ import { ImprovedSearchInterface } from '@/components/enhanced/ImprovedSearchInt
 import { ProgressAnalytics } from '@/components/enhanced/ProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
+import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -219,6 +220,7 @@ const AILessons = () => {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               AI Learning Hub
             </h1>
+            <SyncStatusIndicator syncStatus={syncStatus} isOnline={isOnline} />
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Master artificial intelligence through interactive lessons, comics, and hands-on practice.
@@ -256,30 +258,22 @@ const AILessons = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-6 max-w-4xl mx-auto">
+                  <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto">
                     <TabsTrigger value="browse">
-                      <BookOpen className="w-4 h-4 mr-2" />
+                      <BookOpen className="w-4 h-4 mr-2 hidden sm:inline" />
                       Topics
                     </TabsTrigger>
                     <TabsTrigger value="all">
-                      <Star className="w-4 h-4 mr-2" />
+                      <Star className="w-4 h-4 mr-2 hidden sm:inline" />
                       All Lessons
                     </TabsTrigger>
                     <TabsTrigger value="search">
-                      <Search className="w-4 h-4 mr-2" />
+                      <Search className="w-4 h-4 mr-2 hidden sm:inline" />
                       Search
                     </TabsTrigger>
                     <TabsTrigger value="analytics">
-                      <BarChart3 className="w-4 h-4 mr-2" />
+                      <BarChart3 className="w-4 h-4 mr-2 hidden sm:inline" />
                       Analytics
-                    </TabsTrigger>
-                    <TabsTrigger value="ai-tutor">
-                      <Brain className="w-4 h-4 mr-2" />
-                      AI Tutor
-                    </TabsTrigger>
-                    <TabsTrigger value="voice">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Voice
                     </TabsTrigger>
                   </TabsList>
 
@@ -367,6 +361,16 @@ const AILessons = () => {
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
                     <option value="advanced">Advanced</option>
+                  </select>
+                  <select 
+                    value={selectedAgeGroup}
+                    onChange={(e) => setSelectedAgeGroup(e.target.value)}
+                    className="px-3 py-2 border rounded-md bg-background"
+                  >
+                    <option value="all">All Age Groups</option>
+                    <option value="little-explorers">🌟 Little Explorers (6-8)</option>
+                    <option value="young-builders">🔨 Young Builders (9-11)</option>
+                    <option value="ai-ambassadors">🚀 AI Ambassadors (12-14)</option>
                   </select>
                   <select 
                     value={sortBy}

@@ -45,6 +45,11 @@ All colors MUST be HSL.
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.4);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Accessibility & Mobile */
+    --touch-target-min: 44px;
+    --focus-ring: 2px solid hsl(var(--primary));
+    --focus-ring-offset: 2px;
 
     --sidebar-background: 0 0% 98%;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +12,12 @@ import {
   Bookmark,
   BookmarkCheck,
   SkipForward,
-  Play
+  Play,
+  Keyboard
 } from 'lucide-react';
 import { AnimatedCharacter } from '@/components/AnimatedCharacter';
 import { OptimizedEncouragingAI } from './OptimizedEncouragingAI';
+import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { Lesson } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -44,9 +46,36 @@ const AccessibleLessonView = memo(({
   const [currentPanel, setCurrentPanel] = useState(0);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const announcementRef = useRef<HTMLDivElement>(null);
 
-  // Keyboard navigation
+  const currentPanelData = lesson.panels[currentPanel];
+
+  const handleNext = useCallback(() => {
+    if (currentPanel < lesson.panels.length - 1) {
+      setCurrentPanel(prev => prev + 1);
+    }
+  }, [currentPanel, lesson.panels.length]);
+
+  const handlePrevious = useCallback(() => {
+    if (currentPanel > 0) {
+      setCurrentPanel(prev => prev - 1);
+    }
+  }, [currentPanel]);
+
+  const handlePlayAudio = useCallback(() => {
+    if (isPlaying) {
+      stop();
+    } else {
+      const textToSpeak = `${currentPanelData.character}: ${currentPanelData.dialogue}`;
+      speak(textToSpeak);
+    }
+  }, [isPlaying, stop, speak, currentPanelData]);
+
+  // Enhanced keyboard navigation with help
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -62,16 +91,22 @@ const AccessibleLessonView = memo(({
           handlePrevious();
           break;
         case 's':
+        case 'S':
           e.preventDefault();
           handlePlayAudio();
           break;
         case 'b':
+        case 'B':
           e.preventDefault();
           onToggleBookmark();
           break;
         case 'Escape':
           e.preventDefault();
           onBack();
+          break;
+        case '?':
+          e.preventDefault();
+          setShowShortcuts(true);
           break;
       }
     };
@@ -80,36 +115,69 @@ const AccessibleLessonView = memo(({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [currentPanel, lesson.panels.length, isPlaying, onToggleBookmark, onBack]);
 
-  // Auto-advance panels
+  // Touch gestures for mobile
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      setTouchStart(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!touchStart) return;
+      
+      const touchEnd = e.changedTouches[0].clientX;
+      const diff = touchStart - touchEnd;
+      
+      // Swipe threshold of 50px
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          handleNext();
+        } else {
+          handlePrevious();
+        }
+      }
+      
+      setTouchStart(null);
+    };
+
+    const element = panelRef.current;
+    if (element) {
+      element.addEventListener('touchstart', handleTouchStart);
+      element.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      if (element) {
+        element.removeEventListener('touchstart', handleTouchStart);
+        element.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, [touchStart, handleNext, handlePrevious]);
+
+  // Focus management
+  useEffect(() => {
+    if (panelRef.current) {
+      panelRef.current.focus();
+    }
+  }, [currentPanel]);
+
+  // Auto-advance panels with announcements
   useEffect(() => {
     if (autoPlay && !isPlaying && currentPanel < lesson.panels.length - 1) {
       const timer = setTimeout(() => {
         setCurrentPanel(prev => prev + 1);
+        if (announcementRef.current) {
+          announcementRef.current.textContent = `Panel ${currentPanel + 2} of ${lesson.panels.length}`;
+        }
       }, 3000);
       return () => clearTimeout(timer);
     }
   }, [autoPlay, isPlaying, currentPanel, lesson.panels.length]);
 
-  const currentPanelData = lesson.panels[currentPanel];
-
-  const handlePlayAudio = useCallback(() => {
-    if (isPlaying) {
-      stop();
-    } else {
-      const textToSpeak = `${currentPanelData.character}: ${currentPanelData.dialogue}`;
-      speak(textToSpeak);
-    }
-  }, [isPlaying, stop, speak, currentPanelData]);
-
-  const handleNext = useCallback(() => {
-    if (currentPanel < lesson.panels.length - 1) {
-      setCurrentPanel(prev => prev + 1);
-    }
-  }, [currentPanel, lesson.panels.length]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentPanel > 0) {
-      setCurrentPanel(prev => prev - 1);
+  // Screen reader announcements
+  useEffect(() => {
+    if (announcementRef.current) {
+      const text = `${currentPanelData.character}: ${currentPanelData.dialogue}`;
+      announcementRef.current.textContent = text;
     }
   }, [currentPanel]);
 
@@ -162,6 +230,29 @@ const AccessibleLessonView = memo(({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Skip Navigation Link */}
+      <a 
+        href="#lesson-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+      >
+        Skip to lesson content
+      </a>
+
+      {/* Screen Reader Live Region */}
+      <div 
+        ref={announcementRef}
+        className="sr-only" 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+      />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog 
+        open={showShortcuts} 
+        onOpenChange={setShowShortcuts} 
+      />
+
       {/* Lesson Header */}
       <Card>
         <CardHeader>
@@ -188,7 +279,7 @@ const AccessibleLessonView = memo(({
               </CardDescription>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Audio Controls */}
               {isSupported && (
                 <>
@@ -197,13 +288,14 @@ const AccessibleLessonView = memo(({
                     size="sm" 
                     onClick={handlePlayAudio}
                     aria-label={isPlaying ? "Pause audio" : "Play audio"}
+                    className="min-w-[44px] min-h-[44px]"
                   >
                     {isPlaying ? (
-                      <VolumeX className="w-4 h-4 mr-2" />
+                      <VolumeX className="w-4 h-4 sm:mr-2" />
                     ) : (
-                      <Volume2 className="w-4 h-4 mr-2" />
+                      <Volume2 className="w-4 h-4 sm:mr-2" />
                     )}
-                    {isPlaying ? 'Pause' : 'Listen'}
+                    <span className="hidden sm:inline">{isPlaying ? 'Pause' : 'Listen'}</span>
                   </Button>
                   {isPlaying && (
                     <Button 
@@ -211,9 +303,10 @@ const AccessibleLessonView = memo(({
                       size="sm" 
                       onClick={stop}
                       aria-label="Stop audio"
+                      className="min-w-[44px] min-h-[44px]"
                     >
-                      <Square className="w-4 h-4 mr-2" />
-                      Stop
+                      <Square className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Stop</span>
                     </Button>
                   )}
                   <Button
@@ -221,14 +314,24 @@ const AccessibleLessonView = memo(({
                     size="sm"
                     onClick={() => setAutoPlay(!autoPlay)}
                     aria-label={autoPlay ? "Disable auto-play" : "Enable auto-play"}
-                    className={autoPlay ? 'bg-primary/10' : ''}
+                    className={`min-w-[44px] min-h-[44px] ${autoPlay ? 'bg-primary/10' : ''}`}
                   >
                     <Play className="w-4 h-4" />
                   </Button>
                 </>
               )}
-              <Button variant="outline" onClick={onBack}>
-                Back to Topics
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowShortcuts(true)}
+                aria-label="Show keyboard shortcuts"
+                className="min-w-[44px] min-h-[44px]"
+              >
+                <Keyboard className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" onClick={onBack} className="min-w-[44px] min-h-[44px]">
+                <span className="hidden sm:inline">Back to Topics</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </div>
           </div>
@@ -249,8 +352,13 @@ const AccessibleLessonView = memo(({
       </Card>
 
       {/* Panel Content */}
-      <Card>
-        <CardContent className="space-y-6 p-6">
+      <Card 
+        ref={panelRef}
+        tabIndex={0}
+        id="lesson-content"
+        aria-label="Lesson panel content"
+      >
+        <CardContent className="space-y-6 p-4 sm:p-6">
           {/* Character & Dialogue */}
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -301,22 +409,24 @@ const AccessibleLessonView = memo(({
           )}
 
           {/* Navigation */}
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentPanel === 0}
               aria-label="Previous panel"
+              className="min-w-[44px] min-h-[44px] flex-1 sm:flex-none"
             >
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Previous
+              <ChevronLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Previous</span>
             </Button>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch gap-2 flex-1 sm:flex-none">
               <Button
                 variant="outline"
                 onClick={() => setShowFlashcards(true)}
                 aria-label="Review flashcards"
+                className="min-w-[44px] min-h-[44px]"
               >
                 Review Cards
               </Button>
@@ -324,7 +434,7 @@ const AccessibleLessonView = memo(({
               {currentPanel === lesson.panels.length - 1 ? (
                 <Button 
                   onClick={onComplete} 
-                  className="bg-gradient-to-r from-primary to-primary-glow"
+                  className="bg-gradient-to-r from-primary to-primary-glow min-w-[44px] min-h-[44px]"
                   aria-label="Complete lesson"
                 >
                   Complete Lesson
@@ -333,17 +443,24 @@ const AccessibleLessonView = memo(({
                 <Button
                   onClick={handleNext}
                   aria-label="Next panel"
+                  className="min-w-[44px] min-h-[44px]"
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="w-4 h-4 sm:ml-2" />
                 </Button>
               )}
             </div>
           </div>
 
           {/* Keyboard Shortcuts Help */}
-          <div className="text-xs text-muted-foreground border-t pt-4">
-            <p>Keyboard shortcuts: ← → (navigate) • Space (next) • S (speak) • B (bookmark) • Esc (back)</p>
+          <div className="text-xs text-muted-foreground border-t pt-4 text-center sm:text-left">
+            <p className="hidden sm:block">Keyboard shortcuts: ← → (navigate) • Space (next) • S (speak) • B (bookmark) • ? (help) • Esc (back)</p>
+            <button 
+              onClick={() => setShowShortcuts(true)}
+              className="sm:hidden text-primary underline"
+            >
+              View keyboard shortcuts
+            </button>
           </div>
         </CardContent>
       </Card>
