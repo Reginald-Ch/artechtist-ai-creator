@@ -83,5 +83,7 @@ export interface SearchResult {
     answer?: string;
     cardIndex?: number;
     panelIndex?: number;
+    category?: string;
+    ageGroup?: string;
   };
 }
