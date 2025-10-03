@@ -215,6 +215,21 @@ export const validateResponse = (response: string): FormValidationResult => {
   };
 };
 
+export const validateChatMessage = (message: string): FormValidationResult => {
+  const errors: string[] = [];
+  
+  if (!message || message.trim().length === 0) {
+    errors.push('Message cannot be empty');
+  } else if (message.length > 1000) {
+    errors.push('Message must be less than 1000 characters');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
 // Utility function to check if a string is safe for display
 export const isSafeForDisplay = (input: string): boolean => {
   const dangerousPatterns = [
