@@ -27,10 +27,13 @@ import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
 import { ImprovedSearchInterface } from '@/components/enhanced/ImprovedSearchInterface';
-import { ProgressAnalytics } from '@/components/enhanced/ProgressAnalytics';
+import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
+import { ContinueLearning } from '@/components/enhanced/ContinueLearning';
+import { RecommendedLessons } from '@/components/enhanced/RecommendedLessons';
+import { LearningPath } from '@/components/enhanced/LearningPath';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -258,26 +261,45 @@ const AILessons = () => {
             {/* Main Content */}
             <div className="lg:col-span-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto">
-                    <TabsTrigger value="browse">
-                      <BookOpen className="w-4 h-4 mr-2 hidden sm:inline" />
-                      Topics
+                  <TabsList className="grid w-full grid-cols-5 max-w-5xl mx-auto">
+                    <TabsTrigger value="browse" className="text-xs sm:text-sm">
+                      <BookOpen className="w-4 h-4 mr-0 sm:mr-2" />
+                      <span className="hidden sm:inline">Topics</span>
                     </TabsTrigger>
-                    <TabsTrigger value="all">
-                      <Star className="w-4 h-4 mr-2 hidden sm:inline" />
-                      All Lessons
+                    <TabsTrigger value="all" className="text-xs sm:text-sm">
+                      <Star className="w-4 h-4 mr-0 sm:mr-2" />
+                      <span className="hidden sm:inline">All</span>
                     </TabsTrigger>
-                    <TabsTrigger value="search">
-                      <Search className="w-4 h-4 mr-2 hidden sm:inline" />
-                      Search
+                    <TabsTrigger value="learning-path" className="text-xs sm:text-sm">
+                      <TrendingUp className="w-4 h-4 mr-0 sm:mr-2" />
+                      <span className="hidden sm:inline">Path</span>
                     </TabsTrigger>
-                    <TabsTrigger value="analytics">
-                      <BarChart3 className="w-4 h-4 mr-2 hidden sm:inline" />
-                      Analytics
+                    <TabsTrigger value="search" className="text-xs sm:text-sm">
+                      <Search className="w-4 h-4 mr-0 sm:mr-2" />
+                      <span className="hidden sm:inline">Search</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                      <BarChart3 className="w-4 h-4 mr-0 sm:mr-2" />
+                      <span className="hidden sm:inline">Analytics</span>
                     </TabsTrigger>
                   </TabsList>
 
             <TabsContent value="browse" className="space-y-6">
+              {/* Continue Learning Section */}
+              <ContinueLearning 
+                lessons={filteredLessons}
+                progress={lessonProgress}
+                onStartLesson={handleStartLesson}
+              />
+              
+              {/* Recommended Lessons */}
+              <RecommendedLessons 
+                lessons={filteredLessons}
+                progress={lessonProgress}
+                onStartLesson={handleStartLesson}
+              />
+              
+              {/* Topics Grid */}
               {isLoading ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                   {[1, 2, 3, 4].map(i => <TopicCardSkeleton key={i} />)}
@@ -456,13 +478,24 @@ const AILessons = () => {
 
                 <TabsContent value="analytics" className="space-y-6">
                   {analytics && (
-                    <ProgressAnalytics 
+                    <EnhancedProgressAnalytics 
                       analytics={analytics}
                       syncStatus={syncStatus}
                       isOnline={isOnline}
                       onExportProgress={exportProgress}
                     />
                   )}
+                </TabsContent>
+                
+                <TabsContent value="learning-path" className="space-y-6">
+                  <LearningPath 
+                    topics={topics}
+                    lessons={Object.fromEntries(
+                      filteredLessons.map(lesson => [lesson.id, lesson])
+                    )}
+                    progress={lessonProgress}
+                    onStartLesson={handleStartLesson}
+                  />
                 </TabsContent>
               </Tabs>
             </div>

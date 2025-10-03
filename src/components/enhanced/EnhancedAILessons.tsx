@@ -32,7 +32,7 @@ import {
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
-import { ProgressAnalytics } from '@/components/enhanced/ProgressAnalytics';
+import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
@@ -551,8 +551,8 @@ const EnhancedAILessons = () => {
 
                   <TabsContent value="analytics" className="space-y-6">
                     {analytics && (
-                      <ProgressAnalytics 
-                        analytics={analytics}
+                      <EnhancedProgressAnalytics 
+                        analytics={analytics as any}
                         syncStatus={syncStatus}
                         isOnline={isOnline}
                         onExportProgress={exportProgress}
