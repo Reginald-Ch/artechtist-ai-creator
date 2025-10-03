@@ -27,6 +27,7 @@ import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
 import { ImprovedSearchInterface } from '@/components/enhanced/ImprovedSearchInterface';
+import { AdvancedSearch } from '@/components/enhanced/AdvancedSearch';
 import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
@@ -34,6 +35,7 @@ import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
 import { ContinueLearning } from '@/components/enhanced/ContinueLearning';
 import { RecommendedLessons } from '@/components/enhanced/RecommendedLessons';
 import { LearningPath } from '@/components/enhanced/LearningPath';
+import { EnhancedFlashcardStudy } from '@/components/enhanced/EnhancedFlashcardStudy';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -46,6 +48,7 @@ const AILessons = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'title' | 'difficulty' | 'duration' | 'progress'>('title');
+  const [showFlashcardStudy, setShowFlashcardStudy] = useState(false);
   
   const {
     lessonProgress,
@@ -243,7 +246,17 @@ const AILessons = () => {
         </div>
 
         {/* Lesson Content */}
-        {selectedLesson ? (
+        {showFlashcardStudy && selectedLesson ? (
+          <EnhancedFlashcardStudy
+            lessonId={selectedLesson}
+            flashcards={getLessonById(selectedLesson)?.flashcards || []}
+            onComplete={() => {
+              setShowFlashcardStudy(false);
+              setSelectedLesson(null);
+            }}
+            onBack={() => setShowFlashcardStudy(false)}
+          />
+        ) : selectedLesson ? (
               <Suspense fallback={<div className="animate-pulse">Loading lesson...</div>}>
                  <AccessibleLessonView 
                    lesson={getLessonById(selectedLesson) as any} 
@@ -254,6 +267,7 @@ const AILessons = () => {
                    onComplete={() => handleCompleteLesson(selectedLesson)}
                    onBack={() => setSelectedLesson(null)}
                    onToggleBookmark={() => toggleBookmark(selectedLesson)}
+                   onStartFlashcards={() => setShowFlashcardStudy(true)}
                  />
               </Suspense>
         ) : (
@@ -469,10 +483,10 @@ const AILessons = () => {
             </TabsContent>
 
             <TabsContent value="search" className="space-y-6">
-              <ImprovedSearchInterface 
-                lessons={enhancedComicLessons as Record<string, any>}
+              <AdvancedSearch 
+                lessons={filteredLessons}
                 onSelectResult={handleSearchResult}
-                isLoading={isLoading}
+                userAgeGroup={selectedAgeGroup !== 'all' ? selectedAgeGroup : undefined}
               />
             </TabsContent>
 

@@ -178,6 +178,51 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcard_progress: {
+        Row: {
+          created_at: string
+          ease_factor: number
+          flashcard_id: number
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          lesson_id: string
+          mastery_level: number
+          next_review_date: string
+          repetitions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ease_factor?: number
+          flashcard_id: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          lesson_id: string
+          mastery_level?: number
+          next_review_date?: string
+          repetitions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ease_factor?: number
+          flashcard_id?: number
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          lesson_id?: string
+          mastery_level?: number
+          next_review_date?: string
+          repetitions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           attempts: number

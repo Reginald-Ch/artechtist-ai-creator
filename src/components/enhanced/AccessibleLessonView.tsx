@@ -31,6 +31,7 @@ interface AccessibleLessonViewProps {
   onComplete: () => void;
   onBack: () => void;
   onToggleBookmark: () => void;
+  onStartFlashcards?: () => void;
 }
 
 const AccessibleLessonView = memo(({ 
@@ -41,7 +42,8 @@ const AccessibleLessonView = memo(({
   streakDays,
   onComplete, 
   onBack,
-  onToggleBookmark
+  onToggleBookmark,
+  onStartFlashcards
 }: AccessibleLessonViewProps) => {
   const [currentPanel, setCurrentPanel] = useState(0);
   const [showFlashcards, setShowFlashcards] = useState(false);
@@ -430,6 +432,17 @@ const AccessibleLessonView = memo(({
               >
                 Review Cards
               </Button>
+              
+              {onStartFlashcards && lesson.flashcards.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={onStartFlashcards}
+                  aria-label="Study Mode with spaced repetition"
+                  className="min-w-[44px] min-h-[44px]"
+                >
+                  Study Mode
+                </Button>
+              )}
               
               {currentPanel === lesson.panels.length - 1 ? (
                 <Button 
