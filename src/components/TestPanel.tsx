@@ -367,7 +367,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                           className={`rounded-xl px-4 py-3 shadow-sm ${
                             message.sender === 'user'
                               ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground'
-                              : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
+                              : 'bg-gradient-to-r from-muted to-muted/80 text-foreground'
                           }`}
                           style={{ 
                             wordBreak: 'break-word',

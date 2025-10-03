@@ -166,34 +166,38 @@ interface ConversationTemplatesProps {
 
 export const ConversationTemplates = ({ onSelectTemplate, onClose }: ConversationTemplatesProps) => {
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 overflow-y-auto">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 bg-background/98 backdrop-blur-md z-50 overflow-y-auto">
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Conversation Templates
             </h2>
-            <p className="text-muted-foreground mt-1">
-              Choose a pre-built template to get started quickly, then customize it to your needs
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
+              Choose a pre-built template to get started quickly
             </p>
           </div>
-          <Button variant="outline" onClick={onClose}>
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            className="min-h-[44px] min-w-[44px] self-end sm:self-auto"
+          >
             Close
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {templates.map((template) => (
-            <Card key={template.id} className="hover:shadow-lg transition-all duration-200 hover:scale-105">
-              <CardHeader>
+            <Card key={template.id} className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+              <CardHeader className="pb-3">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
+                  <div className="p-2 bg-primary/10 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center">
                     {template.icon}
                   </div>
-                  <Badge variant="secondary">{template.category}</Badge>
+                  <Badge variant="secondary" className="text-xs">{template.category}</Badge>
                 </div>
-                <CardTitle className="text-lg">{template.name}</CardTitle>
-                <CardDescription>{template.description}</CardDescription>
+                <CardTitle className="text-base sm:text-lg">{template.name}</CardTitle>
+                <CardDescription className="text-sm">{template.description}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 mb-4">
@@ -201,9 +205,9 @@ export const ConversationTemplates = ({ onSelectTemplate, onClose }: Conversatio
                     <span className="font-semibold text-primary">Includes:</span>
                     <ul className="mt-2 space-y-1">
                       {template.intents.map((intent, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-muted-foreground">
-                          <Star className="h-3 w-3 text-yellow-500" />
-                          <span>{intent.name} intent ({intent.trainingPhrases.length} phrases)</span>
+                        <li key={idx} className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <Star className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+                          <span>{intent.name} ({intent.trainingPhrases.length} phrases)</span>
                         </li>
                       ))}
                     </ul>
@@ -214,7 +218,7 @@ export const ConversationTemplates = ({ onSelectTemplate, onClose }: Conversatio
                     onSelectTemplate(template);
                     onClose();
                   }}
-                  className="w-full"
+                  className="w-full min-h-[44px]"
                 >
                   Use This Template
                 </Button>
@@ -223,18 +227,18 @@ export const ConversationTemplates = ({ onSelectTemplate, onClose }: Conversatio
           ))}
         </div>
 
-        <Card className="mt-8 border-2 border-dashed">
+        <Card className="mt-6 sm:mt-8 border-2 border-dashed">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
               <Bot className="h-5 w-5" />
               Start from Scratch
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Build your own custom conversation flow without a template
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={onClose} variant="outline" className="w-full">
+            <Button onClick={onClose} variant="outline" className="w-full min-h-[44px]">
               Create Custom Bot
             </Button>
           </CardContent>

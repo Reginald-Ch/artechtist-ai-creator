@@ -1112,9 +1112,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
         </div>
 
-        <div className="flex-1 flex gap-0 border-t border-border">
+        <div className="flex flex-col lg:flex-row flex-1 gap-0 border-t border-border">
           {/* Expanded Full Workspace - Intent panel removed */}
-          <div className="flex-[2] border-l border-r border-border bg-background">
+          <div className="flex-[2] lg:border-l lg:border-r border-border bg-background order-2 lg:order-1">
             <div className="h-12 px-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex items-center gap-3">
                 <Brain className="h-5 w-5 text-primary" />
@@ -1243,8 +1243,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
 
 
-          {/* Enhanced Right Panel - Real-time Testing */}
-          <div className="w-96 border-l border-border bg-background">
+          {/* Enhanced Right Panel - Real-time Testing - Mobile: Above canvas, Desktop: Right side */}
+          <div className="w-full lg:w-96 lg:border-l border-border bg-background order-1 lg:order-2 min-h-[300px] lg:min-h-0">
             <div className="h-14 px-4 border-b border-border flex items-center justify-between bg-muted/30">
               <div className="flex items-center gap-2">
                 <Play className="h-4 w-4 text-primary" />
