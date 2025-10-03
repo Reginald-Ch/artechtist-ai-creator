@@ -7,6 +7,8 @@ import { Send, Mic, MicOff, Bot, User, RotateCcw, Volume2, VolumeX } from "lucid
 import { Node, Edge } from '@xyflow/react';
 import { useToast } from "@/hooks/use-toast";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
+import { useVoicePersistence } from "@/hooks/useVoicePersistence";
 
 interface TestChatInterfaceProps {
   nodes: Node[];
@@ -36,33 +38,11 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const [voiceSettings, setVoiceSettings] = useState<any>(null);
-  const [displayAvatar, setDisplayAvatar] = useState(botAvatar);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
-
-  // Load saved avatar for consistency across the app
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem('bot-avatar-selection');
-    if (savedAvatar) {
-      setDisplayAvatar(savedAvatar);
-    } else {
-      setDisplayAvatar(botAvatar);
-    }
-  }, [botAvatar]);
-
-  // Load voice settings from localStorage
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('aiAgentVoiceSettings');
-    if (savedSettings) {
-      try {
-        setVoiceSettings(JSON.parse(savedSettings));
-      } catch (error) {
-        console.error('Failed to load voice settings:', error);
-      }
-    }
-  }, []);
+  const { avatar: displayAvatar } = useAvatarPersistence(botAvatar);
+  const { voiceSettings, getBrowserVoice } = useVoicePersistence();
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -165,27 +145,20 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
     // Speak the bot response if audio is enabled with custom voice settings
     if (audioEnabled && isSupported && botResponse) {
       setTimeout(() => {
-        if ('speechSynthesis' in window && voiceSettings) {
+        if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
           
           const utterance = new SpeechSynthesisUtterance(botResponse);
           
           // Apply saved voice settings
-          utterance.pitch = voiceSettings.pitch || 1.0;
-          utterance.rate = voiceSettings.speakingSpeed || 1.0;
+          utterance.pitch = voiceSettings.pitch;
+          utterance.rate = voiceSettings.speakingSpeed || voiceSettings.speed;
           utterance.volume = 0.8;
           
-          // Set voice gender preference
-          const voices = window.speechSynthesis.getVoices();
-          const preferredVoice = voices.find(voice => 
-            voice.lang.includes('en') && 
-            (voiceSettings.voiceGender === 'female' ? 
-              voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman') : 
-              voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
-          ) || voices.find(voice => voice.lang.includes('en'));
-          
-          if (preferredVoice) {
-            utterance.voice = preferredVoice;
+          // Get the browser voice based on saved settings
+          const browserVoice = getBrowserVoice();
+          if (browserVoice) {
+            utterance.voice = browserVoice;
           }
           
           window.speechSynthesis.speak(utterance);
@@ -335,21 +308,22 @@ export const TestChatInterface: React.FC<TestChatInterfaceProps> = ({
                   </div>
                 )}
                 
-                  <div className={`max-w-[85%] min-w-0 ${message.type === 'user' ? 'order-first' : ''}`}>
+                  <div className={`max-w-[80%] min-w-0 ${message.type === 'user' ? 'order-first' : ''}`}>
                     <div
-                      className={`rounded-xl px-4 py-3 shadow-sm break-words hyphens-auto overflow-wrap-anywhere ${
+                      className={`rounded-xl px-4 py-3 shadow-sm ${
                         message.type === 'user'
                           ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground ml-auto'
                           : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                       }`}
                       style={{ 
                         wordBreak: 'break-word',
-                        overflowWrap: 'break-word',
-                        hyphens: 'auto',
-                        whiteSpace: 'pre-wrap'
+                        overflowWrap: 'anywhere',
+                        whiteSpace: 'pre-wrap',
+                        maxHeight: '400px',
+                        overflowY: 'auto'
                       }}
                     >
-                      <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                      <p className="text-sm leading-relaxed">
                         {message.content}
                       </p>
                     </div>

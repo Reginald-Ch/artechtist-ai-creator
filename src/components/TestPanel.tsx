@@ -219,25 +219,66 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
     utterance.lang = botLanguage === 'en' ? 'en-US' : 
                      botLanguage === 'fr' ? 'fr-FR' : 'en-US';
     
-    // Select voice based on voiceId setting
+    // Get available voices
     const voices = synthesis.current.getVoices();
     let selectedVoice = null;
     
-    if (voiceSettings.voiceId.includes('female') || voiceSettings.voiceId === 'EXAVITQu4vr4xnSDxMaL' || voiceSettings.voiceId === '9BWtsMINqrJLrRacOk9x' || voiceSettings.voiceId === 'FGY2WhTYpPnrIDTdsKH5') {
+    // Enhanced voice mapping based on ElevenLabs voice IDs
+    const voiceMap: Record<string, 'female' | 'male'> = {
+      // Female voices
+      'EXAVITQu4vr4xnSDxMaL': 'female', // Sarah
+      '9BWtsMINqrJLrRacOk9x': 'female', // Aria
+      'FGY2WhTYpPnrIDTdsKH5': 'female', // Laura
+      'XB0fDUnXU5powFXDhCwa': 'female', // Charlotte
+      'Xb7hH8MSUJpSbSDYk0k2': 'female', // Alice
+      'XrExE9yKIg1WjnnlVkGX': 'female', // Matilda
+      'cgSgspJ2msm6clMCkdW9': 'female', // Jessica
+      'pFZP5JQG7iQjIQuC4Bku': 'female', // Lily
+      
+      // Male voices
+      'CwhRBWXzGAHq8TQ4Fs17': 'male', // Roger
+      'IKne3meq5aSn9XLyUdCD': 'male', // Charlie
+      'JBFqnCBsd6RMkjVDRZzb': 'male', // George
+      'N2lVS1w4EtoT3dr4eOWO': 'male', // Callum
+      'TX3LPaxmHKxFdv7VOQHJ': 'male', // Liam
+      'bIHbv24MWmeRgasZH58o': 'male', // Will
+      'cjVigY5qzO86Huf0OWal': 'male', // Eric
+      'iP95p4xoKVk53GoZ742B': 'male', // Chris
+      'nPczCjzI2devNBz1zQrb': 'male', // Brian
+      'onwK4e9ZLuTAKqWW03F9': 'male', // Daniel
+      'pqHfZKP75CvOlQylNhV4': 'male', // Bill
+    };
+    
+    const preferredGender = voiceMap[voiceSettings.voiceId] || 'female';
+    const targetLang = botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en';
+    
+    // Find voice matching language and gender
+    if (preferredGender === 'female') {
       selectedVoice = voices.find(voice => 
-        voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en') && 
-        (voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman'))
+        voice.lang.includes(targetLang) && 
+        (voice.name.toLowerCase().includes('female') || 
+         voice.name.toLowerCase().includes('woman') ||
+         voice.name.toLowerCase().includes('samantha') ||
+         voice.name.toLowerCase().includes('victoria'))
       );
-    } else if (voiceSettings.voiceId.includes('male') || voiceSettings.voiceId === 'CwhRBWXzGAHq8TQ4Fs17') {
+    } else {
       selectedVoice = voices.find(voice => 
-        voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en') && 
-        (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+        voice.lang.includes(targetLang) && 
+        (voice.name.toLowerCase().includes('male') || 
+         voice.name.toLowerCase().includes('man') ||
+         voice.name.toLowerCase().includes('daniel') ||
+         voice.name.toLowerCase().includes('alex'))
       );
     }
     
-    // Fallback to first available voice in the language
+    // Fallback to any voice in the target language
     if (!selectedVoice) {
-      selectedVoice = voices.find(voice => voice.lang.includes(botLanguage === 'en' ? 'en' : botLanguage === 'fr' ? 'fr' : 'en'));
+      selectedVoice = voices.find(voice => voice.lang.includes(targetLang));
+    }
+    
+    // Ultimate fallback to first available voice
+    if (!selectedVoice && voices.length > 0) {
+      selectedVoice = voices[0];
     }
     
     if (selectedVoice) {
@@ -248,7 +289,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
     
     toast({
       title: "🔊 Speaking...",
-      description: "Bot is responding with voice",
+      description: selectedVoice ? `Using ${selectedVoice.name}` : "Bot is responding with voice",
     });
   };
 
@@ -321,21 +362,22 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                         </div>
                       )}
                       
-                      <div className={`flex flex-col gap-1 min-w-0 max-w-[75%] ${message.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                     <div className={`flex flex-col gap-1 min-w-0 max-w-[80%] ${message.sender === 'user' ? 'items-end' : 'items-start'}`}>
                         <div
-                          className={`rounded-xl px-4 py-3 shadow-sm break-words hyphens-auto overflow-wrap-anywhere ${
+                          className={`rounded-xl px-4 py-3 shadow-sm ${
                             message.sender === 'user'
                               ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground'
                               : 'bg-gradient-to-r from-muted to-muted/80 text-foreground border border-border/50'
                           }`}
                           style={{ 
                             wordBreak: 'break-word',
-                            overflowWrap: 'break-word',
-                            hyphens: 'auto',
-                            whiteSpace: 'pre-wrap'
+                            overflowWrap: 'anywhere',
+                            whiteSpace: 'pre-wrap',
+                            maxHeight: '400px',
+                            overflowY: 'auto'
                           }}
                         >
-                          <p className="text-sm leading-relaxed break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          <p className="text-sm leading-relaxed">
                             {message.text}
                             {message.isVoice && (
                               <Mic className="h-3 w-3 ml-2 inline opacity-70" />

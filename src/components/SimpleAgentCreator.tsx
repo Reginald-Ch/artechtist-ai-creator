@@ -11,13 +11,13 @@ import { Bot, Brain, ArrowRight, Save, Volume2 } from "lucide-react";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { toast } from "@/hooks/use-toast";
+import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 
 const SimpleAgentCreator = () => {
   const navigate = useNavigate();
   const [agentName, setAgentName] = useState("");
   const [agentDescription, setAgentDescription] = useState("");
-  const [botAvatar, setBotAvatar] = useState("🤖");
-  const [botPersonality, setBotPersonality] = useState("helpful and friendly");
+  const { avatar: botAvatar, personality: botPersonality, updateAvatarAndPersonality } = useAvatarPersistence();
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
 
   const handleCreateAgent = () => {
@@ -111,8 +111,11 @@ const SimpleAgentCreator = () => {
                 <OptimizedAvatarSelector
                   selectedAvatar={botAvatar}
                   onAvatarChange={(avatar, personality) => {
-                    setBotAvatar(avatar);
-                    setBotPersonality(personality);
+                    updateAvatarAndPersonality(avatar, personality);
+                    toast({
+                      title: "Avatar updated!",
+                      description: `Now using ${avatar} with ${personality} personality`
+                    });
                   }}
                 />
                 <div className="bg-muted/30 rounded-lg p-3 border border-border/30">

@@ -38,15 +38,15 @@ export const useUndoRedo = (
       
       // Limit history size
       if (newHistory.length > maxHistorySize) {
-        return newHistory.slice(-maxHistorySize);
+        const slicedHistory = newHistory.slice(-maxHistorySize);
+        // Adjust currentIndex when we slice
+        setCurrentIndex(maxHistorySize - 1);
+        return slicedHistory;
       }
       
+      // Update currentIndex for new state
+      setCurrentIndex(newHistory.length - 1);
       return newHistory;
-    });
-
-    setCurrentIndex(prev => {
-      const newIndex = Math.min(prev + 1, maxHistorySize - 1);
-      return newIndex;
     });
   }, [currentIndex, maxHistorySize]);
 

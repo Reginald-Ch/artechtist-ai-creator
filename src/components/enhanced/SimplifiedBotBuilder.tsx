@@ -37,6 +37,7 @@ import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSe
 import { TestChatInterface } from "@/components/enhanced/TestChatInterface";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
 import { toast } from "@/hooks/use-toast";
 import { ConfirmationDialog } from "@/components/enhanced/ConfirmationDialog";
@@ -51,6 +52,7 @@ import { BeginnerModeToggle } from "./BeginnerModeToggle";
 import { VoiceFirstExperience } from "./VoiceFirstExperience";
 import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
+import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 
 // Removed duplicate nodeTypes definition
 
@@ -108,28 +110,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [botName, setBotName] = useState("My AI Assistant");
-  const [botAvatar, setBotAvatar] = useState("🤖");
-  const [botPersonality, setBotPersonality] = useState("helpful and friendly");
   const [botDescription, setBotDescription] = useState("helpful and friendly");
-  const [selectedAvatar, setSelectedAvatar] = useState("");
   
-  // Enhanced avatar consistency - sync between creation and conversation
-  useEffect(() => {
-    if (selectedAvatar) {
-      setBotAvatar(selectedAvatar);
-      // Store avatar choice for conversation consistency
-      localStorage.setItem('bot-avatar-selection', selectedAvatar);
-    }
-  }, [selectedAvatar]);
-  
-  // Load saved avatar on component mount for consistency
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem('bot-avatar-selection');
-    if (savedAvatar) {
-      setSelectedAvatar(savedAvatar);
-      setBotAvatar(savedAvatar);
-    }
-  }, []);
+  // Use centralized avatar persistence
+  const { avatar: botAvatar, personality: botPersonality, saveAvatar, updateAvatarAndPersonality } = useAvatarPersistence("🤖", "helpful and friendly");
+  const [selectedAvatar, setSelectedAvatar] = useState(botAvatar);
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
@@ -247,6 +232,17 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [isListening, selectedNode, startVoiceRecognition]);
 
+  // Debounced auto-save for undo/redo
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (nodes.length > 0) {
+        undoRedo.saveState(nodes, edges);
+      }
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(timeoutId);
+  }, [nodes, edges]);
+
   // Auto-save functionality
   useEffect(() => {
     if (autoSave) {
@@ -259,17 +255,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [autoSave, nodes, edges]);
 
-  // Save initial state
-  useEffect(() => {
-    undoRedo.saveState(nodes, edges);
-  }, []);
-
   // Apply template data when component mounts
   useEffect(() => {
     if (template) {
       console.log('Applying template:', template);
       setBotName(template.name || "My AI Assistant");
-      setBotAvatar(template.avatar || "🤖");
+      if (template.avatar) {
+        saveAvatar(template.avatar, template.personality || template.description || "helpful and friendly");
+      }
       setBotDescription(template.description || "helpful and friendly");
       
       // Improved template parsing with fallbacks
@@ -719,8 +712,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             const projectData = JSON.parse(e.target?.result as string);
             setProjectName(projectData.name || 'Imported Project');
             setBotName(projectData.botName || 'My AI Assistant');
-            setBotAvatar(projectData.botAvatar || '🤖');
-            setBotPersonality(projectData.botPersonality || 'helpful and friendly');
+            if (projectData.botAvatar) {
+              updateAvatarAndPersonality(projectData.botAvatar, projectData.botPersonality || 'helpful and friendly');
+            }
             setNodes(projectData.nodes || initialNodes);
             setEdges(projectData.edges || initialEdges);
             toast({ title: "Project imported", description: `"${projectData.name}" has been loaded` });
@@ -955,8 +949,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                   <OptimizedAvatarSelector
                     selectedAvatar={botAvatar}
                     onAvatarChange={(avatar, personality) => {
-                      setBotAvatar(avatar);
-                      setBotPersonality(personality);
+                      updateAvatarAndPersonality(avatar, personality);
+                      toast({
+                        title: "Avatar updated!",
+                        description: `Now using ${avatar}`
+                      });
                     }}
                   />
                 </div>
@@ -1402,7 +1399,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           onComplete={(botData) => {
             setBotName(botData.name);
             setBotDescription(botData.description);
-            setBotPersonality(botData.personality);
+            updateAvatarAndPersonality('🤖', botData.personality);
             
             // Create nodes based on wizard data
             const greetNode = {
