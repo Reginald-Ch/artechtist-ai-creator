@@ -32,10 +32,13 @@ import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
-import TestPanel from "@/components/TestPanel";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import { TestChatInterface } from "@/components/enhanced/TestChatInterface";
+import { EnhancedTestChatInterface } from "@/components/chat/EnhancedTestChatInterface";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
+import { IntentList } from "@/components/builder/IntentList";
+import { CanvasControls } from "@/components/builder/CanvasControls";
+import { BotConfiguration } from "@/components/builder/BotConfiguration";
+import { TutorialManager } from "@/components/enhanced/TutorialManager";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
@@ -127,10 +130,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{open: boolean, nodeId: string | null}>({open: false, nodeId: null});
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [showHelpMascot, setShowHelpMascot] = useState(false);
-  const [showMascot, setShowMascot] = useState(false);
-  const [tutorialCompleted, setTutorialCompleted] = useState(false);
   const [intentTrainingDialog, setIntentTrainingDialog] = useState<{
     open: boolean;
     intentData: { id: string; label: string; trainingPhrases: string[]; responses: string[] } | null;
@@ -990,12 +989,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
         <TabsContent value="test" className="p-0 mt-0 h-full">
           <div className="p-4 h-full">
-            <TestChatInterface
+            <EnhancedTestChatInterface
               nodes={nodes}
               edges={edges}
               botName={botName}
               botAvatar={selectedAvatar || botAvatar}
-              className="border-2 border-primary/20 rounded-xl shadow-lg"
+              className="h-full"
             />
           </div>
         </TabsContent>
@@ -1022,10 +1021,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* Enhanced Header with BotBuilderToolbar */}
         <BotBuilderToolbar
           onTestBot={() => setShowTestPanel(!showTestPanel)}
-          onTutorial={() => {
-            setShowTutorial(true);
-            setShowMascot(true);
-          }}
+          onTutorial={() => {}}
           onSave={handleSave}
           onUndo={handleUndo}
           onRedo={handleRedo}
@@ -1265,7 +1261,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               </div>
             </div>
             <div className="h-[calc(100vh-13rem)] border-t">
-              <TestChatInterface
+              <EnhancedTestChatInterface
                 nodes={nodes}
                 edges={edges}
                 botAvatar={botAvatar}
@@ -1373,24 +1369,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </DialogContent>
         </Dialog>
 
-        {/* Tutorial */}
-        <BotBuilderTutorial 
-          isOpen={showTutorial}
-          onClose={() => setShowTutorial(false)}
-          onComplete={() => setShowMascot(true)}
-        />
-
-        {/* AI Mascot */}
-        {showMascot && (
-          <AIMascot 
-            onStartTutorial={() => {
-              setShowTutorial(true);
-              setShowMascot(false);
-            }}
-            onClose={() => setShowMascot(false)}
-            mood="helpful"
-          />
-        )}
+        {/* Tutorial Manager - Centralized tutorial system */}
+        <TutorialManager autoStart={isBeginnerMode} />
 
         {/* First Time Bot Wizard */}
         <FirstTimeBotWizard
