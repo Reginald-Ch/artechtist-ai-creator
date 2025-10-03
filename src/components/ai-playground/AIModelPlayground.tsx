@@ -11,6 +11,7 @@ import TextClassifier from './TextClassifier';
 import SpeechToText from './SpeechToText';
 import TextToSpeech from './TextToSpeech';
 import NumberPredictor from './NumberPredictor';
+import { CompletionAnimation } from '@/components/shared/CompletionAnimation';
 
 // AI Model definitions for the playground
 const AI_MODELS = [
@@ -94,6 +95,12 @@ const AIModelPlayground = () => {
   }>>([]);
   const [streakCount, setStreakCount] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(3);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [completionData, setCompletionData] = useState({
+    title: '',
+    message: '',
+    points: 0
+  });
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -153,7 +160,13 @@ const AIModelPlayground = () => {
     // Check for achievements
     checkAchievements(modelId, score);
 
-    toast.success(`🎉 Model completed! You earned ${model.points} points!`);
+    // Show completion animation
+    setCompletionData({
+      title: '🎉 Model Completed!',
+      message: `Great job training your ${model.name}! You achieved ${score}% accuracy.`,
+      points: model.points
+    });
+    setShowCompletion(true);
   };
 
   const checkAchievements = (modelId: string, score: number) => {
@@ -520,6 +533,16 @@ const AIModelPlayground = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Completion Animation */}
+      <CompletionAnimation
+        isVisible={showCompletion}
+        title={completionData.title}
+        message={completionData.message}
+        points={completionData.points}
+        onClose={() => setShowCompletion(false)}
+        variant="success"
+      />
     </div>
   );
 };
