@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_playground_progress: {
+        Row: {
+          achievements: Json
+          created_at: string
+          id: string
+          reflections: Json
+          streak_count: number
+          total_points: number
+          updated_at: string
+          user_id: string
+          user_progress: Json
+        }
+        Insert: {
+          achievements?: Json
+          created_at?: string
+          id?: string
+          reflections?: Json
+          streak_count?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+          user_progress?: Json
+        }
+        Update: {
+          achievements?: Json
+          created_at?: string
+          id?: string
+          reflections?: Json
+          streak_count?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+          user_progress?: Json
+        }
+        Relationships: []
+      }
       bot_performance_metrics: {
         Row: {
           bot_id: string
