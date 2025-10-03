@@ -117,27 +117,40 @@ export const useEnhancedLessonProgress = () => {
   const syncToSupabase = async (lessonId: string, data: Partial<LessonProgress>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.warn('No authenticated user for sync');
+        return;
+      }
+
+      const payload = {
+        user_id: user.id,
+        lesson_id: lessonId,
+        completed: data.completed ?? false,
+        score: data.score ?? 0,
+        current_panel: data.currentPanel ?? 0,
+        time_spent: data.timeSpent ?? 0,
+        attempts: data.attempts ?? 0,
+        completed_at: data.completedAt?.toISOString(),
+        bookmarked: data.bookmarked ?? false,
+        last_visited: data.lastVisited?.toISOString() ?? new Date().toISOString(),
+      };
+
+      console.log('Syncing to Supabase:', payload);
 
       const { error } = await supabase
         .from('lesson_progress')
-        .upsert({
-          user_id: user.id,
-          lesson_id: lessonId,
-          completed: data.completed ?? false,
-          score: data.score ?? 0,
-          current_panel: data.currentPanel ?? 0,
-          time_spent: data.timeSpent ?? 0,
-          attempts: data.attempts ?? 0,
-          completed_at: data.completedAt?.toISOString(),
-          bookmarked: data.bookmarked ?? false,
-          last_visited: data.lastVisited?.toISOString() ?? new Date().toISOString(),
-        }, {
+        .upsert(payload, {
           onConflict: 'user_id,lesson_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase sync error:', error);
+        throw error;
+      }
+      
+      console.log('Successfully synced to Supabase');
     } catch (error) {
+      console.error('Failed to sync to Supabase:', error);
       throw error;
     }
   };
@@ -164,7 +177,21 @@ export const useEnhancedLessonProgress = () => {
       if (isOnline) {
         syncToSupabase(lessonId, updated[lessonId]).catch(err => {
           console.error('Sync error:', err);
+          toast.error('Failed to sync progress to cloud');
           setSyncStatus('error');
+          
+          // Queue for retry
+          const queue: OfflineQueue = {
+            action: 'update',
+            lessonId,
+            data: updated[lessonId],
+            timestamp: Date.now(),
+          };
+          setOfflineQueue(prev => {
+            const newQueue = [...prev, queue];
+            localStorage.setItem('offlineQueue', JSON.stringify(newQueue));
+            return newQueue;
+          });
         });
       } else {
         const queue: OfflineQueue = {
