@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { enhancedComicLessons } from '@/data/enhancedComicLessons';
 import { ageLevelLessons } from '@/data/ageLevelLessons';
+import { ai4k12Lessons } from '@/data/ai4k12Lessons';
 import AppNavigation from '@/components/layout/AppNavigation';
 import { 
   Brain, 
@@ -70,6 +71,46 @@ const AILessons = () => {
   // Topics with icons and descriptions
   const topics = useMemo((): Topic[] => [
     {
+      id: 'ai4k12-perception',
+      title: 'AI4K12: Perception',
+      icon: Brain,
+      description: 'How computers sense and understand the world',
+      lessons: ['perception-sensors'],
+      color: 'from-cyan-500 to-blue-600'
+    },
+    {
+      id: 'ai4k12-reasoning',
+      title: 'AI4K12: How Machines Think',
+      icon: Brain,
+      description: 'Representation, reasoning & decision making',
+      lessons: ['how-machines-think'],
+      color: 'from-purple-500 to-pink-600'
+    },
+    {
+      id: 'ai4k12-learning',
+      title: 'AI4K12: Machine Learning',
+      icon: TrendingUp,
+      description: 'How AI learns patterns from data',
+      lessons: ['machine-learning-intro', 'neural-networks-explained'],
+      color: 'from-green-500 to-emerald-600'
+    },
+    {
+      id: 'ai4k12-interaction',
+      title: 'AI4K12: Natural Interaction',
+      icon: MessageCircle,
+      description: 'Human-AI communication with NLP',
+      lessons: ['natural-interaction'],
+      color: 'from-orange-500 to-yellow-600'
+    },
+    {
+      id: 'ai4k12-ethics',
+      title: 'AI4K12: Ethics & Society',
+      icon: Shield,
+      description: 'Responsible AI and societal impact',
+      lessons: ['ai-ethics-bias'],
+      color: 'from-red-500 to-pink-600'
+    },
+    {
       id: 'fundamentals',
       title: 'AI Fundamentals',
       icon: Brain,
@@ -105,7 +146,10 @@ const AILessons = () => {
 
   // Enhanced lesson filtering and sorting with age groups
   const filteredLessons = useMemo(() => {
-    let lessons = Object.values(enhancedComicLessons);
+    let lessons = [
+      ...Object.values(ai4k12Lessons),
+      ...Object.values(enhancedComicLessons)
+    ];
     
     // Add age-based lessons
     Object.entries(ageLevelLessons).forEach(([ageGroup, data]) => {
