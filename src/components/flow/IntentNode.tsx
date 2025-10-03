@@ -31,6 +31,32 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   const { label, trainingPhrases = [], responses = [], isDefault = false } = data;
   const [isHovered, setIsHovered] = useState(false);
 
+  // Keyboard navigation handler for accessibility
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation();
+    
+    switch (e.key) {
+      case 'Enter':
+        // Open intent training
+        if ((window as any).openIntentTraining) {
+          (window as any).openIntentTraining(id || '');
+        } else {
+          onEdit?.(id || '');
+        }
+        break;
+      case 'Delete':
+      case 'Backspace':
+        if (!isDefault) {
+          e.preventDefault();
+          onDelete?.(id || '');
+        }
+        break;
+      case 'Escape':
+        (e.target as HTMLElement).blur();
+        break;
+    }
+  };
+
   // Determine status
   const hasTraining = trainingPhrases.length > 0;
   const hasResponses = responses.length > 0;
@@ -66,6 +92,10 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="button"
+      aria-label={`Intent: ${label}. ${trainingPhrases.length} training phrases, ${responses.length} responses. Press Enter to edit${isDefault ? '' : ', Delete to remove'}`}
     >
       
       {/* Main Card - Enhanced with better spacing and colors */}

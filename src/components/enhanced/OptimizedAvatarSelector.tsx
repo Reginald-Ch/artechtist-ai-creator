@@ -118,11 +118,20 @@ const OptimizedAvatarSelector = ({ selectedAvatar, onAvatarChange }: OptimizedAv
             <TabsContent value={selectedCategory} className="space-y-4 mt-4">
               <ScrollArea className="h-[50vh] pr-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {filteredPersonalities.map((personality) => (
+                  {filteredPersonalities.map((personality, index) => (
                     <Card 
                       key={personality.id}
                       className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.03] border-2 hover:border-primary/50 bg-gradient-to-br from-background to-accent/20 hover:from-primary/5 hover:to-secondary/5 active:scale-[0.98]"
                       onClick={() => handleAvatarSelect(personality)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleAvatarSelect(personality);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Select ${personality.name}, ${personality.description}`}
                     >
                       <CardContent className="p-4 text-center space-y-3">
                         <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl border-2 border-primary/20 group-hover:border-primary/40 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">

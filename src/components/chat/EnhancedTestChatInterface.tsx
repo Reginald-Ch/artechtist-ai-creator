@@ -220,14 +220,54 @@ export const EnhancedTestChatInterface: React.FC<EnhancedTestChatInterfaceProps>
         recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           setInput(transcript);
+          toast({
+            title: "✅ Voice captured",
+            description: `Heard: "${transcript}"`
+          });
         };
 
-        recognition.onerror = () => {
+        recognition.onerror = (event) => {
           setIsListening(false);
+          
+          // Detailed error handling with recovery options
+          let errorMessage = "Could not access microphone";
+          let errorAction = null;
+          
+          switch (event.error) {
+            case 'not-allowed':
+            case 'permission-denied':
+              errorMessage = "Microphone access denied";
+              errorAction = (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    window.open('chrome://settings/content/microphone', '_blank');
+                  }}
+                  className="mt-2"
+                >
+                  Check Permissions
+                </Button>
+              );
+              break;
+            case 'no-speech':
+              errorMessage = "No speech detected. Please try again";
+              break;
+            case 'audio-capture':
+              errorMessage = "No microphone found";
+              break;
+            case 'network':
+              errorMessage = "Network error. Check your connection";
+              break;
+            default:
+              errorMessage = "Voice recognition error. Please try typing instead";
+          }
+          
           toast({
-            title: "Voice recognition error",
-            description: "Could not access microphone",
-            variant: "destructive"
+            title: "🎤 Voice Error",
+            description: errorMessage,
+            variant: "destructive",
+            action: errorAction
           });
         };
 

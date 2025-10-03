@@ -1021,7 +1021,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         {/* Enhanced Header with BotBuilderToolbar */}
         <BotBuilderToolbar
           onTestBot={() => setShowTestPanel(!showTestPanel)}
-          onTutorial={() => {}}
+          onTutorial={() => {
+            // Tutorial is now managed by TutorialManager component
+            toast({
+              title: "📚 Tutorial",
+              description: "Look for the Tutorial button in the bottom right corner!"
+            });
+          }}
           onSave={handleSave}
           onUndo={handleUndo}
           onRedo={handleRedo}

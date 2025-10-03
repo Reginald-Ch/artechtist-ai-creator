@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { toast } from './use-toast';
 
 interface KeyboardShortcutsConfig {
   onDelete?: () => void;
@@ -34,11 +35,19 @@ export const useKeyboardShortcuts = (config: KeyboardShortcutsConfig) => {
       case cmdOrCtrl && key === 'z' && !shiftKey:
         event.preventDefault();
         config.onUndo?.();
+        toast({
+          title: "↶ Undo",
+          description: "Action undone"
+        });
         break;
         
       case cmdOrCtrl && (key === 'y' || (key === 'z' && shiftKey)):
         event.preventDefault();
         config.onRedo?.();
+        toast({
+          title: "↷ Redo",
+          description: "Action redone"
+        });
         break;
         
       case cmdOrCtrl && key === 'a':

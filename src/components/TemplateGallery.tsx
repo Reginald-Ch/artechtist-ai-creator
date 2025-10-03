@@ -266,8 +266,20 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
 
           {/* Templates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map(template => (
-              <Card key={template.id} className="hover:shadow-lg transition-all border-2 hover:border-orange-300">
+            {filteredTemplates.map((template, index) => (
+              <Card 
+                key={template.id} 
+                className="hover:shadow-lg transition-all border-2 hover:border-orange-300 focus-within:ring-2 focus-within:ring-primary/50"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleUseTemplate(template);
+                  }
+                }}
+                role="article"
+                aria-label={`Template: ${template.name}. ${template.description}. Press Enter to use`}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
