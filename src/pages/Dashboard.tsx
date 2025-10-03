@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Brain, Bot, Star, Users, Zap, Plus, Sparkles, Globe, Mic, BookOpen, LogOut, Settings, Radio } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
@@ -17,6 +19,7 @@ import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   const [showAgentCreation, setShowAgentCreation] = useState(false);
@@ -52,17 +55,18 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <Brain className="h-8 w-8 text-orange-500" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
-              Artechtist AI
+              {t('dashboard.title')}
             </h1>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm">
               <Users className="h-4 w-4 mr-2" />
-              Community
+              {t('common.community')}
             </Button>
+            <LanguageSelector />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
             <Avatar>
               <AvatarFallback className="bg-orange-500 text-white">
@@ -76,8 +80,8 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome to AI Made By You! 🚀</h2>
-          <p className="text-muted-foreground text-lg">Create your own conversational agents for middle school and beyond!</p>
+          <h2 className="text-3xl font-bold mb-2">{t('dashboard.welcomeMessage')}</h2>
+          <p className="text-muted-foreground text-lg">{t('dashboard.subtitle')}</p>
         </div>
 
         {/* AMBY-Style Main Actions */}
@@ -90,8 +94,8 @@ const Dashboard = () => {
               <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-orange-600 text-xl">Create New Agent</CardTitle>
-              <CardDescription>Start building your own conversational AI from scratch</CardDescription>
+              <CardTitle className="text-orange-600 text-xl">{t('dashboard.createNewAgent')}</CardTitle>
+              <CardDescription>{t('dashboard.createNewAgentDesc')}</CardDescription>
             </CardHeader>
           </Card>
 
@@ -106,8 +110,8 @@ const Dashboard = () => {
               <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Star className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-blue-600 text-xl">Open Previous Projects</CardTitle>
-              <CardDescription>Continue working on your saved conversational agents</CardDescription>
+              <CardTitle className="text-blue-600 text-xl">{t('dashboard.openPreviousProjects')}</CardTitle>
+              <CardDescription>{t('dashboard.openPreviousProjectsDesc')}</CardDescription>
             </CardHeader>
           </Card>
 
@@ -116,8 +120,8 @@ const Dashboard = () => {
               <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Settings className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-green-600 text-xl">Sample Project</CardTitle>
-              <CardDescription>Tinker with pre-built bots to learn how they work</CardDescription>
+              <CardTitle className="text-green-600 text-xl">{t('dashboard.sampleProject')}</CardTitle>
+              <CardDescription>{t('dashboard.sampleProjectDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
               <TemplateGallery onUseTemplate={handleUseTemplate} />
@@ -130,8 +134,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
                   <Brain className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-green-600">AI Model Playground</CardTitle>
-                <CardDescription>Build, train & play with AI models - kid-friendly!</CardDescription>
+                <CardTitle className="text-green-600">{t('dashboard.aiModelPlayground')}</CardTitle>
+                <CardDescription>{t('dashboard.aiModelPlaygroundDesc')}</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -142,8 +146,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
                   <Globe className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-purple-600">ML Playground</CardTitle>
-                <CardDescription>Gamified ML Learning experince</CardDescription>
+                <CardTitle className="text-purple-600">{t('dashboard.mlPlayground')}</CardTitle>
+                <CardDescription>{t('dashboard.mlPlaygroundDesc')}</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -154,8 +158,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-yellow-600">Progressive Learning Hub</CardTitle>
-                <CardDescription>AI lessons with streak tracking & achievements</CardDescription>
+                <CardTitle className="text-yellow-600">{t('dashboard.progressiveLearningHub')}</CardTitle>
+                <CardDescription>{t('dashboard.progressiveLearningHubDesc')}</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -166,8 +170,8 @@ const Dashboard = () => {
                 <div className="mx-auto mb-2 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-indigo-600">Python IDE for Kids</CardTitle>
-                <CardDescription>Learn Python programming with AI assistance</CardDescription>
+                <CardTitle className="text-indigo-600">{t('dashboard.pythonIDE')}</CardTitle>
+                <CardDescription>{t('dashboard.pythonIDEDesc')}</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -179,10 +183,10 @@ const Dashboard = () => {
         <div className="mb-8" id="saved-projects">
           <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Bot className="h-6 w-6 text-blue-500" />
-            Your Conversational Agents
+            {t('dashboard.yourConversationalAgents')}
           </h3>
           <div className="text-sm text-muted-foreground mb-4">
-            Continue working on your projects or create a new one
+            {t('dashboard.continueWorking')}
           </div>
           <SavedProjectsSection onLoadProject={(project) => {
             // Store project data for bot builder - go to playground page
@@ -205,9 +209,9 @@ const Dashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Star className="h-5 w-5" />
-                Featured Templates
+                {t('dashboard.featuredTemplates')}
               </CardTitle>
-              <CardDescription>Learn from these example bots</CardDescription>
+              <CardDescription>{t('dashboard.learnFromExamples')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

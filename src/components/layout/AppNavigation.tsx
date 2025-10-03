@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home, BookOpen, Mic, Gamepad2, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 interface AppNavigationProps {
   showBackButton?: boolean;
@@ -13,6 +15,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
 
   const handleBack = () => {
@@ -36,7 +39,7 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
                 className="mr-2"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
+                {t('common.back')}
               </Button>
             )}
             {title && (
@@ -45,13 +48,16 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
           </div>
 
 
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={signOut}
-          >
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={signOut}
+            >
+              {t('common.signOut')}
+            </Button>
+          </div>
         </div>
       </div>
     </nav>
