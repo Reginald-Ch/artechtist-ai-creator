@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          category: string | null
+          created_at: string
+          id: string
+          lesson_id: string | null
+          metadata: Json | null
+          score: number | null
+          time_spent: number
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          metadata?: Json | null
+          score?: number | null
+          time_spent?: number
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string | null
+          metadata?: Json | null
+          score?: number | null
+          time_spent?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_playground_progress: {
         Row: {
           achievements: Json
@@ -80,6 +119,42 @@ export type Database = {
           recorded_at?: string
           session_id?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          reward_points: number
+          start_date: string
+          target_value: number
+          title: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          reward_points?: number
+          start_date?: string
+          target_value: number
+          title: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          reward_points?: number
+          start_date?: string
+          target_value?: number
+          title?: string
         }
         Relationships: []
       }
@@ -361,6 +436,71 @@ export type Database = {
         }
         Relationships: []
       }
+      study_group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_public: boolean
+          member_count: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       treasure_code_batches: {
         Row: {
           batch_name: string
@@ -447,6 +587,42 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          achievement_type: string
+          description: string
+          earned_at: string
+          icon: string | null
+          id: string
+          is_shared: boolean
+          title: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          achievement_type: string
+          description: string
+          earned_at?: string
+          icon?: string | null
+          id?: string
+          is_shared?: boolean
+          title: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          achievement_type?: string
+          description?: string
+          earned_at?: string
+          icon?: string | null
+          id?: string
+          is_shared?: boolean
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_analytics: {
         Row: {
           created_at: string
@@ -482,6 +658,89 @@ export type Database = {
           processed?: boolean | null
           session_id?: string | null
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_value: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          freeze_days_remaining: number
+          freeze_days_used_this_month: number
+          id: string
+          last_activity_date: string
+          longest_streak: number
+          streak_history: Json
+          total_activities: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          freeze_days_remaining?: number
+          freeze_days_used_this_month?: number
+          id?: string
+          last_activity_date?: string
+          longest_streak?: number
+          streak_history?: Json
+          total_activities?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          freeze_days_remaining?: number
+          freeze_days_used_this_month?: number
+          id?: string
+          last_activity_date?: string
+          longest_streak?: number
+          streak_history?: Json
+          total_activities?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
