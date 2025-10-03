@@ -97,11 +97,15 @@ export const usePlaygroundProgress = () => {
 
       if (progressData) {
         setData({
-          userProgress: progressData.user_progress || [],
-          achievements: progressData.achievements || [],
+          userProgress: (progressData.user_progress as unknown as UserProgress[]) || [],
+          achievements: (progressData.achievements as unknown as Achievement[]) || [],
           totalPoints: progressData.total_points || 0,
           streakCount: progressData.streak_count || 0,
-          reflections: progressData.reflections || []
+          reflections: (progressData.reflections as unknown as Array<{
+            modelId: string;
+            reflection: string;
+            createdAt: string;
+          }>) || []
         });
         saveToLocalStorage();
       }
@@ -120,12 +124,13 @@ export const usePlaygroundProgress = () => {
       const { error } = await supabase
         .from('ai_playground_progress')
         .upsert({
+          id: user.id,
           user_id: user.id,
-          user_progress: data.userProgress,
-          achievements: data.achievements,
+          user_progress: data.userProgress as any,
+          achievements: data.achievements as any,
           total_points: data.totalPoints,
           streak_count: data.streakCount,
-          reflections: data.reflections,
+          reflections: data.reflections as any,
           updated_at: new Date().toISOString()
         });
 

@@ -5,11 +5,13 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Camera, Upload, Brain, Star, Play, Info, Sparkles, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { LearningObjectives } from './LearningObjectives';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
 import { ExplanatoryFeedback } from './ExplanatoryFeedback';
+import { WebcamCapture } from './WebcamCapture';
 
 interface ImageClassifierProps {
   onComplete: (score: number) => void;
@@ -34,6 +36,8 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
   const [score, setScore] = useState(0);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorType, setErrorType] = useState<'file' | 'training' | 'general'>('general');
+  const [activeTab, setActiveTab] = useState<'upload' | 'webcam'>('upload');
+  const [activeCategory, setActiveCategory] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addCategory = () => {
@@ -98,6 +102,23 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
       }
       return prev.filter(img => img.id !== imageId);
     });
+  };
+
+  const handleWebcamCapture = (imageDataUrl: string, category: string) => {
+    // Convert data URL to blob and then to file
+    fetch(imageDataUrl)
+      .then(res => res.blob())
+      .then(blob => {
+        const file = new File([blob], `webcam-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const newImage: TrainingImage = {
+          id: Date.now() + Math.random().toString(),
+          file,
+          preview: imageDataUrl,
+          label: category
+        };
+        setTrainingImages(prev => [...prev, newImage]);
+        toast.success(`📸 Captured image added to ${category}!`);
+      });
   };
 
   const startTraining = async () => {
@@ -326,40 +347,91 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
                   {imageCount < 2 && ` (need ${2 - imageCount} more)`}
                 </Badge>
               </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {trainingImages
-                  .filter(img => img.label === category)
-                  .map(image => (
-                    <div key={image.id} className="relative group animate-scale-in">
-                      <img 
-                        src={image.preview} 
-                        alt={`Training ${category}`}
-                        className="w-full h-24 object-cover rounded-lg border-2 border-border transition-all group-hover:border-primary"
+
+              <Tabs value={activeCategory === category ? activeTab : 'upload'} onValueChange={(value) => {
+                setActiveTab(value as 'upload' | 'webcam');
+                setActiveCategory(category);
+              }} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-3">
+                  <TabsTrigger value="upload" className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Upload
+                  </TabsTrigger>
+                  <TabsTrigger value="webcam" className="gap-2">
+                    <Camera className="h-4 w-4" />
+                    Webcam
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upload" className="mt-0">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {trainingImages
+                      .filter(img => img.label === category)
+                      .map(image => (
+                        <div key={image.id} className="relative group animate-scale-in">
+                          <img 
+                            src={image.preview} 
+                            alt={`Training ${category}`}
+                            className="w-full h-24 object-cover rounded-lg border-2 border-border transition-all group-hover:border-primary"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 p-0 rounded-full"
+                            onClick={() => removeImage(image.id)}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    
+                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary transition-all">
+                      <Upload className="h-6 w-6 text-primary" />
+                      <span className="text-xs text-muted-foreground mt-1">Add Images</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload(e, category)}
                       />
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 p-0 rounded-full"
-                        onClick={() => removeImage(image.id)}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary/30 rounded-lg cursor-pointer hover:bg-primary/5 hover:border-primary transition-all">
-                  <Upload className="h-6 w-6 text-primary" />
-                  <span className="text-xs text-muted-foreground mt-1">Add Images</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageUpload(e, category)}
-                  />
-                </label>
-              </div>
+                    </label>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="webcam" className="mt-0">
+                  <div className="space-y-3">
+                    <WebcamCapture
+                      onCapture={(imageDataUrl) => handleWebcamCapture(imageDataUrl, category)}
+                    />
+                    
+                    {trainingImages.filter(img => img.label === category).length > 0 && (
+                      <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                        {trainingImages
+                          .filter(img => img.label === category)
+                          .slice(-10)
+                          .map(image => (
+                            <div key={image.id} className="relative group">
+                              <img 
+                                src={image.preview} 
+                                alt={`${category}`}
+                                className="w-full h-16 object-cover rounded-md border border-border"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 p-0 rounded-full text-xs"
+                                onClick={() => removeImage(image.id)}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           );
         })}
