@@ -291,9 +291,10 @@ export const PhoneAssistantSimulator = ({
             variant="ghost"
             size="icon"
             onClick={() => onOpenChange(false)}
-            className="rounded-full"
+            className="rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+            aria-label="Close phone simulator"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
