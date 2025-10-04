@@ -36,15 +36,15 @@ const Dashboard = () => {
   };
   
   const myBots = [
-    { id: 1, name: "Breakfast Bot", avatar: "🍳", lastEdited: "2 hours ago", status: "Active" },
-    { id: 2, name: "Story Helper", avatar: "📚", lastEdited: "1 day ago", status: "Draft" },
-    { id: 3, name: "Math Buddy", avatar: "🔢", lastEdited: "3 days ago", status: "Active" },
+    { id: 1, name: "Breakfast Bot", avatar: "🍳", lastEdited: t('sampleBots.hoursAgo', '2 hours ago'), status: t('common.active') },
+    { id: 2, name: "Story Helper", avatar: "📚", lastEdited: t('sampleBots.dayAgo', '1 day ago'), status: t('common.draft') },
+    { id: 3, name: "Math Buddy", avatar: "🔢", lastEdited: t('sampleBots.daysAgo', '3 days ago'), status: t('common.active') },
   ];
 
   const sampleBots = [
-    { name: "Weather Wizard", avatar: "🌦️", difficulty: "Beginner", description: "Learn to build a weather chatbot" },
-    { name: "Pet Caretaker", avatar: "🐕", difficulty: "Easy", description: "Virtual pet care assistant" },
-    { name: "Recipe Helper", avatar: "👨‍🍳", difficulty: "Medium", description: "Cooking guidance bot" },
+    { name: t('sampleBots.weatherWizard'), avatar: "🌦️", difficulty: t('common.beginner'), description: t('sampleBots.weatherWizardDesc') },
+    { name: t('sampleBots.petCaretaker'), avatar: "🐕", difficulty: t('common.easy'), description: t('sampleBots.petCaretakerDesc') },
+    { name: t('sampleBots.recipeHelper'), avatar: "👨‍🍳", difficulty: t('common.medium'), description: t('sampleBots.recipeHelperDesc') },
   ];
 
   return (
@@ -224,9 +224,9 @@ const Dashboard = () => {
                         <p className="text-sm text-muted-foreground">{bot.description}</p>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        bot.difficulty === 'Beginner' 
+                        bot.difficulty === t('common.beginner') 
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
-                          : bot.difficulty === 'Easy'
+                          : bot.difficulty === t('common.easy')
                           ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
                           : 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300'
                       }`}>
@@ -264,14 +264,14 @@ const Dashboard = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Google Assistant Integration</h2>
+                <h2 className="text-xl font-semibold">{t('common.settings')}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setShowGoogleAssistant(false)}>
                   ✕
                 </Button>
               </div>
               <div className="p-4">
                 <div className="text-center p-8 text-muted-foreground">
-                  <p>Create a bot to enable voice integration</p>
+                  <p>{t('dashboard.createNewAgent')}</p>
                 </div>
               </div>
             </div>

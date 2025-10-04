@@ -19,7 +19,24 @@ export const en = {
     previous: 'Previous',
     close: 'Close',
     confirm: 'Confirm',
-    language: 'Language'
+    language: 'Language',
+    active: 'Active',
+    draft: 'Draft',
+    beginner: 'Beginner',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    intermediate: 'Intermediate',
+    advanced: 'Advanced',
+    add: 'Add',
+    remove: 'Remove',
+    done: 'Done',
+    retry: 'Retry',
+    export: 'Export',
+    import: 'Import',
+    help: 'Help',
+    undo: 'Undo',
+    redo: 'Redo'
   },
   dashboard: {
     title: 'Artechtist AI',
@@ -139,5 +156,42 @@ export const en = {
     returnHome: 'Return to Home',
     somethingWrong: 'Something went wrong',
     tryAgain: 'Try Again'
+  },
+  sampleBots: {
+    weatherWizard: 'Weather Wizard',
+    weatherWizardDesc: 'Learn to build a weather chatbot',
+    petCaretaker: 'Pet Caretaker',
+    petCaretakerDesc: 'Virtual pet care assistant',
+    recipeHelper: 'Recipe Helper',
+    recipeHelperDesc: 'Cooking guidance bot',
+    lastEdited: 'Last edited',
+    hoursAgo: 'hours ago',
+    dayAgo: 'day ago',
+    daysAgo: 'days ago'
+  },
+  toast: {
+    lessonStarted: 'Starting lesson',
+    lessonCompleted: 'Lesson completed!',
+    bookmarkAdded: 'Bookmark added',
+    bookmarkRemoved: 'Bookmark removed',
+    progressSaved: 'Progress saved',
+    errorSaving: 'Error saving progress'
+  },
+  filters: {
+    allDifficulties: 'All Difficulties',
+    allAgeGroups: 'All Age Groups',
+    sortBy: 'Sort by',
+    title: 'Title',
+    difficulty: 'Difficulty',
+    duration: 'Duration',
+    progress: 'Progress'
+  },
+  time: {
+    min: 'min',
+    mins: 'mins',
+    hour: 'hour',
+    hours: 'hours',
+    day: 'day',
+    days: 'days'
   }
 };

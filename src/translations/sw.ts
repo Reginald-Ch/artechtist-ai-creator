@@ -1,7 +1,7 @@
 export const sw = {
   common: {
     back: 'Rudi',
-    signOut: 'Toka',
+    signOut: 'Ondoka',
     community: 'Jamii',
     settings: 'Mipangilio',
     save: 'Hifadhi',
@@ -15,11 +15,28 @@ export const sw = {
     continue: 'Endelea',
     start: 'Anza',
     finish: 'Maliza',
-    next: 'Inayofuata',
+    next: 'Ijayo',
     previous: 'Iliyopita',
     close: 'Funga',
     confirm: 'Thibitisha',
-    language: 'Lugha'
+    language: 'Lugha',
+    active: 'Hai',
+    draft: 'Rasimu',
+    beginner: 'Mwanzo',
+    easy: 'Rahisi',
+    medium: 'Wastani',
+    hard: 'Ngumu',
+    intermediate: 'Kati',
+    advanced: 'Juu',
+    add: 'Ongeza',
+    remove: 'Ondoa',
+    done: 'Imekamilika',
+    retry: 'Jaribu Tena',
+    export: 'Hamisha',
+    import: 'Leta',
+    help: 'Msaada',
+    undo: 'Tendua',
+    redo: 'Rudia'
   },
   dashboard: {
     title: 'Artechtist AI',
@@ -139,5 +156,42 @@ export const sw = {
     returnHome: 'Rudi Nyumbani',
     somethingWrong: 'Kuna tatizo',
     tryAgain: 'Jaribu Tena'
+  },
+  sampleBots: {
+    weatherWizard: 'Mchawi wa Hali ya Hewa',
+    weatherWizardDesc: 'Jifunze kuunda chatbot ya hali ya hewa',
+    petCaretaker: 'Mhudumu wa Wanyama',
+    petCaretakerDesc: 'Msaidizi wa utunzaji wa wanyama',
+    recipeHelper: 'Msaidizi wa Mapishi',
+    recipeHelperDesc: 'Msaada wa kupikia',
+    lastEdited: 'Ilihaririwa mwisho',
+    hoursAgo: 'masaa yaliyopita',
+    dayAgo: 'siku moja iliyopita',
+    daysAgo: 'siku zilizopita'
+  },
+  toast: {
+    lessonStarted: 'Kuanza somo',
+    lessonCompleted: 'Somo limekamilika!',
+    bookmarkAdded: 'Alama imewekwa',
+    bookmarkRemoved: 'Alama imeondolewa',
+    progressSaved: 'Maendeleo yamehifadhiwa',
+    errorSaving: 'Hitilafu katika kuhifadhi'
+  },
+  filters: {
+    allDifficulties: 'Ugumu Wote',
+    allAgeGroups: 'Vikundi Vyote vya Umri',
+    sortBy: 'Panga kwa',
+    title: 'Kichwa',
+    difficulty: 'Ugumu',
+    duration: 'Muda',
+    progress: 'Maendeleo'
+  },
+  time: {
+    min: 'dk',
+    mins: 'dk',
+    hour: 'saa',
+    hours: 'masaa',
+    day: 'siku',
+    days: 'siku'
   }
 };

@@ -28,7 +28,7 @@ export const LanguageSelector = () => {
           <span className="hidden sm:inline">{currentLanguage?.flag}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-sm border shadow-lg z-50">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}

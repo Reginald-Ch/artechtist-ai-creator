@@ -19,7 +19,24 @@ export const ar = {
     previous: 'السابق',
     close: 'إغلاق',
     confirm: 'تأكيد',
-    language: 'اللغة'
+    language: 'اللغة',
+    active: 'نشط',
+    draft: 'مسودة',
+    beginner: 'مبتدئ',
+    easy: 'سهل',
+    medium: 'متوسط',
+    hard: 'صعب',
+    intermediate: 'متوسط',
+    advanced: 'متقدم',
+    add: 'إضافة',
+    remove: 'إزالة',
+    done: 'تم',
+    retry: 'إعادة المحاولة',
+    export: 'تصدير',
+    import: 'استيراد',
+    help: 'مساعدة',
+    undo: 'تراجع',
+    redo: 'إعادة'
   },
   dashboard: {
     title: 'Artechtist AI',
@@ -139,5 +156,42 @@ export const ar = {
     returnHome: 'العودة إلى الصفحة الرئيسية',
     somethingWrong: 'حدث خطأ ما',
     tryAgain: 'حاول مرة أخرى'
+  },
+  sampleBots: {
+    weatherWizard: 'ساحر الطقس',
+    weatherWizardDesc: 'تعلم بناء روبوت محادثة للطقس',
+    petCaretaker: 'مربي الحيوانات الأليفة',
+    petCaretakerDesc: 'مساعد رعاية الحيوانات الأليفة الافتراضي',
+    recipeHelper: 'مساعد الوصفات',
+    recipeHelperDesc: 'روبوت إرشاد الطبخ',
+    lastEdited: 'آخر تعديل',
+    hoursAgo: 'منذ ساعات',
+    dayAgo: 'منذ يوم',
+    daysAgo: 'منذ أيام'
+  },
+  toast: {
+    lessonStarted: 'بدء الدرس',
+    lessonCompleted: 'اكتمل الدرس!',
+    bookmarkAdded: 'تمت إضافة الإشارة المرجعية',
+    bookmarkRemoved: 'تمت إزالة الإشارة المرجعية',
+    progressSaved: 'تم حفظ التقدم',
+    errorSaving: 'خطأ في حفظ التقدم'
+  },
+  filters: {
+    allDifficulties: 'جميع المستويات',
+    allAgeGroups: 'جميع الفئات العمرية',
+    sortBy: 'ترتيب حسب',
+    title: 'العنوان',
+    difficulty: 'الصعوبة',
+    duration: 'المدة',
+    progress: 'التقدم'
+  },
+  time: {
+    min: 'دقيقة',
+    mins: 'دقائق',
+    hour: 'ساعة',
+    hours: 'ساعات',
+    day: 'يوم',
+    days: 'أيام'
   }
 };
