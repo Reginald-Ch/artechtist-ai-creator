@@ -1,267 +1,289 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Brain, Save, Sparkles, Zap } from "lucide-react";
-import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
+import { Separator } from "@/components/ui/separator";
+import { Bot, Sparkles, X, Save, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { communityAvatars, avatarCategories } from "@/data/communityAvatars";
+import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
+import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 
-const SimpleAgentCreator = () => {
-  const navigate = useNavigate();
+interface AgentCreationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogProps) => {
   const { t } = useLanguage();
-  const [agentName, setAgentName] = useState("");
-  const [agentDescription, setAgentDescription] = useState("");
-  const { avatar: botAvatar, personality: botPersonality, updateAvatarAndPersonality } = useAvatarPersistence();
-  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { avatar: savedAvatar, personality: savedPersonality, updateAvatarAndPersonality } = useAvatarPersistence();
+  const [agentData, setAgentData] = useState({
+    name: "",
+    description: "",
+    avatar: savedAvatar || "🤖",
+    personality: savedPersonality || "helpful and friendly",
+    type: "assistant" as const,
+    voiceEnabled: false
+  });
+  const [selectedCategory, setSelectedCategory] = useState<string>('education');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Simulate loading state for smoother UX
+  // Initialize with saved avatar
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    if (savedAvatar && savedPersonality) {
+      setAgentData(prev => ({
+        ...prev,
+        avatar: savedAvatar,
+        personality: savedPersonality
+      }));
+    }
+  }, [savedAvatar, savedPersonality]);
 
-  const handleCreateAgent = () => {
-    if (!agentName.trim()) {
-      toast({
-        title: t('createAgent.agentName'),
-        description: "Please enter a name for your AI agent",
-        variant: "destructive"
-      });
+  const handleAvatarSelect = (emoji: string, personality: string) => {
+    setAgentData(prev => ({
+      ...prev,
+      avatar: emoji,
+      personality: personality
+    }));
+    updateAvatarAndPersonality(emoji, personality);
+    toast({
+      title: "Avatar updated!",
+      description: Now using ${emoji} with ${personality} personality
+    });
+  };
+
+  const handleCreate = async () => {
+    if (!agentData.name.trim()) {
+      toast({ title: t('createAgent.pleaseEnterAgentName'), variant: "destructive" });
       return;
     }
 
-    const agentData = {
-      id: Date.now().toString(),
-      name: agentName,
-      description: agentDescription,
-      avatar: botAvatar,
-      personality: botPersonality,
+    setIsLoading(true);
+    
+    // Simulate processing
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // Save to localStorage
+    const projectData = {
+      name: agentData.name,
+      botName: agentData.name,
+      botAvatar: agentData.avatar,
+      botPersonality: agentData.personality,
+      description: agentData.description,
+      type: agentData.type,
+      voiceEnabled: agentData.voiceEnabled,
       createdAt: new Date().toISOString()
     };
 
-    const existingAgents = JSON.parse(localStorage.getItem('aiAgents') || '[]');
-    existingAgents.push(agentData);
-    localStorage.setItem('aiAgents', JSON.stringify(existingAgents));
-
-    toast({
-      title: t('createAgent.title'),
-      description: `${agentName} has been created successfully`,
+    localStorage.setItem(agent-${Date.now()}, JSON.stringify(projectData));
+    
+    toast({ 
+      title: t('createAgent.agentCreatedSuccess'), 
+      description: ${agentData.name} ${t('createAgent.agentCreatedReady')} 
     });
 
-    navigate('/builder', { state: { agent: agentData } });
+    // Navigate to bot builder with agent data
+    navigate('/builder', { state: { template: projectData } });
+    setIsLoading(false);
+    onOpenChange(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-4">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="text-center space-y-4">
-            <Skeleton className="h-10 w-64 mx-auto" />
-            <Skeleton className="h-5 w-96 mx-auto" />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Skeleton className="h-[500px]" />
-            <Skeleton className="h-[500px]" />
-          </div>
-          <Skeleton className="h-32" />
-        </div>
+  const renderCreationForm = () => (
+    <div className="space-y-6 animate-fade-in">
+      {/* Agent Name */}
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-base font-semibold flex items-center gap-2">
+          <Zap className="h-4 w-4 text-primary" />
+          {t('createAgent.agentName')}
+        </Label>
+        <Input
+          id="name"
+          value={agentData.name}
+          onChange={(e) => setAgentData(prev => ({ ...prev, name: e.target.value }))}
+          placeholder={t('createAgent.namePlaceholder')}
+          className="text-lg h-12 border-2 focus:border-primary"
+        />
+        <p className="text-xs text-muted-foreground">✨ {t('botBuilder.giveMemorableName')}</p>
       </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 p-4 animate-fade-in">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="relative">
-              <Bot className="h-10 w-10 text-primary animate-bounce" />
-              <Sparkles className="h-4 w-4 text-primary absolute -top-1 -right-1 animate-pulse" />
+      <Separator />
+
+      {/* Avatar Selection - Using Community Avatars */}
+      <div className="space-y-4">
+        <Label className="text-base font-semibold flex items-center gap-2">
+          <Bot className="h-4 w-4 text-primary" />
+          {t('botBuilder.selectAvatar')} & {t('botBuilder.selectPersonality')}
+        </Label>
+        
+        {/* Category Tabs */}
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            {avatarCategories.slice(0, 4).map((category) => (
+              <TabsTrigger 
+                key={category.key} 
+                value={category.key}
+                className="text-xs py-2"
+              >
+                <span className="mr-1">{category.icon}</span>
+                <span className="hidden sm:inline">{category.name.split(' ')[0]}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
+          {avatarCategories.map((category) => (
+            <TabsContent key={category.key} value={category.key} className="mt-4">
+              <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
+                {communityAvatars
+                  .filter((avatar) => avatar.category === category.key)
+                  .map((avatar) => (
+                    <Card 
+                      key={avatar.id}
+                      className={`cursor-pointer transition-all duration-200 border-2 hover:shadow-lg ${
+                        agentData.avatar === avatar.emoji 
+                          ? 'border-primary shadow-lg bg-primary/5' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => handleAvatarSelect(avatar.emoji, avatar.personality)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="text-3xl flex-shrink-0">{avatar.emoji}</div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm mb-1">{avatar.name}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {avatar.description}
+                            </p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {avatar.traits.slice(0, 2).map((trait, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs px-2 py-0">
+                                  {trait}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          {agentData.avatar === avatar.emoji && (
+                            <div className="flex-shrink-0">
+                              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+        
+        {/* Selected Avatar Preview */}
+        {agentData.avatar && (
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-2 border-primary/20 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{agentData.avatar}</span>
+              <div>
+                <h5 className="font-semibold text-sm">{t('botBuilder.selectedPersonality')}</h5>
+                <p className="text-xs text-muted-foreground">{agentData.personality}</p>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              {t('createAgent.title')}
-            </h1>
           </div>
-          <p className="text-muted-foreground text-lg">
-            {t('createAgent.subtitle')}
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label htmlFor="description" className="text-base font-semibold">
+          {t('botBuilder.whatWillAgentHelp')}
+        </Label>
+        <Textarea
+          id="description"
+          value={agentData.description}
+          onChange={(e) => setAgentData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="e.g., Helps students with breakfast recipes, answers cooking questions..."
+          className="min-h-20 border-2 focus:border-primary"
+          rows={3}
+        />
+      </div>
+
+      <Separator />
+
+      {/* Voice Settings */}
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 border border-primary/20">
+        <div className="space-y-3">
+          <div className="flex items-center justify-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold">Text-to-Speech Settings</span>
+          </div>
+          <VoiceChatbotSettings />
+          <p className="text-xs text-muted-foreground text-center">
+            🎤 Configure voice, language, and speech settings
           </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Zap className="h-4 w-4 text-primary" />
-            <span>Build your AI agent in 3 simple steps</span>
-          </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Brain className="h-5 w-5 text-primary" />
-                </div>
-                <span>Step 1: Basic Info</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="agentName">{t('createAgent.agentName')} *</Label>
-                <Input
-                  id="agentName"
-                  placeholder="e.g., Learning Assistant, Customer Helper..."
-                  value={agentName}
-                  onChange={(e) => setAgentName(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="agentDescription">{t('createAgent.agentDescription')}</Label>
-                <Textarea
-                  id="agentDescription"
-                  placeholder="Describe what your AI agent will do..."
-                  value={agentDescription}
-                  onChange={(e) => setAgentDescription(e.target.value)}
-                  className="w-full min-h-[100px]"
-                />
-              </div>
-
-              <Separator />
-              
-              <div className="space-y-4">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  Avatar & Personality
-                </Label>
-                <OptimizedAvatarSelector
-                  selectedAvatar={botAvatar}
-                  onAvatarChange={(avatar, personality) => {
-                    updateAvatarAndPersonality(avatar, personality);
-                    toast({
-                      title: "Avatar updated!",
-                      description: `Now using ${avatar} with ${personality} personality`
-                    });
-                  }}
-                />
-                <div className="bg-muted/30 rounded-lg p-3 border border-border/30">
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">Current personality:</span> {botPersonality}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Voice & Settings */}
-          <Card className="border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Bot className="h-5 w-5 text-primary" />
-                </div>
-                <span>Step 2: Voice & Preview</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center space-y-3">
-                <div className="text-6xl mx-auto w-fit p-4 rounded-full bg-primary/10">
-                  {botAvatar}
-                </div>
-                <div>
-                  <h3 className="font-medium">{agentName || "Unnamed Agent"}</h3>
-                  <p className="text-sm text-muted-foreground">{botPersonality}</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-4 border border-primary/20">
-                  <div className="text-center space-y-3">
-                    <div className="flex items-center justify-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">Text-to-Speech Settings</span>
-                    </div>
-                    <VoiceChatbotSettings />
-                    <p className="text-xs text-muted-foreground">
-                      🎤 Configure voice, language, and speech settings
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-green-700 dark:text-green-400 font-medium">Text-to-Speech Ready</span>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-3">
-                <Button
-                  onClick={handleCreateAgent}
-                  className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
-                  size="lg"
-                >
-                  <Save className="h-5 w-5 mr-2" />
-                  <span className="font-semibold">Create & Start Building</span>
-                </Button>
-                
-                <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                  ✅ Your agent will be saved and you'll be taken to the conversation builder
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Preview */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/10 via-secondary/5 to-primary/10 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <span>Step 3: Live Preview</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 p-4 bg-card rounded-lg border shadow-sm">
-              <div className="text-4xl animate-bounce">{botAvatar}</div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-lg">{agentName || "Your AI Agent"}</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {agentDescription || "Ready to help users with conversational AI"}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="text-xs">
-                    {botPersonality}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>Ready to chat</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      {/* Voice Settings Dialog - using VoiceChatbotSettings component */}
-      {showVoiceSettings && <VoiceChatbotSettings />}
     </div>
   );
-};
 
-export default SimpleAgentCreator;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="relative">
+          <DialogTitle className="flex items-center gap-2 pr-8">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Bot className="h-5 w-5 text-primary" />
+            </div>
+            <span>{t('createAgent.createNewAIAgent')}</span>
+          </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="absolute right-0 top-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+            aria-label="Close dialog"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </DialogHeader>
+
+        {/* Simple Creation Form */}
+        <div className="py-4">
+          {renderCreationForm()}
+        </div>
+
+        {/* Create Button */}
+        <div className="flex flex-col gap-3 pt-6 border-t">
+          <Button 
+            onClick={handleCreate}
+            disabled={!agentData.name.trim() || isLoading}
+            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                {t('createAgent.createAgentStartBuilding')}
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            ✅ {t('createAgent.agentWillBeCreated')}
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
