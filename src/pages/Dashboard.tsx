@@ -10,7 +10,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
-import { SimpleAgentCreator  } from "@/components/SimpleAgentCreator ";
+import { AgentCreationDialog } from "@/components/AgentCreationDialog";
 import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection";
 import { AssistantButton } from "@/components/assistant/AssistantButton";
 
@@ -88,7 +88,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card 
             className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300 group"
-            onClick={() => navigate("/create-agent")}
+            onClick={() => setShowAgentCreation(true)}
           >
             <CardHeader className="text-center">
               <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
