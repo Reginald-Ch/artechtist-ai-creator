@@ -119,7 +119,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   
   // Use centralized avatar persistence
   const { avatar: botAvatar, personality: botPersonality, saveAvatar, updateAvatarAndPersonality } = useAvatarPersistence("🤖", "helpful and friendly");
-  const [selectedAvatar, setSelectedAvatar] = useState(botAvatar);
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
@@ -315,7 +314,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         setNodes(savedProject.project_data.nodes || []);
         setEdges(savedProject.project_data.edges || []);
         setVoiceSettings(savedProject.project_data.voiceSettings || {});
-        setSelectedAvatar(savedProject.project_data.selectedAvatar || '');
       } catch (error) {
         console.error('Error loading saved project:', error);
       }
@@ -637,11 +635,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       const projectData = {
         name: botName,
         description: botDescription,
-        avatar: selectedAvatar || botAvatar,
+        avatar: botAvatar,
         nodes,
         edges,
         voiceSettings,
-        selectedAvatar: selectedAvatar || botAvatar,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -994,7 +991,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               nodes={nodes}
               edges={edges}
               botName={botName}
-              botAvatar={selectedAvatar || botAvatar}
+              botAvatar={botAvatar}
               className="h-full"
             />
           </div>
@@ -1434,7 +1431,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           nodes={nodes}
           edges={edges}
           botName={botName}
-          botAvatar={selectedAvatar}
+          botAvatar={botAvatar}
         />
         </div>
       </TooltipProvider>

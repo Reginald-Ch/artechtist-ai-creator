@@ -21,11 +21,17 @@ export const AssistantButton = ({
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
 
+  // Debug log to confirm mounting
+  console.log('AssistantButton mounted with avatar:', botAvatar);
+
   return (
     <>
       <Button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg hover:scale-110 transition-transform z-50"
+        onClick={() => {
+          console.log('Assistant button clicked');
+          setOpen(true);
+        }}
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-xl hover:scale-110 transition-all duration-300 z-[9999] animate-pulse hover:animate-none border-2 border-primary/50"
         size="icon"
       >
         <Sparkles className="h-6 w-6" />
