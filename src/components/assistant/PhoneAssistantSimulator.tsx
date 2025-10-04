@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { VoiceAnimation } from './VoiceAnimations';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -345,22 +346,10 @@ export const PhoneAssistantSimulator = ({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Waveform animation when speaking */}
+        {/* Voice animation when speaking */}
         {isSpeaking && (
           <div className="px-4 pb-2">
-            <div className="flex items-center justify-center gap-1 h-8">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 bg-primary rounded-full animate-pulse"
-                  style={{
-                    height: `${20 + Math.random() * 20}px`,
-                    animationDelay: `${i * 100}ms`,
-                    animationDuration: '0.8s'
-                  }}
-                />
-              ))}
-            </div>
+            <VoiceAnimation language={language as 'en' | 'sw' | 'ar'} style="waveform" />
           </div>
         )}
 
