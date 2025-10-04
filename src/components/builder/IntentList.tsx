@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Node } from '@xyflow/react';
 import { Plus, MessageSquare } from "lucide-react";
 import { IntentListItem } from './IntentListItem';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntentListProps {
   nodes: Node[];
@@ -22,11 +23,13 @@ export const IntentList = ({
   onAddIntent,
   onOpenTraining 
 }: IntentListProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-muted-foreground">
-          INTENTS ({nodes.length})
+          {t('botBuilder.intents')} ({nodes.length})
         </h3>
         <Button 
           onClick={onAddIntent}
@@ -35,7 +38,7 @@ export const IntentList = ({
           className="h-7 gap-1"
         >
           <Plus className="h-3 w-3" />
-          Add
+          {t('common.add')}
         </Button>
       </div>
 
@@ -61,8 +64,8 @@ export const IntentList = ({
       {nodes.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No intents yet</p>
-          <p className="text-xs mt-1">Click "Add" to create your first intent</p>
+          <p className="text-sm">{t('botBuilder.noIntentsYet')}</p>
+          <p className="text-xs mt-1">{t('botBuilder.clickAddToCreate')}</p>
         </div>
       )}
     </div>

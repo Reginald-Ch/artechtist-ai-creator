@@ -55,6 +55,7 @@ import { VoiceFirstExperience } from "./VoiceFirstExperience";
 import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Removed duplicate nodeTypes definition
 
@@ -106,6 +107,7 @@ interface SimplifiedBotBuilderProps {
 }
 
 const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
+  const { t } = useLanguage();
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [isBeginnerMode, setIsBeginnerMode] = useState(true);
   const [showFirstTimeWizard, setShowFirstTimeWizard] = useState(false);
@@ -198,16 +200,16 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         updateSelectedNode('trainingPhrases', newPhrases);
         
         toast({
-          title: "Training phrase added",
-          description: `"${transcript}" has been added to ${selectedNode.data.label}`
+          title: t('toast.trainingPhraseAdded'),
+          description: `"${transcript}" ${t('botBuilder.responseAdded')}`
         });
       };
 
       recognition.onerror = () => {
         setIsListening(false);
         toast({
-          title: "Voice recognition error",
-          description: "Could not access microphone",
+          title: t('toast.voiceError'),
+          description: t('botBuilder.voiceNotSupported'),
           variant: "destructive"
         });
       };
@@ -215,12 +217,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       recognition.start();
     } else {
       toast({
-        title: "Voice not supported",
-        description: "Your browser doesn't support voice recognition",
+        title: t('toast.voiceError'),
+        description: t('botBuilder.voiceNotSupported'),
         variant: "destructive"
       });
     }
-  }, [selectedNode, updateSelectedNode]);
+  }, [selectedNode, updateSelectedNode, t]);
 
   // Handle voice recognition toggle
   useEffect(() => {
@@ -349,8 +351,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       // Block training for fallback intent - always locked
       if (typeof node.data.label === 'string' && node.data.label.toLowerCase().includes('fallback')) {
         toast({
-          title: "Fallback Intent Locked",
-          description: "The fallback intent cannot be modified to ensure consistent error handling.",
+          title: t('botBuilder.intentLocked'),
+          description: t('botBuilder.fallbackLocked'),
           variant: "default"
         });
         return;
@@ -359,8 +361,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       // Only allow training for "Greet" intent (and any custom intents)
       if (typeof node.data.label === 'string' && !node.data.label.toLowerCase().includes('greet') && node.data.isDefault) {
         toast({
-          title: "Intent Locked",
-          description: "Only the Greet intent can be trained for new agents.",
+          title: t('botBuilder.intentLocked'),
+          description: t('botBuilder.onlyGreetTrainable'),
           variant: "default"
         });
         return;
@@ -474,8 +476,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     undoRedo.saveState(newNodes, newEdges);
     
     toast({
-      title: "New Intent Added",
-      description: `"${intentLabel}" has been connected to your conversation flow`,
+      title: t('toast.intentAdded'),
+      description: `"${intentLabel}" ${t('botBuilder.responseAdded')}`
     });
   };
 
@@ -568,10 +570,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     setDeleteDialog({open: false, nodeId: null});
     
     toast({ 
-      title: "Intent deleted", 
-      description: `"${nodeToDelete.data.label}" has been removed`
+      title: t('toast.intentDeleted'),
+      description: `"${nodeToDelete.data.label}" ${t('common.remove')}`
     });
-  }, [deleteDialog.nodeId, nodes, edges, undoRedo, setNodes, setEdges]);
+  }, [deleteDialog.nodeId, nodes, edges, undoRedo, setNodes, setEdges, t]);
 
   const duplicateNode = (nodeId: string) => {
     const nodeToDuplicate = nodes.find(n => n.id === nodeId);
@@ -612,8 +614,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const handleSave = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in to save your project",
+        title: t('auth.signIn'),
+        description: t('botBuilder.saveProject'),
         variant: "destructive"
       });
       return;
@@ -621,8 +623,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
     if (!botName.trim()) {
       toast({
-        title: "Project name required",
-        description: "Please enter a name for your project",
+        title: t('botBuilder.projectName'),
+        description: t('botBuilder.enterProjectName'),
         variant: "destructive"
       });
       return;
@@ -656,8 +658,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       if (error) throw error;
 
       toast({
-        title: "Project saved successfully!",
-        description: `${botName} has been saved to your dashboard`
+        title: t('toast.projectSaved'),
+        description: `${botName} ${t('botBuilder.projectSaved')}`
       });
 
       // Navigate to dashboard after saving
@@ -667,8 +669,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     } catch (error) {
       console.error('Error saving project:', error);
       toast({
-        title: "Error saving project",
-        description: "Failed to save your project. Please try again.",
+        title: t('toast.errorSavingProject'),
+        description: t('common.retry'),
         variant: "destructive"
       });
     } finally {

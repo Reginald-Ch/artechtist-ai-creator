@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Copy, Download, Globe, Star, Zap, Languages, Heart, Brain } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TemplateGalleryProps {
   onUseTemplate: (template: BotTemplate) => void;
@@ -32,9 +33,9 @@ interface BotTemplate {
 }
 
 const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<BotTemplate | null>(null);
-  const { toast } = useToast();
 
   const templates: BotTemplate[] = [
     {
@@ -212,8 +213,8 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
   const handleUseTemplate = (template: BotTemplate) => {
     onUseTemplate(template);
     toast({
-      title: "Template Applied! 🎉",
-      description: `${template.name} is ready to customize`,
+      title: t('toast.agentCreated'),
+      description: `${template.name} ${t('createAgent.agentCreatedReady')}`,
     });
   };
 
@@ -232,7 +233,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <Star className="h-4 w-4 mr-2" />
-          Browse Templates
+          {t('templates.browseTemplates')}
         </Button>
       </DialogTrigger>
       
@@ -240,7 +241,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Star className="h-5 w-5 text-orange-500" />
-            African AI Templates Gallery
+            {t('templates.browseTemplates')}
           </DialogTitle>
         </DialogHeader>
 
@@ -313,7 +314,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
                   )}
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Features:</Label>
+                    <Label className="text-xs font-medium">{t('templates.features')}:</Label>
                     <div className="flex flex-wrap gap-1">
                       {template.features.map((feature, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
@@ -324,7 +325,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Sample Intents:</Label>
+                    <Label className="text-xs font-medium">{t('templates.sampleIntents')}:</Label>
                     <div className="text-xs text-muted-foreground">
                       {template.intents.slice(0, 2).map(intent => intent.name).join(', ')}
                       {template.intents.length > 2 && ` +${template.intents.length - 2} more`}
@@ -335,7 +336,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="flex-1">
-                          Preview
+                          {t('templates.preview')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
@@ -348,20 +349,20 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
                           <p>{template.description}</p>
                           {template.culturalContext && (
                             <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg">
-                              <h4 className="font-medium mb-2">Cultural Context:</h4>
+                              <h4 className="font-medium mb-2">{t('templates.culturalContext')}:</h4>
                               <p className="text-sm">{template.culturalContext}</p>
                             </div>
                           )}
                           <div>
-                            <h4 className="font-medium mb-2">Intents Preview:</h4>
+                            <h4 className="font-medium mb-2">{t('templates.preview')}:</h4>
                             {template.intents.map((intent, index) => (
                               <div key={index} className="border rounded p-3 mb-2">
                                 <h5 className="font-medium text-sm">{intent.name}</h5>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  Training: {intent.trainingPhrases.slice(0, 3).join(', ')}...
+                                  {t('botBuilder.trainingPhrases')}: {intent.trainingPhrases.slice(0, 3).join(', ')}...
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  Response: "{intent.responses[0]}"
+                                  {t('botBuilder.responses')}: "{intent.responses[0]}"
                                 </p>
                               </div>
                             ))}
@@ -375,7 +376,7 @@ const TemplateGallery = ({ onUseTemplate }: TemplateGalleryProps) => {
                       className="flex-1 bg-orange-500 hover:bg-orange-600"
                       onClick={() => handleUseTemplate(template)}
                     >
-                      Use Template
+                      {t('templates.useTemplate')}
                     </Button>
                   </div>
                 </CardContent>

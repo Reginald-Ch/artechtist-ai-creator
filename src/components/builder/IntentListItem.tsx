@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Bot, Trash2, GraduationCap } from 'lucide-react';
 import { Node } from '@xyflow/react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntentListItemProps {
   node: Node;
@@ -22,6 +23,7 @@ export const IntentListItem: React.FC<IntentListItemProps> = ({
   onDelete,
   onOpenTraining
 }) => {
+  const { t } = useLanguage();
   const trainingCount = Array.isArray(node.data.trainingPhrases) ? node.data.trainingPhrases.length : 0;
   const responseCount = Array.isArray(node.data.responses) ? node.data.responses.length : 0;
   const isDefault = Boolean(node.data.isDefault);
@@ -57,7 +59,7 @@ export const IntentListItem: React.FC<IntentListItemProps> = ({
             </span>
             {isDefault && (
               <Badge variant="secondary" className="text-xs">
-                Core
+                {t('botBuilder.core')}
               </Badge>
             )}
           </div>
@@ -90,7 +92,7 @@ export const IntentListItem: React.FC<IntentListItemProps> = ({
               e.stopPropagation();
               onOpenTraining(node.id);
             }}
-            title="Train intent"
+            title={t('botBuilder.trainIntent')}
           >
             <GraduationCap className="h-4 w-4" />
           </Button>
@@ -109,7 +111,7 @@ export const IntentListItem: React.FC<IntentListItemProps> = ({
                   e.stopPropagation();
                   onDelete(node.id);
                 }}
-                title="Delete intent"
+                title={t('botBuilder.deleteIntent')}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

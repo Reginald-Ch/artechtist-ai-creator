@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { X, Send, Bot, User, Mic, Volume2, MicOff, VolumeX, Settings, Zap, Globe } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { useConversationEngine } from "@/hooks/useConversationEngine";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ interface VoiceSettings {
 }
 
 const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", botPersonality = "helpful and friendly" }: TestPanelProps) => {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -58,7 +60,6 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
   const [botLanguage, setBotLanguage] = useState('en');
   const [savedBotAvatar, setSavedBotAvatar] = useState('🤖');
   
-  const { toast } = useToast();
   const recognition = useRef<any>(null);
   const synthesis = useRef<any>(null);
   
@@ -109,7 +110,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
         setInputValue(transcript);
         setIsListening(false);
         toast({
-          title: "Voice captured! 🎤",
+          title: t('testPanel.voiceCaptured'),
           description: `I heard: "${transcript}"`,
         });
       };
@@ -117,8 +118,8 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
       recognition.current.onerror = () => {
         setIsListening(false);
         toast({
-          title: "Voice recognition error",
-          description: "Please try again",
+          title: t('botBuilder.voiceRecognitionError'),
+          description: t('common.retry'),
           variant: "destructive",
         });
       };
@@ -307,7 +308,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-blue-500" />
-              Test Your Bot
+              {t('testPanel.testYourBot')}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -319,15 +320,15 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
           {/* Settings Panel */}
           <Tabs defaultValue="chat" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
-              <TabsTrigger value="chat">Chat</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
+              <TabsTrigger value="chat">{t('testPanel.chat')}</TabsTrigger>
+              <TabsTrigger value="settings">{t('testPanel.settings')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
               {/* Messages */}
               <div className="flex-none mb-4">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Test Your Chatbot
+                  {t('testPanel.testYourChatbot')}
                 </h2>
               </div>
 
@@ -420,7 +421,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                     onClick={handleVoiceInput}
                   >
                     {isListening ? <MicOff className="h-4 w-4 mr-1" /> : <Mic className="h-4 w-4 mr-1" />}
-                    {isListening ? 'Stop' : 'Voice'}
+                    {isListening ? t('common.stop') : t('playground.voice')}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -429,7 +430,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                     onClick={() => setVoiceSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
                   >
                     {voiceSettings.enabled ? <Volume2 className="h-4 w-4 mr-1" /> : <VolumeX className="h-4 w-4 mr-1" />}
-                    {voiceSettings.enabled ? 'Sound On' : 'Sound Off'}
+                    {voiceSettings.enabled ? t('botBuilder.soundOn') : t('botBuilder.soundOff')}
                   </Button>
                 </div>
                 
@@ -438,7 +439,7 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={`Type in ${languages.find(l => l.code === botLanguage)?.name}...`}
+                    placeholder={t('testPanel.typeMessage')}
                     className="flex-1 min-w-0 text-sm"
                     style={{ 
                       wordWrap: 'break-word', 
