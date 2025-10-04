@@ -439,5 +439,13 @@ export const en = {
     testYourChatbot: 'Test your chatbot',
     confidence: 'Confidence',
     timestamp: 'Timestamp'
+  },
+  assistant: {
+    defaultName: 'AI Assistant',
+    online: 'Online',
+    speaking: 'Speaking...',
+    typing: 'Typing...',
+    startConversation: 'Start a conversation by typing or speaking',
+    typeMessage: 'Type a message...'
   }
 };

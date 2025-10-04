@@ -56,6 +56,7 @@ import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 import { useLanguage } from '@/contexts/LanguageContext';
+import { AssistantButton } from "@/components/assistant/AssistantButton";
 
 // Removed duplicate nodeTypes definition
 
@@ -1432,6 +1433,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
             onClose={() => setShowTemplates(false)}
           />
         )}
+
+        {/* Phone Assistant Button */}
+        <AssistantButton 
+          nodes={nodes}
+          edges={edges}
+          botName={botName}
+          botAvatar={selectedAvatar}
+        />
         </div>
       </TooltipProvider>
     </ErrorBoundary>

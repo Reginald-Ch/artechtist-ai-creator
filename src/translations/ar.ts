@@ -439,5 +439,13 @@ export const ar = {
     testYourChatbot: 'اختبر روبوت الدردشة الخاص بك',
     confidence: 'الثقة',
     timestamp: 'الطابع الزمني'
+  },
+  assistant: {
+    defaultName: 'مساعد الذكاء الاصطناعي',
+    online: 'متصل',
+    speaking: 'يتحدث...',
+    typing: 'يكتب...',
+    startConversation: 'ابدأ محادثة بالكتابة أو التحدث',
+    typeMessage: 'اكتب رسالة...'
   }
 };

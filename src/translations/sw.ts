@@ -439,5 +439,13 @@ export const sw = {
     testYourChatbot: 'Jaribu chatbot yako',
     confidence: 'Uaminifu',
     timestamp: 'Muda'
+  },
+  assistant: {
+    defaultName: 'Msaidizi wa AI',
+    online: 'Mtandaoni',
+    speaking: 'Inazungumza...',
+    typing: 'Inaandika...',
+    startConversation: 'Anza mazungumzo kwa kuandika au kuzungumza',
+    typeMessage: 'Andika ujumbe...'
   }
 };
