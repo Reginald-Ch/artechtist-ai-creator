@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Brain, Star, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NumberPredictorProps {
   onComplete: (score: number) => void;
@@ -60,6 +61,7 @@ const SAMPLE_DATASETS = [
 ];
 
 const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState<'data' | 'training' | 'testing' | 'play'>('data');
   const [selectedDataset, setSelectedDataset] = useState(0);
   const [customData, setCustomData] = useState<DataPoint[]>([]);
@@ -81,14 +83,17 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
     const output = parseFloat(newOutput);
     
     if (isNaN(input) || isNaN(output)) {
-      toast.error('Please enter valid numbers');
+      toast({ 
+        title: t('playground.trainFirst'),
+        variant: "destructive"
+      });
       return;
     }
 
     setCustomData([...customData, { input, output }]);
     setNewInput('');
     setNewOutput('');
-    toast.success('Data point added!');
+    toast({ title: t('toast.trainingPhraseAdded') });
   };
 
   const removeDataPoint = (index: number) => {
@@ -97,7 +102,10 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
 
   const trainModel = () => {
     if (trainingData.length < 3) {
-      toast.error('Need at least 3 data points to train!');
+      toast({ 
+        title: t('playground.trainFirst'),
+        variant: "destructive"
+      });
       return;
     }
 
@@ -116,7 +124,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
           // Calculate linear regression (simple AI model)
           calculateLinearRegression();
           setStep('testing');
-          toast.success('🎉 Model trained! Now make predictions!');
+          toast({ title: t('toast.modelTrained') });
           return 100;
         }
         return newProgress;
@@ -140,7 +148,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
   const makePrediction = () => {
     const input = parseFloat(testInput);
     if (isNaN(input) || !model) {
-      toast.error('Please enter a valid number');
+      toast({ title: t('playground.trainFirst'), variant: "destructive" });
       return;
     }
 
@@ -150,7 +158,7 @@ const NumberPredictor: React.FC<NumberPredictorProps> = ({ onComplete }) => {
     setTestResults(prev => [...prev, { input, predicted: Math.round(predicted * 100) / 100 }]);
     setTestInput('');
     
-    toast.success(`Prediction: ${Math.round(predicted * 100) / 100}`);
+    toast({ title: `${t('playground.result')}: ${Math.round(predicted * 100) / 100}` });
   };
 
   const completeExercise = () => {

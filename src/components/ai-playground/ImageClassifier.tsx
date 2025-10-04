@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Camera, Upload, Brain, Star, Play, Info, Sparkles, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { LearningObjectives } from './LearningObjectives';
 import { ErrorRecoveryDialog } from './ErrorRecoveryDialog';
 import { ExplanatoryFeedback } from './ExplanatoryFeedback';
 import { WebcamCapture } from './WebcamCapture';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ImageClassifierProps {
   onComplete: (score: number) => void;
@@ -25,6 +26,7 @@ interface TrainingImage {
 }
 
 const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState<'intro' | 'setup' | 'data' | 'training' | 'testing' | 'play'>('intro');
   const [categories, setCategories] = useState<string[]>(['cats', 'dogs']);
   const [newCategory, setNewCategory] = useState('');
@@ -85,10 +87,13 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
     });
 
     if (validCount > 0) {
-      toast.success(`✅ Added ${validCount} image${validCount > 1 ? 's' : ''} to ${category}!`);
+      toast({ title: t('toast.imageCaptured') });
     }
     if (invalidCount > 0) {
-      toast.error(`❌ Couldn't add ${invalidCount} file${invalidCount > 1 ? 's' : ''} (too large or wrong format)`);
+      toast({ 
+        title: t('toast.voiceError'),
+        variant: "destructive"
+      });
       setErrorType('file');
       setShowErrorDialog(true);
     }
@@ -117,20 +122,20 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
           label: category
         };
         setTrainingImages(prev => [...prev, newImage]);
-        toast.success(`📸 Captured image added to ${category}!`);
+        toast({ title: t('toast.imageCaptured') });
       });
   };
 
   const startTraining = async () => {
     if (trainingImages.length < 4) {
-      toast.error('Upload at least 2 images per category to start training!');
+      toast({ title: t('playground.trainFirst'), variant: "destructive" });
       return;
     }
 
     // Check if all categories have images
     const categoriesWithImages = categories.filter(cat => getImagesPerCategory(cat) >= 2);
     if (categoriesWithImages.length < categories.length) {
-      toast.error('Each category needs at least 2 images!');
+      toast({ title: t('playground.trainFirst'), variant: "destructive" });
       return;
     }
 
@@ -156,7 +161,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
         if (stage.progress === 100) {
           setIsTraining(false);
           setStep('testing');
-          toast.success('🎉 Model training complete! Now let\'s test it!');
+          toast({ title: t('toast.modelTrained') });
         } else {
           setTimeout(processStage, stage.delay);
         }
@@ -643,7 +648,7 @@ const ImageClassifier: React.FC<ImageClassifierProps> = ({ onComplete }) => {
           Start New Model
         </Button>
         <Button onClick={() => {
-          toast.success('🎉 Model saved to My Models!');
+          toast({ title: t('toast.modelTrained') });
         }} className="flex-1 gap-2" size="lg">
           <Star className="h-5 w-5" />
           Save Model

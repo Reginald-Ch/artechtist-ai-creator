@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageSquare, Brain, Star, Smile, Frown, Angry } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TextClassifierProps {
   onComplete: (score: number) => void;
@@ -46,6 +47,7 @@ const SAMPLE_TEXTS = {
 };
 
 const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
+  const { t } = useLanguage();
   const [step, setStep] = useState<'data' | 'training' | 'testing' | 'play'>('data');
   const [trainingTexts, setTrainingTexts] = useState<TrainingText[]>([]);
   const [newText, setNewText] = useState('');
@@ -66,7 +68,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
       setTrainingTexts([...trainingTexts, newTraining]);
       setNewText('');
       setSelectedEmotion('');
-      toast.success('Training text added!');
+      toast({ title: t('toast.trainingPhraseAdded') });
     }
   };
 
@@ -88,12 +90,15 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
     });
 
     setTrainingTexts(sampleTrainingTexts);
-    toast.success('Sample training texts added!');
+    toast({ title: t('toast.trainingPhraseAdded') });
   };
 
   const startTraining = async () => {
     if (trainingTexts.length < 6) {
-      toast.error('Add at least 2 texts per emotion to start training!');
+      toast({ 
+        title: t('playground.trainFirst'),
+        variant: "destructive"
+      });
       return;
     }
 
@@ -109,7 +114,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
           clearInterval(interval);
           setIsTraining(false);
           setStep('testing');
-          toast.success('🎉 Text classifier trained! Now test it with your own text!');
+          toast({ title: t('toast.modelTrained') });
           return 100;
         }
         return newProgress;
@@ -119,7 +124,7 @@ const TextClassifier: React.FC<TextClassifierProps> = ({ onComplete }) => {
 
   const testModel = () => {
     if (!testText.trim()) {
-      toast.error('Please enter some text to test!');
+      toast({ title: t('playground.trainFirst'), variant: "destructive" });
       return;
     }
 
