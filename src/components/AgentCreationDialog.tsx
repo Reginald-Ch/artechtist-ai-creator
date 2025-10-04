@@ -57,7 +57,7 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     updateAvatarAndPersonality(emoji, personality);
     toast({
       title: "Avatar updated!",
-      description: Now using ${emoji} with ${personality} personality
+      description: `Now using ${emoji} with ${personality} personality`
     });
   };
 
@@ -84,11 +84,11 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
       createdAt: new Date().toISOString()
     };
 
-    localStorage.setItem(agent-${Date.now()}, JSON.stringify(projectData));
+    localStorage.setItem(`agent-${Date.now()}`, JSON.stringify(projectData));
     
     toast({ 
       title: t('createAgent.agentCreatedSuccess'), 
-      description: ${agentData.name} ${t('createAgent.agentCreatedReady')} 
+      description: `${agentData.name} ${t('createAgent.agentCreatedReady')}` 
     });
 
     // Navigate to bot builder with agent data
@@ -285,5 +285,6 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
         </div>
       </DialogContent>
     </Dialog>
-  );
+  );
 };
+
