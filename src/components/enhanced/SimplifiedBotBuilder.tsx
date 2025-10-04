@@ -50,7 +50,7 @@ import { AIMascot } from '@/components/tutorial/AIMascot';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { BeginnerModeToggle } from "./BeginnerModeToggle";
+
 import { VoiceFirstExperience } from "./VoiceFirstExperience";
 import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
@@ -1056,11 +1056,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
-            {/* Beginner Mode Toggle */}
-            <BeginnerModeToggle 
-              isBeginnerMode={isBeginnerMode}
-              onToggle={setIsBeginnerMode}
-            />
             {/* Voice Settings Button */}
             <Button
               onClick={() => setShowVoiceSettings(true)}

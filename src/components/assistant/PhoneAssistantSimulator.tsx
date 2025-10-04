@@ -176,9 +176,9 @@ export const PhoneAssistantSimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] h-[600px] p-0 gap-0 bg-gradient-to-b from-background to-accent/20">
+      <DialogContent className="sm:max-w-[400px] h-[600px] p-0 gap-0 bg-gradient-to-b from-background to-accent/20 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur">
+        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="text-3xl">{botAvatar}</div>
             <div>
@@ -267,7 +267,7 @@ export const PhoneAssistantSimulator = ({
         )}
 
         {/* Input Area */}
-        <div className="p-4 border-t bg-background/95 backdrop-blur">
+        <div className="p-4 border-t bg-background/95 backdrop-blur flex-shrink-0">
           <div className="flex items-center gap-2">
             <Button
               variant={isListening ? 'default' : 'outline'}
