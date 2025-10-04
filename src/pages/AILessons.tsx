@@ -26,22 +26,25 @@ import {
 } from 'lucide-react';
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
 import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
-import { SearchInterface } from '@/components/enhanced/SearchInterface';
-import { ImprovedSearchInterface } from '@/components/enhanced/ImprovedSearchInterface';
-import { AdvancedSearch } from '@/components/enhanced/AdvancedSearch';
-import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
+import { EnhancedFlashcardStudy } from '@/components/enhanced/EnhancedFlashcardStudy';
+import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
+import { AdvancedSearch } from '@/components/enhanced/AdvancedSearch';
 import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
 import { ContinueLearning } from '@/components/enhanced/ContinueLearning';
 import { RecommendedLessons } from '@/components/enhanced/RecommendedLessons';
 import { LearningPath } from '@/components/enhanced/LearningPath';
-import { EnhancedFlashcardStudy } from '@/components/enhanced/EnhancedFlashcardStudy';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AILessons = () => {
+  const { t } = useLanguage();
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('browse');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +53,9 @@ const AILessons = () => {
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'title' | 'difficulty' | 'duration' | 'progress'>('title');
   const [showFlashcardStudy, setShowFlashcardStudy] = useState(false);
+  
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   
   const {
     lessonProgress,
@@ -165,12 +171,12 @@ const AILessons = () => {
       );
     }
     
-    // Filter by search query
-    if (searchQuery) {
+    // Filter by search query with debounced value
+    if (debouncedSearchQuery) {
       lessons = lessons.filter(lesson => 
-        lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lesson.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lesson.character.toLowerCase().includes(searchQuery.toLowerCase())
+        lesson.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        lesson.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        lesson.character.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
     }
     
@@ -200,7 +206,7 @@ const AILessons = () => {
     });
     
     return lessons;
-  }, [searchQuery, selectedDifficulty, sortBy, enhancedComicLessons, getLessonScore]);
+  }, [debouncedSearchQuery, selectedDifficulty, selectedAgeGroup, sortBy, enhancedComicLessons, getLessonScore]);
 
   // Get lesson details from both sources
   const getLessonById = (id: string) => {
@@ -226,7 +232,9 @@ const AILessons = () => {
   const handleStartLesson = (lessonId: string) => {
     setSelectedLesson(lessonId);
     updateProgress(lessonId, { currentPanel: 0 });
-    toast.success(`Starting lesson: ${getLessonById(lessonId)?.title}`);
+    toast.success(t('toast.lessonStarted'), {
+      description: getLessonById(lessonId)?.title
+    });
   };
 
   const handleCompleteLesson = (lessonId: string) => {

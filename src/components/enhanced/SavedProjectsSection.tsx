@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Folder, Calendar, Trash2, ExternalLink, Loader2, Copy, Star, Settings } from "lucide-react";
+import { Bot, Calendar, Trash2, ExternalLink, Loader2, Copy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { ErrorState } from "@/components/shared/ErrorState";
 
 interface SavedProject {
   id: string;
@@ -35,14 +37,17 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
 }) => {
   const [projects, setProjects] = useState<SavedProject[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const fetchProjects = async () => {
     if (!user) return;
 
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('saved_projects')
@@ -54,8 +59,9 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
       setProjects((data || []) as unknown as SavedProject[]);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      setError(t('errors.somethingWrong'));
       toast({
-        title: "Error loading projects",
+        title: t('errors.somethingWrong'),
         description: "Failed to load your saved projects",
         variant: "destructive"
       });
@@ -96,7 +102,6 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
 
   const handleLoadProject = (project: SavedProject) => {
     onLoadProject(project);
-    // Navigate to bot builder with loaded project
     window.location.href = '/builder';
     toast({
       title: "Project loaded",
@@ -155,118 +160,82 @@ export const SavedProjectsSection: React.FC<SavedProjectsSectionProps> = ({
   }, [user]);
 
   if (!user) {
-    return (
-      <Button variant="outline" size="sm" disabled>
-        <Folder className="h-4 w-4 mr-1" />
-        My Projects
-      </Button>
-    );
+    return null;
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" onClick={fetchProjects}>
-          <Folder className="h-4 w-4 mr-1" />
-          My Projects
-        </Button>
-      </DialogTrigger>
-      
-      <DialogContent className="max-w-4xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Folder className="h-5 w-5" />
-            My Saved Projects
-          </DialogTitle>
-        </DialogHeader>
-
-        <ScrollArea className="h-[60vh] pr-4">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Folder className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No saved projects yet</p>
-              <p className="text-sm mt-2">Create and save your first AI bot to see it here!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {projects.map((project) => (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <span className="text-xl">
-                            {project.project_data.selectedAvatar || '🤖'}
-                          </span>
-                          {project.project_name}
-                        </CardTitle>
-                        <CardDescription className="mt-1">
-                          {project.project_data.description || 'No description provided'}
-                        </CardDescription>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => duplicateProject(project)}
-                          className="text-muted-foreground hover:text-primary"
-                          title="Duplicate project"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteProject(project.id)}
-                          disabled={deleting === project.id}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          {deleting === project.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(project.updated_at)}
-                      </div>
-                      <div className="flex gap-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {project.project_data.nodes?.length || 0} intents
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleLoadProject(project)}
-                        className="flex-1"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Load Project
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+    <div>
+      {loading ? (
+        <LoadingSpinner size="md" text={t('common.loading')} />
+      ) : error ? (
+        <ErrorState 
+          message={error}
+          onRetry={fetchProjects}
+        />
+      ) : projects.length === 0 ? (
+        <EmptyState
+          icon={Bot}
+          title={t('dashboard.yourConversationalAgents')}
+          description="No saved projects yet. Create and save your first AI bot to see it here!"
+          actionLabel={t('dashboard.createNewAgent')}
+          onAction={() => window.location.href = '/create-agent'}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {projects.map((project) => (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="truncate">{project.project_name}</span>
+                  <Badge variant="outline" className="ml-2">
+                    {project.project_data?.selectedAvatar || '🤖'}
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {project.project_data?.description || 'No description'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(project.updated_at)}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleLoadProject(project)}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    {t('common.edit')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => duplicateProject(project)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => deleteProject(project.id)}
+                    disabled={deleting === project.id}
+                  >
+                    {deleting === project.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
-
-export default SavedProjectsSection;
