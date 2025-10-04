@@ -12,9 +12,11 @@ import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSe
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { toast } from "@/hooks/use-toast";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SimpleAgentCreator = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [agentName, setAgentName] = useState("");
   const [agentDescription, setAgentDescription] = useState("");
   const { avatar: botAvatar, personality: botPersonality, updateAvatarAndPersonality } = useAvatarPersistence();
@@ -23,14 +25,13 @@ const SimpleAgentCreator = () => {
   const handleCreateAgent = () => {
     if (!agentName.trim()) {
       toast({
-        title: "Agent name required",
+        title: t('createAgent.agentName'),
         description: "Please enter a name for your AI agent",
         variant: "destructive"
       });
       return;
     }
 
-    // Save agent data to localStorage for now
     const agentData = {
       id: Date.now().toString(),
       name: agentName,
@@ -45,11 +46,10 @@ const SimpleAgentCreator = () => {
     localStorage.setItem('aiAgents', JSON.stringify(existingAgents));
 
     toast({
-      title: "Agent created!",
+      title: t('createAgent.title'),
       description: `${agentName} has been created successfully`,
     });
 
-    // Navigate to builder with agent data
     navigate('/builder', { state: { agent: agentData } });
   };
 
@@ -61,11 +61,11 @@ const SimpleAgentCreator = () => {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Bot className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Create Your AI Agent
+              {t('createAgent.title')}
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Build a conversational AI agent with custom avatar and voice settings
+            {t('createAgent.subtitle')}
           </p>
         </div>
 
@@ -75,12 +75,12 @@ const SimpleAgentCreator = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5" />
-                Basic Information
+                {t('createAgent.agentName')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="agentName">Agent Name *</Label>
+                <Label htmlFor="agentName">{t('createAgent.agentName')} *</Label>
                 <Input
                   id="agentName"
                   placeholder="e.g., Learning Assistant, Customer Helper..."
@@ -91,7 +91,7 @@ const SimpleAgentCreator = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="agentDescription">Description</Label>
+                <Label htmlFor="agentDescription">{t('createAgent.agentDescription')}</Label>
                 <Textarea
                   id="agentDescription"
                   placeholder="Describe what your AI agent will do..."
