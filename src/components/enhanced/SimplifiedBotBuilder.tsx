@@ -28,7 +28,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker, Sparkles } from "lucide-react";
+import { PhoneAssistantSimulator } from "@/components/assistant/PhoneAssistantSimulator";
+import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker, Sparkles, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import IntentNode from "@/components/flow/IntentNode";
@@ -56,7 +57,7 @@ import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 import { useLanguage } from '@/contexts/LanguageContext';
-import { AssistantButton } from "@/components/assistant/AssistantButton";
+
 
 // Removed duplicate nodeTypes definition
 
@@ -122,6 +123,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [showPhoneSimulator, setShowPhoneSimulator] = useState(false);
   const { user } = useAuth();
   
   const [projectName, setProjectName] = useState("My Project");
@@ -1061,7 +1063,18 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               className="gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
             >
               <Mic className="h-4 w-4" />
-              Voice
+              {t('builder.voice', 'Voice')}
+            </Button>
+
+            {/* Phone Assistant Button */}
+            <Button
+              onClick={() => setShowPhoneSimulator(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+            >
+              <Smartphone className="h-4 w-4" />
+              {t('builder.assistant', 'Assistant')}
             </Button>
             <Button 
               onClick={handleSave} 
@@ -1426,8 +1439,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           />
         )}
 
-        {/* Phone Assistant Button */}
-        <AssistantButton 
+        {/* Phone Assistant Simulator */}
+        <PhoneAssistantSimulator
+          open={showPhoneSimulator}
+          onOpenChange={setShowPhoneSimulator}
           nodes={nodes}
           edges={edges}
           botName={botName}
