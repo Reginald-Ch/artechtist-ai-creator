@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bot, Sparkles, Heart, Zap, Brain, Star, Mic } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AgentCreationDialogProps {
   open: boolean;
@@ -84,6 +85,7 @@ const botPersonalities: BotPersonality[] = [
 ];
 
 export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogProps) => {
+  const { t } = useLanguage();
   const [agentData, setAgentData] = useState({
     name: "",
     description: "",
@@ -105,7 +107,7 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
 
   const handleCreate = () => {
     if (!agentData.name.trim()) {
-      toast({ title: "Please enter an agent name", variant: "destructive" });
+      toast({ title: t('createAgent.pleaseEnterAgentName'), variant: "destructive" });
       return;
     }
 
@@ -124,8 +126,8 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     localStorage.setItem(`agent-${Date.now()}`, JSON.stringify(projectData));
     
     toast({ 
-      title: "Agent created successfully!", 
-      description: `${agentData.name} is ready to start learning` 
+      title: t('createAgent.agentCreatedSuccess'), 
+      description: `${agentData.name} ${t('createAgent.agentCreatedReady')}` 
     });
 
     // Navigate to bot builder with agent data
@@ -137,20 +139,20 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     <div className="space-y-6">
       {/* Agent Name */}
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-base font-medium">Agent Name</Label>
+        <Label htmlFor="name" className="text-base font-medium">{t('createAgent.agentName')}</Label>
         <Input
           id="name"
           value={agentData.name}
           onChange={(e) => setAgentData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="e.g., Breakfast Guide, Story Helper, Math Buddy..."
+          placeholder={t('createAgent.namePlaceholder')}
           className="text-lg h-12"
         />
-        <p className="text-sm text-muted-foreground">Give your agent a memorable name</p>
+        <p className="text-sm text-muted-foreground">{t('botBuilder.giveMemorableName')}</p>
       </div>
 
       {/* Avatar Selection */}
       <div className="space-y-4">
-        <Label className="text-base font-medium">Select an Avatar & Personality</Label>
+        <Label className="text-base font-medium">{t('botBuilder.selectAvatar')} & {t('botBuilder.selectPersonality')}</Label>
         <div className="grid grid-cols-2 gap-4">
           {botPersonalities.map((personality, index) => (
             <Card 
@@ -195,19 +197,19 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
             <div className="flex items-center gap-3 mb-2">
               <span className="text-2xl">{agentData.avatar}</span>
               <div>
-                <h5 className="font-medium text-sm">Selected Personality</h5>
+                <h5 className="font-medium text-sm">{t('botBuilder.selectedPersonality')}</h5>
                 <p className="text-xs text-muted-foreground">{agentData.personality}</p>
               </div>
             </div>
           </div>
         )}
         
-        <p className="text-sm text-muted-foreground">Choose an avatar and personality that fits your agent's role</p>
+        <p className="text-sm text-muted-foreground">{t('botBuilder.chooseAvatarPersonality')}</p>
       </div>
 
       {/* Description */}
       <div className="space-y-2">
-        <Label htmlFor="description" className="text-base font-medium">What will your agent help with? (Optional)</Label>
+        <Label htmlFor="description" className="text-base font-medium">{t('botBuilder.whatWillAgentHelp')}</Label>
         <Textarea
           id="description"
           value={agentData.description}
@@ -226,7 +228,7 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            Create New AI Agent
+            {t('createAgent.createNewAIAgent')}
           </DialogTitle>
         </DialogHeader>
 
@@ -244,10 +246,10 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
             size="lg"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            Create AI Agent & Start Building
+            {t('createAgent.createAgentStartBuilding')}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            Your agent will be created and you'll be taken to the conversation builder
+            {t('createAgent.agentWillBeCreated')}
           </p>
         </div>
       </DialogContent>

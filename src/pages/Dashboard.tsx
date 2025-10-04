@@ -23,7 +23,6 @@ const Dashboard = () => {
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   const [showAgentCreation, setShowAgentCreation] = useState(false);
-  const [showGoogleAssistant, setShowGoogleAssistant] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -258,26 +257,6 @@ const Dashboard = () => {
           open={showAgentCreation}
           onOpenChange={setShowAgentCreation}
         />
-
-        {/* Google Assistant Integration Modal */}
-        {showGoogleAssistant && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-4 border-b flex items-center justify-between">
-                <h2 className="text-xl font-semibold">{t('common.settings')}</h2>
-                <Button variant="ghost" size="sm" onClick={() => setShowGoogleAssistant(false)}>
-                  ✕
-                </Button>
-              </div>
-              <div className="p-4">
-                <div className="text-center p-8 text-muted-foreground">
-                  <p>{t('dashboard.createNewAgent')}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   );

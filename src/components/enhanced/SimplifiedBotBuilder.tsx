@@ -48,7 +48,6 @@ import { ErrorBoundary } from "@/components/enhanced/ErrorBoundary";
 import { BotBuilderTutorial } from '@/components/tutorial/BotBuilderTutorial';
 import { AIMascot } from '@/components/tutorial/AIMascot';
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
-import { ImprovedGoogleAssistantIntegration } from "./ImprovedGoogleAssistantIntegration";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { BeginnerModeToggle } from "./BeginnerModeToggle";
@@ -121,7 +120,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const [voiceSettings, setVoiceSettings] = useState({});
   const [showTestPanel, setShowTestPanel] = useState(true);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
-  const [showGoogleAssistant, setShowGoogleAssistant] = useState(false);
   const { user } = useAuth();
   
   const [projectName, setProjectName] = useState("My Project");
@@ -999,17 +997,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="speaker" className="p-0 mt-0 h-full">
-          <div className="p-4 h-full overflow-y-auto">
-            <ImprovedGoogleAssistantIntegration
-              nodes={nodes}
-              edges={edges}
-              voiceSettings={voiceSettings}
-              selectedAvatar={botAvatar}
-              botPersonality={botPersonality}
-            />
-          </div>
-        </TabsContent>
       </Tabs>
     </div>
   );
@@ -1081,18 +1068,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               <Mic className="h-4 w-4" />
               Voice
             </Button>
-            
-            {/* Google Assistant Button */}
-            <Button
-              onClick={() => setShowGoogleAssistant(true)}
-              variant="outline"
-              size="sm"
-              className="gap-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:border-blue-800 dark:hover:border-blue-700 dark:hover:bg-blue-950"
-            >
-              <Speaker className="h-4 w-4" />
-              Google
-            </Button>
-            
             <Button 
               onClick={handleSave} 
               disabled={isSaving}
@@ -1289,28 +1264,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
           </DialogContent>
         </Dialog>
 
-        {/* Google Assistant Integration Dialog */}
-        <Dialog open={showGoogleAssistant} onOpenChange={setShowGoogleAssistant}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Google Assistant Integration</DialogTitle>
-            </DialogHeader>
-            <ImprovedGoogleAssistantIntegration
-              nodes={nodes}
-              edges={edges}
-              voiceSettings={voiceSettings}
-              selectedAvatar={selectedAvatar}
-              botPersonality={botPersonality}
-              onDeploymentComplete={(status) => {
-                setShowGoogleAssistant(false);
-                toast({
-                  title: "🎉 Bot deployed to Google Assistant!",
-                  description: `Try saying: "Hey Google, talk to test version of ${botName}"`
-                });
-              }}
-            />
-          </DialogContent>
-        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog

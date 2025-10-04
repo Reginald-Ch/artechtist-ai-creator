@@ -55,7 +55,6 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
     speed: 1.0,
     enabled: true,
   });
-  const [googleAssistantConnected, setGoogleAssistantConnected] = useState(false);
   const [botLanguage, setBotLanguage] = useState('en');
   const [savedBotAvatar, setSavedBotAvatar] = useState('🤖');
   
@@ -293,15 +292,6 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
     });
   };
 
-  const connectGoogleAssistant = () => {
-    setGoogleAssistantConnected(!googleAssistantConnected);
-    toast({
-      title: googleAssistantConnected ? "Disconnected from Google Assistant" : "Connected to Google Assistant! 🎉",
-      description: googleAssistantConnected 
-        ? "Your bot is no longer linked to Google Assistant" 
-        : "Your bot can now work with smart speakers and Google devices!",
-    });
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -318,12 +308,6 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-blue-500" />
               Test Your Bot
-              {googleAssistantConnected && (
-                <Badge variant="secondary" className="bg-green-100 text-green-700">
-                  <Globe className="h-3 w-3 mr-1" />
-                  GA Connected
-                </Badge>
-              )}
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -564,24 +548,6 @@ const TestPanel = ({ onClose, nodes = [], edges = [], botName = "AI Assistant", 
                 />
               </div>
 
-              {/* Google Assistant Integration */}
-              <div>
-                <h4 className="font-medium mb-3 flex items-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  Smart Speaker Integration
-                </h4>
-                <Button
-                  variant={googleAssistantConnected ? "destructive" : "default"}
-                  onClick={connectGoogleAssistant}
-                  className="w-full"
-                >
-                  <Globe className="h-4 w-4 mr-2" />
-                  {googleAssistantConnected ? 'Disconnect' : 'Connect'} Google Assistant
-                </Button>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Connect your bot to Google Assistant and smart speakers for hands-free interaction
-                </p>
-              </div>
             </TabsContent>
           </Tabs>
         </div>

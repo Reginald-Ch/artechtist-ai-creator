@@ -17,7 +17,6 @@ interface BotConfigurationProps {
   onBotDescriptionChange: (description: string) => void;
   onAvatarChange: (avatar: string, personality: string) => void;
   onVoiceSettings: () => void;
-  onGoogleAssistant: () => void;
 }
 
 export const BotConfiguration = ({
@@ -27,8 +26,7 @@ export const BotConfiguration = ({
   onBotNameChange,
   onBotDescriptionChange,
   onAvatarChange,
-  onVoiceSettings,
-  onGoogleAssistant
+  onVoiceSettings
 }: BotConfigurationProps) => {
   const [nameError, setNameError] = useState<string>("");
   const [descError, setDescError] = useState<string>("");
@@ -127,26 +125,16 @@ export const BotConfiguration = ({
         {/* Advanced Settings */}
         <div className="space-y-2 pt-2 border-t">
           <Label className="text-xs text-muted-foreground">ADVANCED</Label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={onVoiceSettings}
-              className="justify-start"
+              className="justify-start flex-1"
               aria-label="Voice settings"
             >
               <Mic className="h-3.5 w-3.5 mr-2" />
               Voice
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onGoogleAssistant}
-              className="justify-start"
-              aria-label="Google Assistant integration"
-            >
-              <Globe className="h-3.5 w-3.5 mr-2" />
-              Assistant
             </Button>
           </div>
         </div>

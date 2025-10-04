@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Mic, Volume2, Settings, Play, Pause, TestTube } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VoiceSettings {
   gender: 'male' | 'female' | 'child';
@@ -20,6 +21,7 @@ interface VoiceSettings {
 }
 
 export const VoiceChatbotSettings = () => {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState<VoiceSettings>({
     gender: 'child',
     pitch: 1.2,
@@ -70,16 +72,16 @@ export const VoiceChatbotSettings = () => {
     }
     
     toast({
-      title: "🎤 Voice Test",
-      description: "Playing voice sample with current settings"
+      title: t('playground.voiceTest'),
+      description: t('playground.playingVoiceSample')
     });
   };
 
   const saveSettings = () => {
     localStorage.setItem('voiceChatbotSettings', JSON.stringify(settings));
     toast({
-      title: "✅ Settings Saved",
-      description: "Voice settings have been saved successfully"
+      title: t('playground.settingsSaved'),
+      description: t('playground.voiceSettingsSaved')
     });
     setIsOpen(false);
   };
@@ -106,17 +108,17 @@ export const VoiceChatbotSettings = () => {
           variant="outline" 
           size="sm" 
           className="gap-2 hover:bg-accent transition-colors"
-          title="Voice Settings"
+          title={t('botBuilder.voiceSettings')}
         >
           <Mic className="h-3.5 w-3.5" />
-          <span className="hidden lg:inline">Voice</span>
+          <span className="hidden lg:inline">{t('playground.voice')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Mic className="h-4 w-4" />
-            Voice Settings
+            {t('botBuilder.voiceSettings')}
           </DialogTitle>
         </DialogHeader>
         
@@ -124,7 +126,7 @@ export const VoiceChatbotSettings = () => {
           {/* Compact Voice & Language */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Voice</Label>
+              <Label className="text-xs">{t('playground.voice')}</Label>
               <Select value={settings.gender} onValueChange={(value: 'male' | 'female' | 'child') => 
                 setSettings(prev => ({ ...prev, gender: value }))
               }>
@@ -132,15 +134,15 @@ export const VoiceChatbotSettings = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="child">Child</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="child">{t('playground.child')}</SelectItem>
+                  <SelectItem value="female">{t('playground.female')}</SelectItem>
+                  <SelectItem value="male">{t('playground.male')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-1">
-              <Label className="text-xs">Language</Label>
+              <Label className="text-xs">{t('common.language')}</Label>
               <Select value={settings.language} onValueChange={(value) => 
                 setSettings(prev => ({ ...prev, language: value }))
               }>
@@ -148,10 +150,11 @@ export const VoiceChatbotSettings = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="en-US">English</SelectItem>
-                  <SelectItem value="es-ES">Spanish</SelectItem>
-                  <SelectItem value="fr-FR">French</SelectItem>
-                  <SelectItem value="sw-TZ">Swahili</SelectItem>
+                  <SelectItem value="en-US">{t('playground.english')}</SelectItem>
+                  <SelectItem value="es-ES">{t('playground.spanish')}</SelectItem>
+                  <SelectItem value="fr-FR">{t('playground.french')}</SelectItem>
+                  <SelectItem value="sw-TZ">{t('playground.swahili')}</SelectItem>
+                  <SelectItem value="ar-SA">{t('playground.arabic')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -160,7 +163,7 @@ export const VoiceChatbotSettings = () => {
           {/* Compact Sliders */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">Pitch</Label>
+              <Label className="text-xs">{t('playground.pitch')}</Label>
               <span className="text-xs text-muted-foreground">{settings.pitch}</span>
             </div>
             <Slider
@@ -175,7 +178,7 @@ export const VoiceChatbotSettings = () => {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">Speed</Label>
+              <Label className="text-xs">{t('playground.speed')}</Label>
               <span className="text-xs text-muted-foreground">{settings.rate}</span>
             </div>
             <Slider
@@ -192,10 +195,10 @@ export const VoiceChatbotSettings = () => {
           <div className="flex gap-2 pt-2">
             <Button onClick={testVoice} variant="outline" size="sm" className="flex-1">
               <TestTube className="mr-1 h-3 w-3" />
-              Test
+              {t('playground.test')}
             </Button>
             <Button onClick={saveSettings} size="sm" className="flex-1">
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </div>
