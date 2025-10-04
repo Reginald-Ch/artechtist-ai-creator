@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Send } from 'lucide-react';
+import { Mic, MicOff, X, Send, Volume2 } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
 import { useConversationEngine } from '@/hooks/useConversationEngine';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -38,79 +39,148 @@ export const PhoneAssistantSimulator = ({
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const { voiceSettings, getBrowserVoice } = useVoicePersistence();
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const [recognitionSupported, setRecognitionSupported] = useState(true);
+  const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
   const { processUserInput } = useConversationEngine(nodes, edges);
-  const { language, isRTL } = useLanguage();
+  const { language, isRTL, t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Check browser support on mount
+  useEffect(() => {
+    setSpeechSupported('speechSynthesis' in window);
+    setRecognitionSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+    
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported in this browser');
+    }
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      console.warn('Speech recognition not supported in this browser');
+    }
+  }, []);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Initialize speech recognition
+  // Initialize speech recognition with language sync
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    if (!recognitionSupported) return;
+
+    try {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
       
-      // Set language based on current language
+      // Set language based on current language with proper locale codes
       const langMap: Record<string, string> = {
         'en': 'en-US',
         'sw': 'sw-KE',
         'ar': 'ar-SA'
       };
       recognitionRef.current.lang = langMap[language] || 'en-US';
+      
+      console.log(`Speech recognition language set to: ${recognitionRef.current.lang}`);
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         setIsListening(false);
+        
+        toast({
+          title: t('assistant.voiceRecognized', 'Voice recognized'),
+          description: transcript,
+          duration: 2000,
+        });
       };
 
-      recognitionRef.current.onerror = () => {
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        
+        toast({
+          title: t('assistant.voiceError', 'Voice input error'),
+          description: t('assistant.voiceErrorDesc', 'Could not recognize speech. Please try again.'),
+          variant: 'destructive',
+        });
       };
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
       };
+    } catch (error) {
+      console.error('Failed to initialize speech recognition:', error);
+      setRecognitionSupported(false);
     }
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Error stopping recognition:', e);
+        }
       }
-      window.speechSynthesis.cancel();
+      if (speechSupported) {
+        window.speechSynthesis.cancel();
+      }
     };
-  }, [language]);
+  }, [language, recognitionSupported, speechSupported, t]);
 
   const speak = (text: string) => {
-    if (!voiceSettings.enabled || !('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    synthRef.current = utterance;
-
-    const voice = getBrowserVoice();
-    if (voice) {
-      utterance.voice = voice;
+    if (!voiceSettings.enabled || !speechSupported || !isLoaded) {
+      console.log('Speech disabled or not supported');
+      return;
     }
 
-    utterance.rate = voiceSettings.speed;
-    utterance.pitch = voiceSettings.pitch;
-    utterance.volume = 1.0;
+    try {
+      window.speechSynthesis.cancel();
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+      const utterance = new SpeechSynthesisUtterance(text);
+      synthRef.current = utterance;
 
-    window.speechSynthesis.speak(utterance);
+      // Apply persisted voice settings
+      const voice = getBrowserVoice();
+      if (voice) {
+        utterance.voice = voice;
+        console.log(`Using voice: ${voice.name} (${voice.lang})`);
+      }
+
+      utterance.rate = voiceSettings.speed || 1.0;
+      utterance.pitch = voiceSettings.pitch || 1.0;
+      utterance.volume = 1.0;
+      utterance.lang = voice?.lang || 'en-US';
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        console.log('Speech started');
+      };
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        console.log('Speech ended');
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setIsSpeaking(false);
+        
+        toast({
+          title: t('assistant.speechError', 'Speech error'),
+          description: t('assistant.speechErrorDesc', 'Could not speak the message.'),
+          variant: 'destructive',
+        });
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Failed to speak:', error);
+      setIsSpeaking(false);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -152,17 +222,37 @@ export const PhoneAssistantSimulator = ({
   };
 
   const toggleListening = () => {
+    if (!recognitionSupported) {
+      toast({
+        title: t('assistant.notSupported', 'Not supported'),
+        description: t('assistant.voiceNotSupported', 'Voice recognition is not supported in your browser.'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!recognitionRef.current) return;
 
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      try {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+        setIsListening(false);
+      }
     } else {
       try {
         recognitionRef.current.start();
         setIsListening(true);
       } catch (error) {
         console.error('Error starting recognition:', error);
+        
+        toast({
+          title: t('assistant.voiceError', 'Voice input error'),
+          description: t('assistant.micPermission', 'Please grant microphone permission.'),
+          variant: 'destructive',
+        });
       }
     }
   };
@@ -176,15 +266,23 @@ export const PhoneAssistantSimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px] h-[600px] p-0 gap-0 bg-gradient-to-b from-background to-accent/20 flex flex-col">
+      <DialogContent className={cn(
+        "sm:max-w-[400px] h-[600px] p-0 gap-0 bg-gradient-to-b from-background to-accent/20 flex flex-col",
+        isRTL && "rtl"
+      )} dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="text-3xl">{botAvatar}</div>
             <div>
               <h3 className="font-semibold text-lg">{botName}</h3>
-              <p className="text-xs text-muted-foreground">
-                {isSpeaking ? 'Speaking...' : isTyping ? 'Typing...' : 'Online'}
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
+                {isSpeaking && <Volume2 className="h-3 w-3 animate-pulse" />}
+                {isSpeaking 
+                  ? t('assistant.speaking', 'Speaking...') 
+                  : isTyping 
+                  ? t('assistant.typing', 'Typing...') 
+                  : t('assistant.online', 'Online')}
               </p>
             </div>
           </div>
