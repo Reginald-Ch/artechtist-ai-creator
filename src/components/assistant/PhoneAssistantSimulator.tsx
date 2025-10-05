@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Send, Volume2 } from 'lucide-react';
+import { Mic, MicOff, X, Volume2, Settings, Wifi, Battery, Signal } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
 import { useConversationEngine } from '@/hooks/useConversationEngine';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,6 +10,7 @@ import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { VoiceAnimation } from './VoiceAnimations';
+import { VoiceChatbotSettings } from '@/components/enhanced/VoiceChatbotSettings';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -268,125 +269,171 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "sm:max-w-[400px] h-[600px] p-0 gap-0 bg-gradient-to-b from-background to-accent/20 flex flex-col",
+        "sm:max-w-[420px] h-[740px] p-0 gap-0 flex flex-col overflow-hidden",
+        "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="text-3xl">{botAvatar}</div>
-            <div>
-              <h3 className="font-semibold text-lg">{botName}</h3>
-              <p className="text-xs text-muted-foreground flex items-center gap-2">
-                {isSpeaking && <Volume2 className="h-3 w-3 animate-pulse" />}
-                {isSpeaking 
-                  ? t('assistant.speaking', 'Speaking...') 
-                  : isTyping 
-                  ? t('assistant.typing', 'Typing...') 
-                  : t('assistant.online', 'Online')}
-              </p>
+        {/* Phone Frame */}
+        <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[3rem] border-[14px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
+          
+          {/* Status Bar */}
+          <div className="bg-white px-6 py-2 flex items-center justify-between text-xs text-gray-900 font-medium flex-shrink-0">
+            <div className="flex items-center gap-1">
+              <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Signal className="h-3.5 w-3.5" />
+              <Wifi className="h-3.5 w-3.5" />
+              <Battery className="h-3.5 w-3.5" />
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-            className="rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-            aria-label="Close phone simulator"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>
-          {messages.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="text-5xl mb-4">{botAvatar}</div>
-              <p className="text-sm">Start a conversation by typing or speaking</p>
-            </div>
-          )}
-
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex gap-2 animate-fade-in",
-                message.type === 'user' ? 'justify-end' : 'justify-start'
-              )}
+          {/* Close Button - Top Right Overlay */}
+          <div className="absolute top-14 right-4 z-50">
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="rounded-full bg-gray-200/90 hover:bg-gray-300/90 text-gray-900 shadow-lg h-8 w-8"
+              aria-label="Close phone simulator"
             >
-              {message.type === 'assistant' && (
-                <div className="text-2xl">{botAvatar}</div>
-              )}
-              <div
-                className={cn(
-                  "max-w-[75%] rounded-2xl px-4 py-2 text-sm",
-                  message.type === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                )}
-              >
-                {message.content}
-              </div>
-            </div>
-          ))}
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
-          {isTyping && (
-            <div className="flex gap-2 animate-fade-in">
-              <div className="text-2xl">{botAvatar}</div>
-              <div className="bg-muted rounded-2xl px-4 py-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          {/* TTS Settings Button - Top Left Overlay */}
+          <div className="absolute top-14 left-4 z-50">
+            <VoiceChatbotSettings />
+          </div>
+
+          {/* Chat Area */}
+          <div className="flex-1 overflow-y-auto p-6 bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="space-y-6">
+              {messages.length === 0 && (
+                <div className="text-center py-16 text-gray-500">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-4xl">{botAvatar}</span>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">{t('assistant.startConversation', 'Start a conversation')}</p>
+                  <p className="text-xs mt-1">{t('assistant.typeOrSpeak', 'Type or use voice input')}</p>
                 </div>
+              )}
+
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex gap-3 items-start animate-fade-in",
+                    message.type === 'user' ? 'justify-end flex-row-reverse' : 'justify-start'
+                  )}
+                >
+                  {/* Avatar */}
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
+                    message.type === 'user' 
+                      ? 'bg-gray-200' 
+                      : 'bg-blue-200'
+                  )}>
+                    <span className="text-2xl">
+                      {message.type === 'user' ? '😊' : botAvatar}
+                    </span>
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div
+                    className={cn(
+                      "max-w-[65%] rounded-2xl px-5 py-3 text-[15px] leading-relaxed shadow-sm",
+                      message.type === 'user'
+                        ? 'bg-blue-400 text-white rounded-tr-sm'
+                        : 'bg-white text-gray-900 border border-gray-200 rounded-tl-sm'
+                    )}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="flex gap-3 items-start animate-fade-in">
+                  <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">{botAvatar}</span>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-3 shadow-sm">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Voice animation when speaking */}
+          {isSpeaking && (
+            <div className="px-6 py-3 bg-white border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                <Volume2 className="h-4 w-4 text-blue-500 animate-pulse" />
+                <VoiceAnimation language={language as 'en' | 'sw' | 'ar'} style="waveform" />
+                <span className="text-xs text-gray-600 font-medium">{t('assistant.speaking', 'Speaking...')}</span>
               </div>
             </div>
           )}
 
-          <div ref={messagesEndRef} />
-        </div>
+          {/* Input Area */}
+          <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              {/* Microphone Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleListening}
+                className={cn(
+                  "rounded-full w-12 h-12 flex-shrink-0 transition-all",
+                  isListening 
+                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                )}
+                disabled={!recognitionRef.current}
+                aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
 
-        {/* Voice animation when speaking */}
-        {isSpeaking && (
-          <div className="px-4 pb-2">
-            <VoiceAnimation language={language as 'en' | 'sw' | 'ar'} style="waveform" />
-          </div>
-        )}
-
-        {/* Input Area */}
-        <div className="p-4 border-t bg-background/95 backdrop-blur flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={isListening ? 'default' : 'outline'}
-              size="icon"
-              onClick={toggleListening}
-              className={cn(
-                "rounded-full transition-all",
-                isListening && "animate-pulse"
+              {/* Text Input - Hidden when listening */}
+              {!isListening && (
+                <Input
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={t('assistant.typeMessage', 'Type a message...')}
+                  className="flex-1 border-0 bg-gray-50 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
               )}
-              disabled={!recognitionRef.current}
-            >
-              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-            </Button>
 
-            <Input
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1"
-              dir={isRTL ? 'rtl' : 'ltr'}
-            />
+              {/* Listening Indicator */}
+              {isListening && (
+                <div className="flex-1 flex items-center gap-2 text-red-600">
+                  <div className="flex gap-1">
+                    <div className="w-1 h-4 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1 h-5 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '100ms' }} />
+                    <div className="w-1 h-6 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                    <div className="w-1 h-5 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+                    <div className="w-1 h-4 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+                  </div>
+                  <span className="text-sm font-medium">{t('assistant.listening', 'Listening...')}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-            <Button
-              onClick={handleSendMessage}
-              size="icon"
-              className="rounded-full"
-              disabled={!inputText.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+          {/* Phone Bottom Bar */}
+          <div className="h-16 bg-black flex items-center justify-center gap-12 flex-shrink-0">
+            <div className="w-12 h-1 bg-white/20 rounded-full" />
           </div>
         </div>
       </DialogContent>
