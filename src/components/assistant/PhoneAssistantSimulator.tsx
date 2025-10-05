@@ -348,7 +348,7 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "w-[360px] h-[600px] p-0 gap-0 flex flex-col overflow-hidden mx-auto",
+        "w-[360px] h-[500px] p-0 gap-0 flex flex-col overflow-hidden mx-auto",
         "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
