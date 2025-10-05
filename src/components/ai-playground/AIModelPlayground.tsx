@@ -258,9 +258,19 @@ const AIModelPlayground = () => {
             <Card>
               <CardHeader className="text-center">
                 <div className="mx-auto mb-2 w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                  <Brain className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-2xl text-orange-600">{savedModels.length}</CardTitle>
+                <CardDescription>Models Created</CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
                   <Trophy className="h-6 w-6 text-white" />
                 </div>
-                <CardTitle className="text-2xl text-orange-600">{achievements.length}</CardTitle>
+                <CardTitle className="text-2xl text-yellow-600">{achievements.length}</CardTitle>
                 <CardDescription>Achievements Unlocked</CardDescription>
               </CardHeader>
             </Card>
