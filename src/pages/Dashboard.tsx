@@ -12,7 +12,6 @@ import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
 import { AgentCreationDialog } from "@/components/AgentCreationDialog";
 import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection";
-import { AssistantButton } from "@/components/assistant/AssistantButton";
 
 // Lazy load performance-heavy components
 // Removed deprecated Google Assistant integration
@@ -258,9 +257,6 @@ const Dashboard = () => {
           open={showAgentCreation}
           onOpenChange={setShowAgentCreation}
         />
-
-        {/* Phone Assistant Button */}
-        <AssistantButton />
       </div>
     </div>
   );
