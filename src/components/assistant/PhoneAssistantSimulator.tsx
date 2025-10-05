@@ -2,15 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User } from 'lucide-react';
+import { Mic, MicOff, X, Volume2, Settings, Wifi, Battery, Signal } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
+import { useConversationEngine } from '@/hooks/useConversationEngine';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { VoiceAnimation } from './VoiceAnimations';
-import { useAvatarPersistence } from '@/hooks/useAvatarPersistence';
-import { validateChatMessage } from '@/utils/validation';
+import { VoiceChatbotSettings } from '@/components/enhanced/VoiceChatbotSettings';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -43,10 +43,8 @@ export const PhoneAssistantSimulator = ({
   const [isTyping, setIsTyping] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [recognitionSupported, setRecognitionSupported] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const [inputError, setInputError] = useState<string>('');
   const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
-  const { avatar: displayAvatar } = useAvatarPersistence(botAvatar);
+  const { processUserInput } = useConversationEngine(nodes, edges);
   const { language, isRTL, t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -191,63 +189,13 @@ export const PhoneAssistantSimulator = ({
     }
   };
 
-  const findMatchingIntent = (userInput: string) => {
-    const lowerInput = userInput.toLowerCase();
-    let bestMatch = null;
-    let highestScore = 0;
-
-    for (const node of nodes) {
-      if (node.type === 'intent' && Array.isArray(node.data.trainingPhrases)) {
-        for (const phrase of node.data.trainingPhrases) {
-          const lowerPhrase = String(phrase).toLowerCase();
-          const score = calculateSimilarity(lowerInput, lowerPhrase);
-          
-          if (score > highestScore && score > 0.3) {
-            highestScore = score;
-            bestMatch = {
-              node,
-              confidence: score,
-              phrase
-            };
-          }
-        }
-      }
-    }
-
-    return bestMatch;
-  };
-
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const words1 = str1.split(' ');
-    const words2 = str2.split(' ');
-    const intersection = words1.filter(word => words2.includes(word));
-    return intersection.length / Math.max(words1.length, words2.length);
-  };
-
-  const generateResponse = (intent: any): string => {
-    if (intent.node.data.responses && intent.node.data.responses.length > 0) {
-      const responses = intent.node.data.responses;
-      return responses[Math.floor(Math.random() * responses.length)];
-    }
-    return "I understand you're asking about that, but I don't have a specific response ready yet.";
-  };
-
   const handleSendMessage = async () => {
-    const trimmed = inputText.trim();
-    if (!trimmed) return;
-
-    // Validate input
-    const validation = validateChatMessage(trimmed);
-    if (!validation.isValid) {
-      setInputError(validation.errors[0]);
-      return;
-    }
-    setInputError('');
+    if (!inputText.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: trimmed,
+      content: inputText,
       timestamp: new Date(),
     };
 
@@ -255,42 +203,27 @@ export const PhoneAssistantSimulator = ({
     setInputText('');
     setIsTyping(true);
 
-    // Find matching intent
-    const matchedIntent = findMatchingIntent(trimmed);
-    
-    let botResponse: string;
-
-    if (matchedIntent) {
-      botResponse = generateResponse(matchedIntent);
-    } else {
-      const fallbackNode = nodes.find(node => 
-        (typeof node.data.label === 'string' && node.data.label.toLowerCase() === 'fallback') || 
-        node.data.isDefault === true
-      );
+    try {
+      const result = await processUserInput(inputText);
       
-      if (fallbackNode && fallbackNode.data.responses) {
-        botResponse = fallbackNode.data.responses[0] || "I didn't understand that. Could you try rephrasing?";
-      } else {
-        botResponse = "I didn't understand that. Could you try rephrasing?";
-      }
-    }
+      // Simulate typing delay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: result.response,
+        timestamp: new Date(),
+      };
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      type: 'assistant',
-      content: botResponse,
-      timestamp: new Date(),
-    };
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
 
-    setMessages(prev => [...prev, assistantMessage]);
-    setIsTyping(false);
-
-    // Speak the response
-    if (audioEnabled) {
-      speak(botResponse);
+      // Speak the response
+      speak(result.response);
+    } catch (error) {
+      console.error('Error processing message:', error);
+      setIsTyping(false);
     }
   };
 
@@ -337,23 +270,15 @@ export const PhoneAssistantSimulator = ({
     }
   };
 
-  const toggleAudio = () => {
-    setAudioEnabled(!audioEnabled);
-    if (audioEnabled && speechSupported) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "w-[360px] h-[650px] p-0 gap-0 flex flex-col overflow-hidden mx-auto",
+        "sm:max-w-[420px] h-[680px] p-0 gap-0 flex flex-col overflow-hidden",
         "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
         {/* Phone Frame */}
-        <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[2.5rem] border-[12px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
+        <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[3rem] border-[14px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
           
           {/* Status Bar */}
           <div className="bg-white px-6 py-2 flex items-center justify-between text-xs text-gray-900 font-medium flex-shrink-0">
@@ -367,49 +292,27 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Header */}
+          {/* Header with Close Button and TTS Settings */}
           <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-2xl shadow-md">
-                {displayAvatar}
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-gray-900">{botName}</h3>
-                <p className="text-xs text-gray-500">Online</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleAudio}
-                className={cn(
-                  "h-8 w-8 rounded-full transition-all",
-                  audioEnabled ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"
-                )}
-                aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
-              >
-                <Volume2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                className="rounded-full hover:bg-gray-100 text-gray-700 h-8 w-8"
-                aria-label="Close phone simulator"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+            <VoiceChatbotSettings />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="rounded-full hover:bg-gray-100 text-gray-700 h-8 w-8"
+              aria-label="Close phone simulator"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 bg-white" dir={isRTL ? 'rtl' : 'ltr'}>
+            <div className="space-y-6">
               {messages.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-                    <span className="text-3xl">{displayAvatar}</span>
+                <div className="text-center py-16 text-gray-500">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-4xl">{botAvatar}</span>
                   </div>
                   <p className="text-sm font-medium text-gray-700">{t('assistant.startConversation', 'Start a conversation')}</p>
                   <p className="text-xs mt-1">{t('assistant.typeOrSpeak', 'Type or use voice input')}</p>
@@ -420,47 +323,42 @@ export const PhoneAssistantSimulator = ({
                 <div
                   key={message.id}
                   className={cn(
-                    "flex gap-2 items-end animate-fade-in",
-                    message.type === 'user' ? 'justify-end' : 'justify-start'
+                    "flex gap-3 items-start animate-fade-in",
+                    message.type === 'user' ? 'justify-end flex-row-reverse' : 'justify-start'
                   )}
                 >
-                  {message.type === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                      <span className="text-lg">{displayAvatar}</span>
-                    </div>
-                  )}
+                  {/* Avatar */}
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0",
+                    message.type === 'user' 
+                      ? 'bg-gray-200' 
+                      : 'bg-blue-200'
+                  )}>
+                    <span className="text-2xl">
+                      {message.type === 'user' ? '😊' : botAvatar}
+                    </span>
+                  </div>
 
                   {/* Message Bubble */}
                   <div
                     className={cn(
-                      "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+                      "max-w-[65%] rounded-2xl px-5 py-3 text-[15px] leading-relaxed shadow-sm",
                       message.type === 'user'
-                        ? 'bg-blue-500 text-white rounded-br-sm'
-                        : 'bg-white text-gray-900 rounded-bl-sm'
+                        ? 'bg-blue-400 text-white rounded-tr-sm'
+                        : 'bg-white text-gray-900 border border-gray-200 rounded-tl-sm'
                     )}
-                    style={{ 
-                      wordBreak: 'break-word',
-                      overflowWrap: 'anywhere',
-                      whiteSpace: 'pre-wrap'
-                    }}
                   >
                     {message.content}
                   </div>
-
-                  {message.type === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                      <User className="h-4 w-4 text-white" />
-                    </div>
-                  )}
                 </div>
               ))}
 
               {isTyping && (
-                <div className="flex gap-2 items-end animate-fade-in">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <span className="text-lg">{displayAvatar}</span>
+                <div className="flex gap-3 items-start animate-fade-in">
+                  <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">{botAvatar}</span>
                   </div>
-                  <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-3 shadow-sm">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -486,49 +384,50 @@ export const PhoneAssistantSimulator = ({
           )}
 
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-200 flex-shrink-0">
-            {inputError && (
-              <p className="text-xs text-red-500 mb-2 px-1">{inputError}</p>
-            )}
-            <div className="flex items-center gap-2">
+          <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              {/* Microphone Button */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleListening}
                 className={cn(
-                  "rounded-full w-10 h-10 flex-shrink-0 transition-all",
+                  "rounded-full w-12 h-12 flex-shrink-0 transition-all",
                   isListening 
-                    ? "bg-red-500 hover:bg-red-600 text-white" 
-                    : "text-gray-500 hover:bg-gray-100"
+                    ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" 
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                 )}
                 disabled={!recognitionRef.current}
                 aria-label={isListening ? 'Stop listening' : 'Start voice input'}
               >
-                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                <Mic className="h-5 w-5" />
               </Button>
 
-              <Input
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  setInputError('');
-                }}
-                onKeyPress={handleKeyPress}
-                placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Type a message...')}
-                className="flex-1 border-0 bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-4"
-                disabled={isListening}
-                dir={isRTL ? 'rtl' : 'ltr'}
-              />
+              {/* Text Input - Hidden when listening */}
+              {!isListening && (
+                <Input
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={t('assistant.typeMessage', 'Type a message...')}
+                  className="flex-1 border-0 bg-gray-50 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                />
+              )}
 
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputText.trim() || isListening}
-                size="icon"
-                className="rounded-full w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0"
-                aria-label="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+              {/* Listening Indicator */}
+              {isListening && (
+                <div className="flex-1 flex items-center gap-2 text-red-600">
+                  <div className="flex gap-1">
+                    <div className="w-1 h-4 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1 h-5 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '100ms' }} />
+                    <div className="w-1 h-6 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                    <div className="w-1 h-5 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+                    <div className="w-1 h-4 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
+                  </div>
+                  <span className="text-sm font-medium">{t('assistant.listening', 'Listening...')}</span>
+                </div>
+              )}
             </div>
           </div>
 
