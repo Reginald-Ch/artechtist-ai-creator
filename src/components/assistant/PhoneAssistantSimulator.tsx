@@ -63,10 +63,14 @@ export const PhoneAssistantSimulator = ({
     }
   }, []);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom when messages change or typing status changes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Small delay to ensure DOM has updated
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [messages, isTyping]);
 
   // Initialize speech recognition with language sync
   useEffect(() => {
@@ -269,7 +273,7 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "sm:max-w-[420px] h-[740px] p-0 gap-0 flex flex-col overflow-hidden",
+        "sm:max-w-[420px] h-[680px] p-0 gap-0 flex flex-col overflow-hidden",
         "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
@@ -288,22 +292,18 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Close Button - Top Right Overlay */}
-          <div className="absolute top-14 right-4 z-50">
+          {/* Header with Close Button and TTS Settings */}
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+            <VoiceChatbotSettings />
             <Button
-              variant="secondary"
+              variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="rounded-full bg-gray-200/90 hover:bg-gray-300/90 text-gray-900 shadow-lg h-8 w-8"
+              className="rounded-full hover:bg-gray-100 text-gray-700 h-8 w-8"
               aria-label="Close phone simulator"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
-          </div>
-
-          {/* TTS Settings Button - Top Left Overlay */}
-          <div className="absolute top-14 left-4 z-50">
-            <VoiceChatbotSettings />
           </div>
 
           {/* Chat Area */}
