@@ -94,7 +94,7 @@ export const PhoneAssistantSimulator = ({
       
       console.log(`Speech recognition language set to: ${recognitionRef.current.lang}`);
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = async (event: any) => {
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         setIsListening(false);
@@ -104,6 +104,11 @@ export const PhoneAssistantSimulator = ({
           description: transcript,
           duration: 2000,
         });
+
+        // Auto-send the transcribed message
+        setTimeout(() => {
+          handleSendMessage(transcript);
+        }, 300);
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -232,8 +237,9 @@ export const PhoneAssistantSimulator = ({
     return "I understand you're asking about that, but I don't have a specific response ready yet.";
   };
 
-  const handleSendMessage = async () => {
-    const trimmed = inputText.trim();
+  const handleSendMessage = async (voiceInput?: string) => {
+    const textToSend = voiceInput || inputText;
+    const trimmed = textToSend.trim();
     if (!trimmed) return;
 
     // Validate input
@@ -352,8 +358,13 @@ export const PhoneAssistantSimulator = ({
         "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
-        {/* Phone Frame */}
+          {/* Phone Frame */}
         <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[2.5rem] border-[12px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
+          
+          {/* Dimensions Display */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-full">
+            <p className="text-[10px] font-mono text-white/70">360 × 650 px</p>
+          </div>
           
           {/* Status Bar */}
           <div className="bg-white px-6 py-2 flex items-center justify-between text-xs text-gray-900 font-medium flex-shrink-0">
@@ -474,13 +485,34 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Voice animation when speaking */}
+          {/* Listening animation when microphone is active */}
+          {isListening && (
+            <div className="px-6 py-3 bg-white border-t border-gray-100">
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-1 bg-red-500 rounded-full"
+                      style={{
+                        height: '20px',
+                        animation: `pulse 1s ease-in-out infinite`,
+                        animationDelay: `${i * 0.1}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-red-600 font-medium">{t('assistant.listening', 'Listening...')}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Speaking animation when bot is talking */}
           {isSpeaking && (
             <div className="px-6 py-3 bg-white border-t border-gray-100">
-              <div className="flex items-center gap-3">
-                <Volume2 className="h-4 w-4 text-blue-500 animate-pulse" />
+              <div className="flex items-center justify-center gap-3">
                 <VoiceAnimation language={language as 'en' | 'sw' | 'ar'} style="waveform" />
-                <span className="text-xs text-gray-600 font-medium">{t('assistant.speaking', 'Speaking...')}</span>
+                <span className="text-xs text-blue-600 font-medium">{t('assistant.speaking', 'Speaking...')}</span>
               </div>
             </div>
           )}
@@ -521,7 +553,7 @@ export const PhoneAssistantSimulator = ({
               />
 
               <Button
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isListening}
                 size="icon"
                 className="rounded-full w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0"
