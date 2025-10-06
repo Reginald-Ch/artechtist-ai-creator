@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Bot, Sparkles, X, Save, Zap } from "lucide-react";
+import { Bot, Sparkles, Save, Zap, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,13 +16,9 @@ import { communityAvatars, avatarCategories } from "@/data/communityAvatars";
 import { VoiceChatbotSettings } from "@/components/enhanced/VoiceChatbotSettings";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 
-interface AgentCreationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogProps) => {
+export const SimpleAgentCreator = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { avatar: savedAvatar, personality: savedPersonality, updateAvatarAndPersonality } = useAvatarPersistence();
   const [agentData, setAgentData] = useState({
     name: "",
@@ -35,7 +30,15 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('education');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Initialize with saved avatar
   useEffect(() => {
@@ -94,7 +97,6 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     // Navigate to bot builder with agent data
     navigate('/builder', { state: { template: projectData } });
     setIsLoading(false);
-    onOpenChange(false);
   };
 
   const renderCreationForm = () => (
@@ -233,58 +235,78 @@ export const AgentCreationDialog = ({ open, onOpenChange }: AgentCreationDialogP
     </div>
   );
 
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <Skeleton className="h-12 w-64" />
+          <Skeleton className="h-[600px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="relative">
-          <DialogTitle className="flex items-center gap-2 pr-8">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Bot className="h-5 w-5 text-primary" />
-            </div>
-            <span>{t('createAgent.createNewAIAgent')}</span>
-          </DialogTitle>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-6">
+      <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onOpenChange(false)}
-            className="absolute right-0 top-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-            aria-label="Close dialog"
+            onClick={() => navigate(-1)}
+            className="rounded-full hover:bg-primary/10"
           >
-            <X className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-        </DialogHeader>
-
-        {/* Simple Creation Form */}
-        <div className="py-4">
-          {renderCreationForm()}
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-lg">
+              <Bot className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                {t('createAgent.createNewAIAgent')}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Design your AI assistant with custom personality and voice
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Create Button */}
-        <div className="flex flex-col gap-3 pt-6 border-t">
-          <Button 
-            onClick={handleCreate}
-            disabled={!agentData.name.trim() || isLoading}
-            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Save className="h-5 w-5 mr-2" />
-                {t('createAgent.createAgentStartBuilding')}
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            ✅ {t('createAgent.agentWillBeCreated')}
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+        {/* Main Content */}
+        <Card className="border-2 shadow-xl">
+          <CardContent className="p-8">
+            {renderCreationForm()}
+
+            {/* Create Button */}
+            <div className="flex flex-col gap-3 pt-6 mt-6 border-t">
+              <Button 
+                onClick={handleCreate}
+                disabled={!agentData.name.trim() || isLoading}
+                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5 mr-2" />
+                    {t('createAgent.createAgentStartBuilding')}
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                ✅ {t('createAgent.agentWillBeCreated')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

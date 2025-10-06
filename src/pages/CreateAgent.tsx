@@ -1,4 +1,4 @@
-import SimpleAgentCreator from "@/components/SimpleAgentCreator";
+import { SimpleAgentCreator } from "@/components/AgentCreationDialog";
 
 const CreateAgent = () => {
   return <SimpleAgentCreator />;

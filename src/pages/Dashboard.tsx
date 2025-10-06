@@ -10,7 +10,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import TemplateGallery from "@/components/TemplateGallery";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
 import { TutorialOverlay } from "@/components/ai-tutor/TutorialOverlay";
-import { AgentCreationDialog } from "@/components/AgentCreationDialog";
+
 import { SavedProjectsSection } from "@/components/enhanced/SavedProjectsSection";
 
 // Lazy load performance-heavy components
@@ -22,7 +22,6 @@ const Dashboard = () => {
   const { t } = useLanguage();
   const [showTutorial, setShowTutorial] = useState<string | null>(null);
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
-  const [showAgentCreation, setShowAgentCreation] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -87,7 +86,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card 
             className="hover:shadow-lg transition-shadow cursor-pointer border-orange-200 hover:border-orange-300 group"
-            onClick={() => setShowAgentCreation(true)}
+            onClick={() => navigate('/create-agent')}
           >
             <CardHeader className="text-center">
               <div className="mx-auto mb-2 w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -252,11 +251,6 @@ const Dashboard = () => {
           />
         )}
 
-        {/* Agent Creation Dialog */}
-        <AgentCreationDialog 
-          open={showAgentCreation}
-          onOpenChange={setShowAgentCreation}
-        />
       </div>
     </div>
   );
