@@ -354,17 +354,13 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "w-[360px] h-[650px] p-0 gap-0 flex flex-col overflow-hidden mx-auto",
+        "w-[360px] h-screen max-h-screen p-0 gap-0 flex flex-col overflow-hidden mx-auto",
         "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
           {/* Phone Frame */}
         <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[2.5rem] border-[12px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
           
-          {/* Dimensions Display */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-full">
-            <p className="text-[10px] font-mono text-white/70">360 × 650 px</p>
-          </div>
           
           {/* Status Bar */}
           <div className="bg-white px-6 py-2 flex items-center justify-between text-xs text-gray-900 font-medium flex-shrink-0">
