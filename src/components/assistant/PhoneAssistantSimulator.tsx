@@ -82,7 +82,7 @@ export const PhoneAssistantSimulator = ({
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
+      recognitionRef.current.interimResults = true;
       
       // Set language based on current language with proper locale codes
       const langMap: Record<string, string> = {
@@ -95,12 +95,29 @@ export const PhoneAssistantSimulator = ({
       console.log(`Speech recognition language set to: ${recognitionRef.current.lang}`);
 
       recognitionRef.current.onresult = async (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputText(transcript);
-        setIsListening(false);
+        let interimTranscript = '';
+        let finalTranscript = '';
 
-        // Auto-send the transcribed message instantly
-        handleSendMessage(transcript);
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // Show interim results in real-time
+        if (interimTranscript) {
+          setInputText(interimTranscript);
+        }
+
+        // Auto-send when final result is received
+        if (finalTranscript) {
+          setInputText('');
+          setIsListening(false);
+          handleSendMessage(finalTranscript);
+        }
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -261,8 +278,7 @@ export const PhoneAssistantSimulator = ({
       }
     }
 
-    // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Instant response - no typing delay
 
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
