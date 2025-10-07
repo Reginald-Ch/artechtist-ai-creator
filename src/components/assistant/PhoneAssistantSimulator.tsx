@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User } from 'lucide-react';
+import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User, Moon, Sun } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
 import { VoiceAnimation } from './VoiceAnimations';
 import { useAvatarPersistence } from '@/hooks/useAvatarPersistence';
 import { validateChatMessage } from '@/utils/validation';
@@ -45,6 +44,7 @@ export const PhoneAssistantSimulator = ({
   const [recognitionSupported, setRecognitionSupported] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [inputError, setInputError] = useState<string>('');
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
   const { avatar: displayAvatar } = useAvatarPersistence(botAvatar);
   const { language, isRTL, t } = useLanguage();
@@ -98,28 +98,14 @@ export const PhoneAssistantSimulator = ({
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         setIsListening(false);
-        
-        toast({
-          title: t('assistant.voiceRecognized', 'Voice recognized'),
-          description: transcript,
-          duration: 2000,
-        });
 
-        // Auto-send the transcribed message
-        setTimeout(() => {
-          handleSendMessage(transcript);
-        }, 300);
+        // Auto-send the transcribed message instantly
+        handleSendMessage(transcript);
       };
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
-        
-        toast({
-          title: t('assistant.voiceError', 'Voice input error'),
-          description: t('assistant.voiceErrorDesc', 'Could not recognize speech. Please try again.'),
-          variant: 'destructive',
-        });
       };
 
       recognitionRef.current.onend = () => {
@@ -181,12 +167,6 @@ export const PhoneAssistantSimulator = ({
       utterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
         setIsSpeaking(false);
-        
-        toast({
-          title: t('assistant.speechError', 'Speech error'),
-          description: t('assistant.speechErrorDesc', 'Could not speak the message.'),
-          variant: 'destructive',
-        });
       };
 
       window.speechSynthesis.speak(utterance);
@@ -282,7 +262,7 @@ export const PhoneAssistantSimulator = ({
     }
 
     // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
@@ -301,16 +281,7 @@ export const PhoneAssistantSimulator = ({
   };
 
   const toggleListening = () => {
-    if (!recognitionSupported) {
-      toast({
-        title: t('assistant.notSupported', 'Not supported'),
-        description: t('assistant.voiceNotSupported', 'Voice recognition is not supported in your browser.'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!recognitionRef.current) return;
+    if (!recognitionSupported || !recognitionRef.current) return;
 
     if (isListening) {
       try {
@@ -326,12 +297,6 @@ export const PhoneAssistantSimulator = ({
         setIsListening(true);
       } catch (error) {
         console.error('Error starting recognition:', error);
-        
-        toast({
-          title: t('assistant.voiceError', 'Voice input error'),
-          description: t('assistant.micPermission', 'Please grant microphone permission.'),
-          variant: 'destructive',
-        });
       }
     }
   };
@@ -355,15 +320,21 @@ export const PhoneAssistantSimulator = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
         "w-[360px] h-screen max-h-screen p-0 gap-0 flex flex-col overflow-hidden mx-auto",
-        "bg-gradient-to-b from-zinc-900 to-zinc-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
           {/* Phone Frame */}
-        <div className="relative w-full h-full bg-gradient-to-b from-zinc-900 to-zinc-800 rounded-[2.5rem] border-[12px] border-zinc-900 shadow-2xl overflow-hidden flex flex-col">
-          
+        <div className={cn(
+          "relative w-full h-full rounded-[2.5rem] border-[12px] shadow-2xl overflow-hidden flex flex-col",
+          isDarkTheme 
+            ? "bg-gradient-to-b from-slate-900 to-slate-800 border-slate-900" 
+            : "bg-gradient-to-b from-zinc-100 to-white border-zinc-300"
+        )}>
           
           {/* Status Bar */}
-          <div className="bg-white px-6 py-2 flex items-center justify-between text-xs text-gray-900 font-medium flex-shrink-0">
+          <div className={cn(
+            "px-6 py-2 flex items-center justify-between text-xs font-medium flex-shrink-0",
+            isDarkTheme ? "bg-slate-900 text-white" : "bg-white text-gray-900"
+          )}>
             <div className="flex items-center gap-1">
               <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
@@ -375,24 +346,28 @@ export const PhoneAssistantSimulator = ({
           </div>
 
           {/* Header */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
+          <div className={cn(
+            "px-4 py-3 flex items-center justify-between border-b flex-shrink-0",
+            isDarkTheme ? "bg-slate-900 border-slate-700" : "bg-white border-gray-100"
+          )}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-2xl shadow-md">
                 {displayAvatar}
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-gray-900">{botName}</h3>
-                <p className="text-xs text-gray-500">Online</p>
+                <h3 className={cn("font-semibold text-sm", isDarkTheme ? "text-white" : "text-gray-900")}>{botName}</h3>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleAudio}
                 className={cn(
                   "h-8 w-8 rounded-full transition-all",
-                  audioEnabled ? "text-blue-500 hover:bg-blue-50" : "text-gray-400 hover:bg-gray-100"
+                  audioEnabled 
+                    ? isDarkTheme ? "text-blue-400 hover:bg-slate-800" : "text-blue-500 hover:bg-blue-50"
+                    : isDarkTheme ? "text-gray-500 hover:bg-slate-800" : "text-gray-400 hover:bg-gray-100"
                 )}
                 aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
               >
@@ -401,8 +376,23 @@ export const PhoneAssistantSimulator = ({
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => setIsDarkTheme(!isDarkTheme)}
+                className={cn(
+                  "h-8 w-8 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100"
+                )}
+                aria-label="Toggle theme"
+              >
+                {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => onOpenChange(false)}
-                className="rounded-full hover:bg-gray-100 text-gray-700 h-8 w-8"
+                className={cn(
+                  "h-8 w-8 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100"
+                )}
                 aria-label="Close phone simulator"
               >
                 <X className="h-5 w-5" />
@@ -411,15 +401,34 @@ export const PhoneAssistantSimulator = ({
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50" dir={isRTL ? 'rtl' : 'ltr'}>
+          <div className={cn(
+            "flex-1 overflow-y-auto p-4 relative",
+            isDarkTheme ? "bg-slate-800" : "bg-gray-50"
+          )} dir={isRTL ? 'rtl' : 'ltr'}>
+            
+            {/* Centered Voice Animation */}
+            {(isListening || isSpeaking) && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <VoiceAnimation 
+                  language={language as 'en' | 'sw' | 'ar'} 
+                  style="siri"
+                  isActive={isListening || isSpeaking}
+                />
+              </div>
+            )}
+
             <div className="space-y-4">
               {messages.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className={cn("text-center py-12", isDarkTheme ? "text-gray-400" : "text-gray-500")}>
                   <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
                     <span className="text-3xl">{displayAvatar}</span>
                   </div>
-                  <p className="text-sm font-medium text-gray-700">{t('assistant.startConversation', 'Start a conversation')}</p>
-                  <p className="text-xs mt-1">{t('assistant.typeOrSpeak', 'Type or use voice input')}</p>
+                  <p className={cn("text-sm font-medium", isDarkTheme ? "text-gray-300" : "text-gray-700")}>
+                    {t('assistant.startConversation', 'Start a conversation')}
+                  </p>
+                  <p className={cn("text-xs mt-1", isDarkTheme ? "text-gray-500" : "text-gray-500")}>
+                    {t('assistant.typeOrSpeak', 'Type or use voice input')}
+                  </p>
                 </div>
               )}
 
@@ -443,7 +452,9 @@ export const PhoneAssistantSimulator = ({
                       "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
                       message.type === 'user'
                         ? 'bg-blue-500 text-white rounded-br-sm'
-                        : 'bg-white text-gray-900 rounded-bl-sm'
+                        : isDarkTheme 
+                          ? 'bg-slate-700 text-white rounded-bl-sm'
+                          : 'bg-white text-gray-900 rounded-bl-sm'
                     )}
                     style={{ 
                       wordBreak: 'break-word',
@@ -467,11 +478,14 @@ export const PhoneAssistantSimulator = ({
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
                     <span className="text-lg">{displayAvatar}</span>
                   </div>
-                  <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <div className={cn(
+                    "rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm",
+                    isDarkTheme ? "bg-slate-700" : "bg-white"
+                  )}>
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '0ms' }} />
+                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '150ms' }} />
+                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
@@ -481,40 +495,11 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Listening animation when microphone is active */}
-          {isListening && (
-            <div className="px-6 py-3 bg-white border-t border-gray-100">
-              <div className="flex items-center justify-center gap-3">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-red-500 rounded-full"
-                      style={{
-                        height: '20px',
-                        animation: `pulse 1s ease-in-out infinite`,
-                        animationDelay: `${i * 0.1}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-red-600 font-medium">{t('assistant.listening', 'Listening...')}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Speaking animation when bot is talking */}
-          {isSpeaking && (
-            <div className="px-6 py-3 bg-white border-t border-gray-100">
-              <div className="flex items-center justify-center gap-3">
-                <VoiceAnimation language={language as 'en' | 'sw' | 'ar'} style="waveform" />
-                <span className="text-xs text-blue-600 font-medium">{t('assistant.speaking', 'Speaking...')}</span>
-              </div>
-            </div>
-          )}
-
           {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-200 flex-shrink-0">
+          <div className={cn(
+            "p-3 border-t flex-shrink-0",
+            isDarkTheme ? "bg-slate-900 border-slate-700" : "bg-white border-gray-200"
+          )}>
             {inputError && (
               <p className="text-xs text-red-500 mb-2 px-1">{inputError}</p>
             )}
@@ -527,7 +512,9 @@ export const PhoneAssistantSimulator = ({
                   "rounded-full w-10 h-10 flex-shrink-0 transition-all",
                   isListening 
                     ? "bg-red-500 hover:bg-red-600 text-white" 
-                    : "text-gray-500 hover:bg-gray-100"
+                    : isDarkTheme 
+                      ? "text-gray-400 hover:bg-slate-800" 
+                      : "text-gray-500 hover:bg-gray-100"
                 )}
                 disabled={!recognitionRef.current}
                 aria-label={isListening ? 'Stop listening' : 'Start voice input'}
@@ -543,7 +530,12 @@ export const PhoneAssistantSimulator = ({
                 }}
                 onKeyPress={handleKeyPress}
                 placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Type a message...')}
-                className="flex-1 border-0 bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-4"
+                className={cn(
+                  "flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-4",
+                  isDarkTheme 
+                    ? "bg-slate-800 text-white placeholder:text-gray-500" 
+                    : "bg-gray-100 text-gray-900"
+                )}
                 disabled={isListening}
                 dir={isRTL ? 'rtl' : 'ltr'}
               />
@@ -561,7 +553,10 @@ export const PhoneAssistantSimulator = ({
           </div>
 
           {/* Phone Bottom Bar */}
-          <div className="h-16 bg-black flex items-center justify-center gap-12 flex-shrink-0">
+          <div className={cn(
+            "h-16 flex items-center justify-center gap-12 flex-shrink-0",
+            isDarkTheme ? "bg-slate-950" : "bg-black"
+          )}>
             <div className="w-12 h-1 bg-white/20 rounded-full" />
           </div>
         </div>

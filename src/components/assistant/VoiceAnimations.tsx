@@ -2,10 +2,11 @@ import { cn } from '@/lib/utils';
 
 interface VoiceAnimationProps {
   language: 'en' | 'sw' | 'ar';
-  style?: 'orb' | 'waveform' | 'dots';
+  style?: 'orb' | 'waveform' | 'dots' | 'siri';
+  isActive?: boolean;
 }
 
-export const VoiceAnimation = ({ language, style = 'waveform' }: VoiceAnimationProps) => {
+export const VoiceAnimation = ({ language, style = 'waveform', isActive = true }: VoiceAnimationProps) => {
   // Language-based colors
   const colorMap = {
     en: 'hsl(var(--primary))', // Blue for English
@@ -46,6 +47,55 @@ export const VoiceAnimation = ({ language, style = 'waveform' }: VoiceAnimationP
             }}
           />
         ))}
+      </div>
+    );
+  }
+
+  if (style === 'siri') {
+    return (
+      <div className="flex items-center justify-center h-24 w-full">
+        <svg width="200" height="80" viewBox="0 0 200 80" className="overflow-visible">
+          <defs>
+            <linearGradient id={`siri-gradient-${language}`} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.6 }} />
+              <stop offset="50%" style={{ stopColor: color, stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: color, stopOpacity: 0.6 }} />
+            </linearGradient>
+            <filter id={`siri-glow-${language}`}>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          {[...Array(5)].map((_, i) => (
+            <path
+              key={i}
+              d={`M 0,40 Q 50,${20 + i * 5} 100,40 T 200,40`}
+              fill="none"
+              stroke={`url(#siri-gradient-${language})`}
+              strokeWidth="3"
+              strokeLinecap="round"
+              filter={`url(#siri-glow-${language})`}
+              opacity={1 - i * 0.15}
+              style={{
+                animation: `siriWave ${1.5 + i * 0.2}s ease-in-out infinite`,
+                animationDelay: `${i * 0.1}s`
+              }}
+            />
+          ))}
+        </svg>
+        <style>{`
+          @keyframes siriWave {
+            0%, 100% { 
+              d: path('M 0,40 Q 50,20 100,40 T 200,40');
+            }
+            50% { 
+              d: path('M 0,40 Q 50,60 100,40 T 200,40');
+            }
+          }
+        `}</style>
       </div>
     );
   }
