@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 
 interface VoiceAnimationProps {
   language: 'en' | 'sw' | 'ar';
-  style?: 'orb' | 'waveform' | 'dots' | 'siri';
+  style?: 'orb' | 'waveform' | 'dots' | 'siri' | 'google';
   isActive?: boolean;
 }
 
@@ -93,6 +93,44 @@ export const VoiceAnimation = ({ language, style = 'waveform', isActive = true }
             }
             50% { 
               d: path('M 0,40 Q 50,60 100,40 T 200,40');
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Google Assistant style - 4 colored dots
+  if (style === 'google') {
+    const googleColors = ['#4285f4', '#ea4335', '#fbbc04', '#34a853']; // Google's signature colors
+    
+    return (
+      <div className="flex items-center justify-center gap-3 h-20">
+        {googleColors.map((dotColor, i) => (
+          <div
+            key={i}
+            className="rounded-full transition-all"
+            style={{
+              width: isActive ? '18px' : '14px',
+              height: isActive ? '18px' : '14px',
+              backgroundColor: dotColor,
+              boxShadow: isActive ? `0 0 24px ${dotColor}99` : `0 0 8px ${dotColor}66`,
+              animation: isActive 
+                ? `googlePulse 1.4s ease-in-out ${i * 0.15}s infinite`
+                : 'none',
+              transform: isActive ? 'scale(1)' : 'scale(0.8)'
+            }}
+          />
+        ))}
+        <style>{`
+          @keyframes googlePulse {
+            0%, 100% {
+              transform: scale(1) translateY(0);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1.5) translateY(-4px);
+              opacity: 0.8;
             }
           }
         `}</style>

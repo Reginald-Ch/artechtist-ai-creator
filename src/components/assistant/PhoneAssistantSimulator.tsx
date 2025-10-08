@@ -335,55 +335,42 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "w-[360px] h-screen max-h-screen p-0 gap-0 flex flex-col overflow-hidden mx-auto",
+        "w-[400px] h-[700px] max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden mx-auto rounded-3xl",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
-          {/* Phone Frame */}
+        {/* Minimal Google Assistant-inspired Interface */}
         <div className={cn(
-          "relative w-full h-full rounded-[2.5rem] border-[12px] shadow-2xl overflow-hidden flex flex-col",
+          "relative w-full h-full overflow-hidden flex flex-col",
           isDarkTheme 
-            ? "bg-gradient-to-b from-slate-900 to-slate-800 border-slate-900" 
-            : "bg-gradient-to-b from-zinc-100 to-white border-zinc-300"
+            ? "bg-gradient-to-b from-gray-900 via-gray-900 to-black" 
+            : "bg-white"
         )}>
           
-          {/* Status Bar */}
+          {/* Minimal Header */}
           <div className={cn(
-            "px-6 py-2 flex items-center justify-between text-xs font-medium flex-shrink-0",
-            isDarkTheme ? "bg-slate-900 text-white" : "bg-white text-gray-900"
-          )}>
-            <div className="flex items-center gap-1">
-              <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Signal className="h-3.5 w-3.5" />
-              <Wifi className="h-3.5 w-3.5" />
-              <Battery className="h-3.5 w-3.5" />
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className={cn(
-            "px-4 py-3 flex items-center justify-between border-b flex-shrink-0",
-            isDarkTheme ? "bg-slate-900 border-slate-700" : "bg-white border-gray-100"
+            "px-6 py-4 flex items-center justify-between flex-shrink-0",
+            isDarkTheme ? "bg-gray-900/50" : "bg-white/80 backdrop-blur-sm"
           )}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-2xl shadow-md">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-xl shadow-lg">
                 {displayAvatar}
               </div>
               <div>
-                <h3 className={cn("font-semibold text-sm", isDarkTheme ? "text-white" : "text-gray-900")}>{botName}</h3>
+                <h3 className={cn("font-medium text-base", isDarkTheme ? "text-white" : "text-gray-900")}>
+                  {botName}
+                </h3>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleAudio}
                 className={cn(
-                  "h-8 w-8 rounded-full transition-all",
+                  "h-9 w-9 rounded-full transition-all",
                   audioEnabled 
-                    ? isDarkTheme ? "text-blue-400 hover:bg-slate-800" : "text-blue-500 hover:bg-blue-50"
-                    : isDarkTheme ? "text-gray-500 hover:bg-slate-800" : "text-gray-400 hover:bg-gray-100"
+                    ? "text-blue-500 hover:bg-blue-500/10"
+                    : isDarkTheme ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"
                 )}
                 aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
               >
@@ -394,8 +381,8 @@ export const PhoneAssistantSimulator = ({
                 size="icon"
                 onClick={() => setIsDarkTheme(!isDarkTheme)}
                 className={cn(
-                  "h-8 w-8 rounded-full",
-                  isDarkTheme ? "text-gray-400 hover:bg-slate-800" : "text-gray-600 hover:bg-gray-100"
+                  "h-9 w-9 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
                 )}
                 aria-label="Toggle theme"
               >
@@ -406,44 +393,55 @@ export const PhoneAssistantSimulator = ({
                 size="icon"
                 onClick={() => onOpenChange(false)}
                 className={cn(
-                  "h-8 w-8 rounded-full",
-                  isDarkTheme ? "text-gray-400 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-100"
+                  "h-9 w-9 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
                 )}
-                aria-label="Close phone simulator"
+                aria-label="Close"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Chat Area */}
+          {/* Chat Area with Centered Voice Animation */}
           <div className={cn(
-            "flex-1 overflow-y-auto p-4 relative",
-            isDarkTheme ? "bg-slate-800" : "bg-gray-50"
+            "flex-1 overflow-y-auto px-6 py-8 relative",
+            isDarkTheme ? "bg-gradient-to-b from-gray-900 to-black" : "bg-white"
           )} dir={isRTL ? 'rtl' : 'ltr'}>
             
-            {/* Centered Voice Animation */}
+            {/* Large Centered Voice Animation */}
             {(isListening || isSpeaking) && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                <VoiceAnimation 
-                  language={language as 'en' | 'sw' | 'ar'} 
-                  style="siri"
-                  isActive={isListening || isSpeaking}
-                />
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
+                <div className="mb-6">
+                  <VoiceAnimation 
+                    language={language as 'en' | 'sw' | 'ar'} 
+                    style="google"
+                    isActive={isListening || isSpeaking}
+                  />
+                </div>
+                <p className={cn(
+                  "text-sm font-medium animate-pulse",
+                  isDarkTheme ? "text-gray-400" : "text-gray-600"
+                )}>
+                  {isListening ? t('assistant.listening', 'Listening...') : t('assistant.speaking', 'Speaking...')}
+                </p>
               </div>
             )}
 
-            <div className="space-y-4">
-              {messages.length === 0 && (
-                <div className={cn("text-center py-12", isDarkTheme ? "text-gray-400" : "text-gray-500")}>
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-                    <span className="text-3xl">{displayAvatar}</span>
+            <div className="space-y-6 max-w-md mx-auto">
+              {messages.length === 0 && !isListening && !isSpeaking && (
+                <div className={cn(
+                  "text-center py-20",
+                  isDarkTheme ? "text-gray-400" : "text-gray-500"
+                )}>
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl">
+                    <span className="text-4xl">{displayAvatar}</span>
                   </div>
-                  <p className={cn("text-sm font-medium", isDarkTheme ? "text-gray-300" : "text-gray-700")}>
-                    {t('assistant.startConversation', 'Start a conversation')}
+                  <p className={cn("text-base font-medium mb-2", isDarkTheme ? "text-gray-300" : "text-gray-700")}>
+                    {t('assistant.hiThere', 'Hi, how can I help?')}
                   </p>
-                  <p className={cn("text-xs mt-1", isDarkTheme ? "text-gray-500" : "text-gray-500")}>
-                    {t('assistant.typeOrSpeak', 'Type or use voice input')}
+                  <p className={cn("text-xs", isDarkTheme ? "text-gray-500" : "text-gray-500")}>
+                    {t('assistant.tapToSpeak', 'Tap the microphone to speak')}
                   </p>
                 </div>
               )}
@@ -452,12 +450,12 @@ export const PhoneAssistantSimulator = ({
                 <div
                   key={message.id}
                   className={cn(
-                    "flex gap-2 items-end animate-fade-in",
+                    "flex gap-3 items-end animate-fade-in",
                     message.type === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
                   {message.type === 'assistant' && (
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                       <span className="text-lg">{displayAvatar}</span>
                     </div>
                   )}
@@ -465,12 +463,12 @@ export const PhoneAssistantSimulator = ({
                   {/* Message Bubble */}
                   <div
                     className={cn(
-                      "max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+                      "max-w-[80%] rounded-3xl px-5 py-3 text-sm leading-relaxed",
                       message.type === 'user'
-                        ? 'bg-blue-500 text-white rounded-br-sm'
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
                         : isDarkTheme 
-                          ? 'bg-slate-700 text-white rounded-bl-sm'
-                          : 'bg-white text-gray-900 rounded-bl-sm'
+                          ? 'bg-gray-800 text-gray-100 shadow-lg shadow-gray-900/20'
+                          : 'bg-gray-100 text-gray-900 shadow-sm'
                     )}
                     style={{ 
                       wordBreak: 'break-word',
@@ -482,7 +480,7 @@ export const PhoneAssistantSimulator = ({
                   </div>
 
                   {message.type === 'user' && (
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                    <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                       <User className="h-4 w-4 text-white" />
                     </div>
                   )}
@@ -490,18 +488,18 @@ export const PhoneAssistantSimulator = ({
               ))}
 
               {isTyping && (
-                <div className="flex gap-2 items-end animate-fade-in">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                <div className="flex gap-3 items-end animate-fade-in">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                     <span className="text-lg">{displayAvatar}</span>
                   </div>
                   <div className={cn(
-                    "rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm",
-                    isDarkTheme ? "bg-slate-700" : "bg-white"
+                    "rounded-3xl px-5 py-3",
+                    isDarkTheme ? "bg-gray-800 shadow-lg" : "bg-gray-100 shadow-sm"
                   )}>
-                    <div className="flex gap-1">
-                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '0ms' }} />
-                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '150ms' }} />
-                      <div className={cn("w-2 h-2 rounded-full animate-bounce", isDarkTheme ? "bg-gray-400" : "bg-gray-400")} style={{ animationDelay: '300ms' }} />
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-pink-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
@@ -511,26 +509,24 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Input Area */}
+          {/* Minimal Input Area */}
           <div className={cn(
-            "p-3 border-t flex-shrink-0",
-            isDarkTheme ? "bg-slate-900 border-slate-700" : "bg-white border-gray-200"
+            "px-6 py-4 flex-shrink-0 border-t",
+            isDarkTheme ? "bg-gray-900/80 backdrop-blur-sm border-gray-800" : "bg-white/80 backdrop-blur-sm border-gray-100"
           )}>
             {inputError && (
-              <p className="text-xs text-red-500 mb-2 px-1">{inputError}</p>
+              <p className="text-xs text-red-500 mb-2">{inputError}</p>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 max-w-md mx-auto">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleListening}
                 className={cn(
-                  "rounded-full w-10 h-10 flex-shrink-0 transition-all",
+                  "rounded-full w-12 h-12 flex-shrink-0 transition-all shadow-lg",
                   isListening 
-                    ? "bg-red-500 hover:bg-red-600 text-white" 
-                    : isDarkTheme 
-                      ? "text-gray-400 hover:bg-slate-800" 
-                      : "text-gray-500 hover:bg-gray-100"
+                    ? "bg-gradient-to-br from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white shadow-red-500/30" 
+                    : "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 text-white shadow-blue-500/30"
                 )}
                 disabled={!recognitionRef.current}
                 aria-label={isListening ? 'Stop listening' : 'Start voice input'}
@@ -545,12 +541,12 @@ export const PhoneAssistantSimulator = ({
                   setInputError('');
                 }}
                 onKeyPress={handleKeyPress}
-                placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Type a message...')}
+                placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Ask me anything...')}
                 className={cn(
-                  "flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-4",
+                  "flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-5 py-3 h-12",
                   isDarkTheme 
-                    ? "bg-slate-800 text-white placeholder:text-gray-500" 
-                    : "bg-gray-100 text-gray-900"
+                    ? "bg-gray-800 text-white placeholder:text-gray-500" 
+                    : "bg-gray-100 text-gray-900 placeholder:text-gray-500"
                 )}
                 disabled={isListening}
                 dir={isRTL ? 'rtl' : 'ltr'}
@@ -560,20 +556,12 @@ export const PhoneAssistantSimulator = ({
                 onClick={() => handleSendMessage()}
                 disabled={!inputText.trim() || isListening}
                 size="icon"
-                className="rounded-full w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0"
+                className="rounded-full w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0 shadow-lg shadow-blue-500/30 disabled:opacity-50"
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-
-          {/* Phone Bottom Bar */}
-          <div className={cn(
-            "h-16 flex items-center justify-center gap-12 flex-shrink-0",
-            isDarkTheme ? "bg-slate-950" : "bg-black"
-          )}>
-            <div className="w-12 h-1 bg-white/20 rounded-full" />
           </div>
         </div>
       </DialogContent>
