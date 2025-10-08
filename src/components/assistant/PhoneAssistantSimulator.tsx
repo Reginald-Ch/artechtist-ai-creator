@@ -45,6 +45,8 @@ export const PhoneAssistantSimulator = ({
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [inputError, setInputError] = useState<string>('');
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [continuousMode, setContinuousMode] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
   const { avatar: displayAvatar } = useAvatarPersistence(botAvatar);
   const { language, isRTL, t } = useLanguage();
@@ -65,9 +67,14 @@ export const PhoneAssistantSimulator = ({
     }
   }, []);
 
+  // Update time every minute
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Auto-scroll to bottom when messages change or typing status changes
   useEffect(() => {
-    // Small delay to ensure DOM has updated
     const timer = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, 100);
@@ -179,6 +186,18 @@ export const PhoneAssistantSimulator = ({
       utterance.onend = () => {
         setIsSpeaking(false);
         console.log('Speech ended');
+        
+        // Restart listening in continuous mode
+        if (continuousMode && recognitionRef.current) {
+          setTimeout(() => {
+            try {
+              recognitionRef.current.start();
+              setIsListening(true);
+            } catch (error) {
+              console.error('Error restarting recognition:', error);
+            }
+          }, 500);
+        }
       };
       
       utterance.onerror = (event) => {
@@ -299,18 +318,25 @@ export const PhoneAssistantSimulator = ({
   const toggleListening = () => {
     if (!recognitionSupported || !recognitionRef.current) return;
 
-    if (isListening) {
+    if (isListening || continuousMode) {
       try {
         recognitionRef.current.stop();
         setIsListening(false);
+        setContinuousMode(false);
+        if (speechSupported) {
+          window.speechSynthesis.cancel();
+          setIsSpeaking(false);
+        }
       } catch (error) {
         console.error('Error stopping recognition:', error);
         setIsListening(false);
+        setContinuousMode(false);
       }
     } else {
       try {
         recognitionRef.current.start();
         setIsListening(true);
+        setContinuousMode(true);
       } catch (error) {
         console.error('Error starting recognition:', error);
       }
@@ -335,30 +361,55 @@ export const PhoneAssistantSimulator = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "w-[400px] h-[700px] max-h-[90vh] p-0 gap-0 flex flex-col overflow-hidden mx-auto rounded-3xl",
+        "w-[380px] h-[780px] max-h-[95vh] p-0 gap-0 flex flex-col overflow-hidden mx-auto rounded-[3rem] border-8",
+        isDarkTheme ? "border-gray-900" : "border-gray-800",
         isRTL && "rtl"
       )} dir={isRTL ? "rtl" : "ltr"}>
-        {/* Minimal Google Assistant-inspired Interface */}
+        {/* Phone Frame */}
         <div className={cn(
-          "relative w-full h-full overflow-hidden flex flex-col",
+          "relative w-full h-full overflow-hidden flex flex-col rounded-[2.5rem]",
           isDarkTheme 
             ? "bg-gradient-to-b from-gray-900 via-gray-900 to-black" 
             : "bg-white"
         )}>
           
-          {/* Minimal Header */}
+          {/* Status Bar */}
           <div className={cn(
-            "px-6 py-4 flex items-center justify-between flex-shrink-0",
-            isDarkTheme ? "bg-gray-900/50" : "bg-white/80 backdrop-blur-sm"
+            "px-8 pt-3 pb-2 flex items-center justify-between flex-shrink-0 text-xs",
+            isDarkTheme ? "text-white" : "text-gray-900"
+          )}>
+            <span className="font-medium">
+              {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <Signal className="h-3.5 w-3.5" />
+              <Wifi className="h-3.5 w-3.5" />
+              <Battery className="h-3.5 w-3.5" />
+            </div>
+          </div>
+
+          {/* Notch Simulation */}
+          <div className={cn(
+            "absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 rounded-b-3xl z-50",
+            isDarkTheme ? "bg-gray-900" : "bg-gray-800"
+          )} />
+          
+          {/* Header */}
+          <div className={cn(
+            "px-6 py-3 flex items-center justify-between flex-shrink-0 relative z-10",
+            isDarkTheme ? "bg-transparent" : "bg-transparent"
           )}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-xl shadow-lg">
                 {displayAvatar}
               </div>
               <div>
-                <h3 className={cn("font-medium text-base", isDarkTheme ? "text-white" : "text-gray-900")}>
+                <h3 className={cn("font-medium text-sm", isDarkTheme ? "text-white" : "text-gray-900")}>
                   {botName}
                 </h3>
+                <p className={cn("text-xs", isDarkTheme ? "text-gray-400" : "text-gray-500")}>
+                  {continuousMode ? t('assistant.active', 'Active') : t('assistant.inactive', 'Tap to start')}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -367,38 +418,38 @@ export const PhoneAssistantSimulator = ({
                 size="icon"
                 onClick={toggleAudio}
                 className={cn(
-                  "h-9 w-9 rounded-full transition-all",
+                  "h-8 w-8 rounded-full transition-all",
                   audioEnabled 
                     ? "text-blue-500 hover:bg-blue-500/10"
                     : isDarkTheme ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-100"
                 )}
                 aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
               >
-                <Volume2 className="h-4 w-4" />
+                <Volume2 className="h-3.5 w-3.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsDarkTheme(!isDarkTheme)}
                 className={cn(
-                  "h-9 w-9 rounded-full",
+                  "h-8 w-8 rounded-full",
                   isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
                 )}
                 aria-label="Toggle theme"
               >
-                {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {isDarkTheme ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => onOpenChange(false)}
                 className={cn(
-                  "h-9 w-9 rounded-full",
+                  "h-8 w-8 rounded-full",
                   isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-100"
                 )}
                 aria-label="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
@@ -509,7 +560,7 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Minimal Input Area */}
+          {/* Input Area */}
           <div className={cn(
             "px-6 py-4 flex-shrink-0 border-t",
             isDarkTheme ? "bg-gray-900/80 backdrop-blur-sm border-gray-800" : "bg-white/80 backdrop-blur-sm border-gray-100"
@@ -523,15 +574,15 @@ export const PhoneAssistantSimulator = ({
                 size="icon"
                 onClick={toggleListening}
                 className={cn(
-                  "rounded-full w-12 h-12 flex-shrink-0 transition-all shadow-lg",
-                  isListening 
-                    ? "bg-gradient-to-br from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white shadow-red-500/30" 
+                  "rounded-full w-14 h-14 flex-shrink-0 transition-all shadow-lg",
+                  continuousMode || isListening
+                    ? "bg-gradient-to-br from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white shadow-red-500/30 animate-pulse" 
                     : "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:opacity-90 text-white shadow-blue-500/30"
                 )}
                 disabled={!recognitionRef.current}
-                aria-label={isListening ? 'Stop listening' : 'Start voice input'}
+                aria-label={continuousMode ? 'Stop conversation' : 'Start conversation'}
               >
-                {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                {continuousMode || isListening ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
               </Button>
 
               <Input
@@ -541,20 +592,20 @@ export const PhoneAssistantSimulator = ({
                   setInputError('');
                 }}
                 onKeyPress={handleKeyPress}
-                placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Ask me anything...')}
+                placeholder={isListening ? t('assistant.listening', 'Listening...') : t('assistant.typeMessage', 'Type or speak...')}
                 className={cn(
                   "flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm rounded-full px-5 py-3 h-12",
                   isDarkTheme 
                     ? "bg-gray-800 text-white placeholder:text-gray-500" 
                     : "bg-gray-100 text-gray-900 placeholder:text-gray-500"
                 )}
-                disabled={isListening}
+                disabled={continuousMode || isListening}
                 dir={isRTL ? 'rtl' : 'ltr'}
               />
 
               <Button
                 onClick={() => handleSendMessage()}
-                disabled={!inputText.trim() || isListening}
+                disabled={!inputText.trim() || isListening || continuousMode}
                 size="icon"
                 className="rounded-full w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white flex-shrink-0 shadow-lg shadow-blue-500/30 disabled:opacity-50"
                 aria-label="Send message"
@@ -562,6 +613,14 @@ export const PhoneAssistantSimulator = ({
                 <Send className="h-4 w-4" />
               </Button>
             </div>
+          </div>
+
+          {/* Home Indicator */}
+          <div className="flex justify-center py-2 flex-shrink-0">
+            <div className={cn(
+              "w-32 h-1 rounded-full",
+              isDarkTheme ? "bg-gray-700" : "bg-gray-300"
+            )} />
           </div>
         </div>
       </DialogContent>
