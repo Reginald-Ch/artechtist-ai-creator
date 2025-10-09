@@ -54,14 +54,26 @@ export const PhoneAssistantSimulator = ({
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Check browser support on mount
+  // Check browser support on mount and load voices
   useEffect(() => {
     setSpeechSupported('speechSynthesis' in window);
     setRecognitionSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
     
     if (!('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported in this browser');
+    } else {
+      // Load voices - some browsers need this
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices.length);
+      };
+      
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+      }
+      loadVoices();
     }
+    
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       console.warn('Speech recognition not supported in this browser');
     }
@@ -155,7 +167,8 @@ export const PhoneAssistantSimulator = ({
   }, [language, recognitionSupported, speechSupported, t]);
 
   const speak = (text: string) => {
-    if (!voiceSettings.enabled || !speechSupported || !isLoaded) {
+    // Check if audioEnabled (user toggle) and browser supports it
+    if (!audioEnabled || !speechSupported) {
       console.log('Speech disabled or not supported');
       return;
     }
@@ -166,17 +179,35 @@ export const PhoneAssistantSimulator = ({
       const utterance = new SpeechSynthesisUtterance(text);
       synthRef.current = utterance;
 
-      // Apply persisted voice settings
-      const voice = getBrowserVoice();
-      if (voice) {
-        utterance.voice = voice;
-        console.log(`Using voice: ${voice.name} (${voice.lang})`);
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Try to use persisted voice settings if loaded
+      if (isLoaded && voiceSettings.enabled) {
+        const voice = getBrowserVoice();
+        if (voice) {
+          utterance.voice = voice;
+          console.log(`Using voice: ${voice.name} (${voice.lang})`);
+        }
+      } else {
+        // Fallback to default voice for the language
+        const langMap: Record<string, string> = {
+          'en': 'en-US',
+          'sw': 'sw-KE',
+          'ar': 'ar-SA'
+        };
+        const targetLang = langMap[language] || 'en-US';
+        const defaultVoice = voices.find(v => v.lang === targetLang) || voices[0];
+        if (defaultVoice) {
+          utterance.voice = defaultVoice;
+          console.log(`Using default voice: ${defaultVoice.name} (${defaultVoice.lang})`);
+        }
       }
 
-      utterance.rate = voiceSettings.speed || 1.0;
-      utterance.pitch = voiceSettings.pitch || 1.0;
+      // Use persisted settings or defaults
+      utterance.rate = (isLoaded && voiceSettings.speed) ? voiceSettings.speed : 1.0;
+      utterance.pitch = (isLoaded && voiceSettings.pitch) ? voiceSettings.pitch : 1.0;
       utterance.volume = 1.0;
-      utterance.lang = voice?.lang || 'en-US';
 
       utterance.onstart = () => {
         setIsSpeaking(true);
@@ -193,6 +224,7 @@ export const PhoneAssistantSimulator = ({
             try {
               recognitionRef.current.start();
               setIsListening(true);
+              console.log('Restarting listening after speech ended');
             } catch (error) {
               console.error('Error restarting recognition:', error);
             }
@@ -205,6 +237,7 @@ export const PhoneAssistantSimulator = ({
         setIsSpeaking(false);
       };
 
+      console.log('Speaking:', text);
       window.speechSynthesis.speak(utterance);
     } catch (error) {
       console.error('Failed to speak:', error);
