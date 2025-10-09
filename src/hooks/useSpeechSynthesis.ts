@@ -5,7 +5,7 @@ export const useSpeechSynthesis = () => {
   const [currentText, setCurrentText] = useState('');
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback((text: string, onEndCallback?: () => void) => {
     if ('speechSynthesis' in window) {
       // Stop any current speech
       window.speechSynthesis.cancel();
@@ -21,6 +21,9 @@ export const useSpeechSynthesis = () => {
       utterance.onend = () => {
         setIsPlaying(false);
         setCurrentText('');
+        if (onEndCallback) {
+          onEndCallback();
+        }
       };
       
       utterance.onerror = () => {
@@ -28,10 +31,10 @@ export const useSpeechSynthesis = () => {
         setCurrentText('');
       };
       
-      // Configure voice settings
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
+      // Configure voice settings for natural conversation
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
       
       window.speechSynthesis.speak(utterance);
     }
