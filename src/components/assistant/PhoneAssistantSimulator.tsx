@@ -10,8 +10,9 @@ import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { VoiceAnimation } from './VoiceAnimations';
 import { useAvatarPersistence } from '@/hooks/useAvatarPersistence';
-import { validateChatMessage } from '@/utils/validation';
 import Fuse from 'fuse.js';
+import { TIMING, INTENT_MATCHING, LANGUAGE_CODES, PHONE_UI, ANIMATION, VOICE_DEFAULTS } from '@/constants/phoneSimulator';
+import { formatMessageTime } from '@/utils/phoneSimulatorHelpers';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -48,7 +49,10 @@ export const PhoneAssistantSimulator = ({
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [inputError, setInputError] = useState<string>('');
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    const saved = localStorage.getItem('phoneSimulator_theme');
+    return saved === 'dark';
+  });
   const [continuousMode, setContinuousMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [recognitionState, setRecognitionState] = useState<'idle' | 'starting' | 'active' | 'stopping'>('idle');
@@ -95,19 +99,31 @@ export const PhoneAssistantSimulator = ({
     }
   }, []);
 
-  // Update time every minute
+  // Update time every minute and persist theme
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    const timer = setInterval(() => setCurrentTime(new Date()), TIMING.TIME_UPDATE_INTERVAL);
     return () => clearInterval(timer);
   }, []);
+
+  // Persist theme preference
+  useEffect(() => {
+    localStorage.setItem('phoneSimulator_theme', isDarkTheme ? 'dark' : 'light');
+  }, [isDarkTheme]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     const timer = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 100);
+    }, TIMING.AUTO_SCROLL_DELAY);
     return () => clearTimeout(timer);
   }, [messages, isTyping]);
+
+  // Limit message history to prevent memory issues
+  useEffect(() => {
+    if (messages.length > PHONE_UI.MAX_MESSAGE_HISTORY) {
+      setMessages(prev => prev.slice(-PHONE_UI.MAX_MESSAGE_HISTORY));
+    }
+  }, [messages]);
 
   // Improved intent matching with fuzzy search
   const findMatchingIntent = useCallback((userInput: string) => {
@@ -139,9 +155,9 @@ export const PhoneAssistantSimulator = ({
     // Configure Fuse.js for fuzzy matching
     const fuse = new Fuse(searchData, {
       keys: ['phrase'],
-      threshold: 0.3, // 70% similarity required
+      threshold: INTENT_MATCHING.FUZZY_THRESHOLD,
       includeScore: true,
-      minMatchCharLength: 2
+      minMatchCharLength: INTENT_MATCHING.MIN_MATCH_LENGTH
     });
     
     // Search for matches
@@ -175,12 +191,7 @@ export const PhoneAssistantSimulator = ({
     if (!audioEnabled || !speechSupported) return;
 
     // Get voice matching current language
-    const langMap: Record<string, string> = {
-      'en': 'en-US',
-      'sw': 'sw-KE',
-      'ar': 'ar-SA'
-    };
-    const targetLang = langMap[language] || 'en-US';
+    const targetLang = LANGUAGE_CODES[language as keyof typeof LANGUAGE_CODES] || LANGUAGE_CODES.en;
     
     const voices = window.speechSynthesis.getVoices();
     const matchedVoice = voices.find(v => v.lang === targetLang) || 
@@ -195,7 +206,7 @@ export const PhoneAssistantSimulator = ({
       if (messageQueueRef.current.length > 0) {
         const nextMessage = messageQueueRef.current.shift();
         if (nextMessage) {
-          setTimeout(() => speak(nextMessage), 300);
+          setTimeout(() => speak(nextMessage), TIMING.SPEECH_END_DELAY);
         }
         return;
       }
@@ -212,7 +223,7 @@ export const PhoneAssistantSimulator = ({
           } catch (error) {
             // Ignore if already started
           }
-        }, 800);
+        }, TIMING.CONTINUOUS_MODE_RESTART_DELAY);
       }
     };
 
@@ -227,8 +238,8 @@ export const PhoneAssistantSimulator = ({
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = matchedVoice;
-      utterance.rate = (isLoaded && voiceSettings.speed) ? voiceSettings.speed : 1.0;
-      utterance.pitch = (isLoaded && voiceSettings.pitch) ? voiceSettings.pitch : 1.0;
+      utterance.rate = (isLoaded && voiceSettings.speed) ? voiceSettings.speed : VOICE_DEFAULTS.RATE;
+      utterance.pitch = (isLoaded && voiceSettings.pitch) ? voiceSettings.pitch : VOICE_DEFAULTS.PITCH;
       window.speechSynthesis.speak(utterance);
       utterance.onend = onEndCallback;
       utterance.onerror = onEndCallback;
@@ -295,9 +306,14 @@ export const PhoneAssistantSimulator = ({
           clearInterval(typeInterval);
           setIsProcessing(false);
           speak(responseText);
+          
+          // Announce response for screen readers
+          import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
+            announceForScreenReader(`Assistant: ${responseText}`);
+          });
         }
-      }, 30);
-    }, 600);
+      }, TIMING.TYPING_SPEED);
+    }, TIMING.PROCESSING_DELAY);
   }, [findMatchingIntent, generateResponse, speak, t]);
 
   const toggleListening = useCallback(() => {
@@ -313,24 +329,27 @@ export const PhoneAssistantSimulator = ({
       recognitionRef.current.interimResults = false;
       
       // Match language with current context
-      const langMap: Record<string, string> = {
-        'en': 'en-US',
-        'sw': 'sw-KE',
-        'ar': 'ar-SA'
-      };
-      recognitionRef.current.lang = langMap[language] || 'en-US';
+      recognitionRef.current.lang = LANGUAGE_CODES[language as keyof typeof LANGUAGE_CODES] || LANGUAGE_CODES.en;
 
       recognitionRef.current.onstart = () => {
         setIsListening(true);
         setRecognitionState('active');
+        
+        // Announce listening state for accessibility
+        import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
+          announceForScreenReader('Listening');
+        });
       };
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         
+        // Only send if there's actual content
         if (transcript.trim()) {
           handleUserMessage(transcript);
+        } else {
+          setInputError(t('emptyMessage') || 'Please say something');
         }
       };
 
@@ -364,7 +383,7 @@ export const PhoneAssistantSimulator = ({
                 // Ignore
               }
             }
-          }, 2000);
+          }, TIMING.NETWORK_ERROR_RETRY_DELAY);
         }
       };
     }
@@ -391,9 +410,12 @@ export const PhoneAssistantSimulator = ({
   }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t]);
 
   const handleSendMessage = () => {
-    if (inputText.trim()) {
-      handleUserMessage(inputText);
+    const trimmed = inputText.trim();
+    if (trimmed) {
+      handleUserMessage(trimmed);
       setInputText('');
+    } else {
+      setInputError(t('emptyMessage') || 'Please type something');
     }
   };
 
@@ -429,11 +451,22 @@ export const PhoneAssistantSimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(
-        "w-[400px] h-[820px] max-h-[95vh] p-0 gap-0 flex flex-col overflow-hidden mx-auto rounded-[3.5rem] border-[12px]",
-        isDarkTheme ? "border-gray-900" : "border-gray-800",
-        isRTL && "rtl"
-      )} dir={isRTL ? "rtl" : "ltr"}>
+      <DialogContent 
+        className={cn(
+          "p-0 gap-0 flex flex-col overflow-hidden mx-auto border-[12px]",
+          isDarkTheme ? "border-gray-900" : "border-gray-800",
+          isRTL && "rtl"
+        )} 
+        style={{ 
+          width: `${PHONE_UI.WIDTH}px`, 
+          height: `${PHONE_UI.HEIGHT}px`,
+          maxHeight: '95vh',
+          borderRadius: PHONE_UI.BORDER_RADIUS
+        }}
+        dir={isRTL ? "rtl" : "ltr"}
+        role="dialog"
+        aria-label={`${botName} phone simulator`}
+      >
         
         {/* Phone Frame with Kid-Friendly Gradient */}
         <div className={cn(
@@ -459,10 +492,13 @@ export const PhoneAssistantSimulator = ({
           </div>
 
           {/* Notch Simulation */}
-          <div className={cn(
-            "absolute top-0 left-1/2 -translate-x-1/2 w-44 h-8 rounded-b-3xl z-50",
-            isDarkTheme ? "bg-gray-950" : "bg-gray-900"
-          )} />
+          <div 
+            className={cn(
+              "absolute top-0 left-1/2 -translate-x-1/2 rounded-b-3xl z-50",
+              isDarkTheme ? "bg-gray-950" : "bg-gray-900"
+            )}
+            style={{ width: `${PHONE_UI.NOTCH_WIDTH}px`, height: `${PHONE_UI.NOTCH_HEIGHT}px` }}
+          />
           
           {/* Header with Bot Info */}
           <div className={cn(
@@ -573,7 +609,7 @@ export const PhoneAssistantSimulator = ({
                     {displayAvatar}
                   </div>
                 )}
-                <div
+                 <div
                   className={cn(
                     "max-w-[75%] rounded-2xl px-4 py-3 shadow-md",
                     message.type === 'user'
@@ -584,6 +620,14 @@ export const PhoneAssistantSimulator = ({
                   )}
                 >
                   <p className="text-sm leading-relaxed">{message.content}</p>
+                  <p className={cn(
+                    "text-xs mt-1",
+                    message.type === 'user' 
+                      ? "text-gray-600" 
+                      : isDarkTheme ? "text-white/50" : "text-gray-500"
+                  )}>
+                    {formatMessageTime(message.timestamp)}
+                  </p>
                 </div>
                 {message.type === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
@@ -632,7 +676,9 @@ export const PhoneAssistantSimulator = ({
                 value={inputText}
                 onChange={(e) => {
                   setInputText(e.target.value);
-                  setInputError('');
+                  if (e.target.value.trim()) {
+                    setInputError('');
+                  }
                 }}
                 onKeyPress={handleKeyPress}
                 placeholder={t('typeMessage') || 'Type a message...'}
@@ -643,6 +689,7 @@ export const PhoneAssistantSimulator = ({
                     ? "bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     : "bg-white border-gray-300 text-gray-900"
                 )}
+                aria-label="Message input"
               />
               <Button
                 onClick={handleSendMessage}
