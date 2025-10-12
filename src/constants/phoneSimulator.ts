@@ -2,13 +2,14 @@
 
 // Timing constants (in milliseconds)
 export const TIMING = {
-  PROCESSING_DELAY: 600,
+  PROCESSING_DELAY: 200, // Reduced from 600ms for faster responses
   TYPING_SPEED: 30,
   SPEECH_END_DELAY: 300,
   CONTINUOUS_MODE_RESTART_DELAY: 800,
   AUTO_SCROLL_DELAY: 100,
   TIME_UPDATE_INTERVAL: 60000,
   NETWORK_ERROR_RETRY_DELAY: 2000,
+  VOICE_MODE_SKIP_TYPING: true, // Skip typing animation when using voice
 } as const;
 
 // Intent matching constants

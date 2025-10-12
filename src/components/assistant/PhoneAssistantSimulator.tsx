@@ -64,24 +64,46 @@ export const PhoneAssistantSimulator = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const messageQueueRef = useRef<string[]>([]);
+  const responseCache = useRef(new Map<string, { intent: any; response: string }>());
 
-  // Validate training data on mount
+  // Validation: Check if intents are configured with detailed logging
   useEffect(() => {
-    if (open && nodes && edges) {
-      const hasIntents = nodes.some(node => 
-        node.data?.intent && 
-        node.data?.responses && 
-        Array.isArray(node.data.responses) &&
-        node.data.responses.length > 0
-      );
+    if (open) {
+      console.log('[Phone Simulator] Validating intents...', { totalNodes: nodes?.length });
       
-      if (!hasIntents) {
-        setValidationError(t('noIntentsConfigured') || 'No intents configured. Please add training data to your bot first.');
+      const validIntents = nodes?.filter(node => {
+        const hasLabel = node.data?.label;
+        const hasResponses = Array.isArray(node.data?.responses) && node.data.responses.length > 0;
+        const hasTraining = Array.isArray(node.data?.trainingPhrases) && node.data.trainingPhrases.length > 0;
+        
+        if (!hasLabel) {
+          console.warn('[Phone Simulator] Node missing label:', node.id);
+          return false;
+        }
+        if (!hasResponses) {
+          console.warn('[Phone Simulator] Intent has no responses:', node.data.label);
+        }
+        if (!hasTraining && !node.data.isDefault) {
+          console.warn('[Phone Simulator] Intent has no training phrases:', node.data.label);
+        }
+        
+        return hasLabel && hasResponses;
+      });
+      
+      console.log('[Phone Simulator] Valid intents found:', validIntents?.length, validIntents?.map(n => ({
+        id: n.id,
+        label: n.data.label,
+        training: Array.isArray(n.data.trainingPhrases) ? n.data.trainingPhrases.length : 0,
+        responses: Array.isArray(n.data.responses) ? n.data.responses.length : 0
+      })));
+      
+      if (!validIntents || validIntents.length === 0) {
+        setValidationError(t('noIntentsConfigured') || 'No intents configured yet. Please create and train at least one intent in the bot builder.');
       } else {
         setValidationError(null);
       }
     }
-  }, [open, nodes, edges, t]);
+  }, [open, nodes, t]);
 
   // Check browser support on mount
   useEffect(() => {
@@ -125,41 +147,54 @@ export const PhoneAssistantSimulator = ({
     }
   }, [messages]);
 
-  // Improved intent matching with fuzzy search
+  // Improved intent matching with fuzzy search and detailed logging
   const findMatchingIntent = useCallback((userInput: string) => {
     const input = userInput.toLowerCase().trim();
     
     if (!input) return null;
     
-    // Find intent nodes with data - check both 'intent' and 'label' fields
+    console.log('[Intent Matching] Starting search for:', input);
+    
+    // Find intent nodes with valid data - use 'label' as primary identifier
     const intentNodes = nodes.filter(node => {
-      const hasLabel = node.data?.label || node.data?.intent;
+      const hasLabel = node.data?.label;
       const hasResponses = Array.isArray(node.data?.responses) && node.data.responses.length > 0;
-      const hasTraining = Array.isArray(node.data?.trainingPhrases) && node.data.trainingPhrases.length > 0;
       
-      // Node must have label and at least responses to be usable
+      // Node must have label and responses to be usable
       return hasLabel && hasResponses;
     });
     
-    if (intentNodes.length === 0) return null;
+    console.log('[Intent Matching] Valid nodes:', intentNodes.length);
     
-    // Prepare search data with intent names and training phrases
+    if (intentNodes.length === 0) {
+      console.warn('[Intent Matching] No valid intent nodes found');
+      return null;
+    }
+    
+    // Prepare search data with intent labels and training phrases
     const searchData = intentNodes.flatMap(node => {
-      const intentName = node.data.label || node.data.intent;
-      const phrases = [intentName];
+      const intentLabel = node.data.label;
+      const phrases = [intentLabel];
       
       // Add training phrases if they exist
       if (Array.isArray(node.data.trainingPhrases)) {
-        phrases.push(...node.data.trainingPhrases.filter(p => p && typeof p === 'string'));
+        const validPhrases = node.data.trainingPhrases.filter((p): p is string => p && typeof p === 'string');
+        phrases.push(...validPhrases);
       }
       
       return phrases.map(phrase => ({
         phrase: String(phrase).toLowerCase(),
-        nodeId: node.id
+        nodeId: node.id,
+        originalPhrase: phrase
       }));
     });
     
-    if (searchData.length === 0) return null;
+    console.log('[Intent Matching] Search data prepared:', searchData.length, 'phrases across', intentNodes.length, 'nodes');
+    
+    if (searchData.length === 0) {
+      console.warn('[Intent Matching] No search data available');
+      return null;
+    }
     
     // Configure Fuse.js for fuzzy matching
     const fuse = new Fuse(searchData, {
@@ -172,13 +207,26 @@ export const PhoneAssistantSimulator = ({
     // Search for matches
     const results = fuse.search(input);
     
+    console.log('[Intent Matching] Fuse.js results:', results.map(r => ({
+      phrase: r.item.originalPhrase,
+      nodeId: r.item.nodeId,
+      score: r.score
+    })));
+    
     if (results.length > 0) {
       const bestMatch = results[0];
       const matchedNode = intentNodes.find(node => node.id === bestMatch.item.nodeId);
+      console.log('[Intent Matching] Best match:', matchedNode?.data.label, 'with score:', bestMatch.score);
       return matchedNode || null;
     }
     
-    return null;
+    // Return fallback node if no match found
+    console.log('[Intent Matching] No match found, looking for fallback');
+    const fallback = intentNodes.find(node => 
+      typeof node.data.label === 'string' && node.data.label.toLowerCase().includes('fallback')
+    );
+    console.log('[Intent Matching] Fallback node:', fallback?.data.label);
+    return fallback || null;
   }, [nodes]);
 
   const generateResponse = useCallback((matchedNode: any) => {
@@ -295,50 +343,112 @@ export const PhoneAssistantSimulator = ({
     setIsProcessing(true);
     setIsTyping(true);
     
-    // Simulate realistic processing delay
-    setTimeout(() => {
-      const matchedNode = findMatchingIntent(trimmedInput);
-      const responseText = generateResponse(matchedNode);
+    // Check cache first for faster responses
+    const cacheKey = trimmedInput.toLowerCase();
+    const cached = responseCache.current.get(cacheKey);
+    
+    let matchedNode;
+    let responseText;
+    
+    if (cached) {
+      console.log('[Response Cache] Using cached response for:', trimmedInput);
+      matchedNode = cached.intent;
+      responseText = cached.response;
       
-      // Type out response character by character
-      let displayedText = '';
-      const chars = responseText.split('');
-      let charIndex = 0;
-      
+      // Skip processing delay for cached responses
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: '',
+        content: responseText,
         timestamp: new Date(),
       };
       
       setMessages(prev => [...prev, assistantMessage]);
       setIsTyping(false);
+      setIsProcessing(false);
       
-      const typeInterval = setInterval(() => {
-        if (charIndex < chars.length) {
-          displayedText += chars[charIndex];
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === assistantMessage.id 
-                ? { ...msg, content: displayedText }
-                : msg
-            )
-          );
-          charIndex++;
-        } else {
-          clearInterval(typeInterval);
+      // Speak immediately
+      if (audioEnabled && speechSupported) {
+        speak(responseText);
+      }
+      
+      import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
+        announceForScreenReader(`Assistant: ${responseText}`);
+      });
+    } else {
+      // Simulate realistic processing delay (reduced from 600ms to 200ms)
+      setTimeout(() => {
+        matchedNode = findMatchingIntent(trimmedInput);
+        responseText = generateResponse(matchedNode);
+        
+        // Cache the response
+        responseCache.current.set(cacheKey, { intent: matchedNode, response: responseText });
+        console.log('[Response Cache] Cached new response for:', trimmedInput);
+        
+        // For voice mode, skip typing animation for instant response
+        const shouldSkipTyping = audioEnabled && TIMING.VOICE_MODE_SKIP_TYPING;
+        
+        if (shouldSkipTyping) {
+          // Show response immediately when audio is enabled
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: 'assistant',
+            content: responseText,
+            timestamp: new Date(),
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsTyping(false);
           setIsProcessing(false);
+          
+          // Speak immediately
           speak(responseText);
           
-          // Announce response for screen readers
           import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
             announceForScreenReader(`Assistant: ${responseText}`);
           });
+        } else {
+          // Type out response character by character
+          let displayedText = '';
+          const chars = responseText.split('');
+          let charIndex = 0;
+          
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: 'assistant',
+            content: '',
+            timestamp: new Date(),
+          };
+          
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsTyping(false);
+          
+          const typeInterval = setInterval(() => {
+            if (charIndex < chars.length) {
+              displayedText += chars[charIndex];
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: displayedText }
+                    : msg
+                )
+              );
+              charIndex++;
+            } else {
+              clearInterval(typeInterval);
+              setIsProcessing(false);
+              speak(responseText);
+              
+              // Announce response for screen readers
+              import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
+                announceForScreenReader(`Assistant: ${responseText}`);
+              });
+            }
+          }, TIMING.TYPING_SPEED);
         }
-      }, TIMING.TYPING_SPEED);
-    }, TIMING.PROCESSING_DELAY);
-  }, [findMatchingIntent, generateResponse, speak, t]);
+      }, TIMING.PROCESSING_DELAY);
+    }
+  }, [findMatchingIntent, generateResponse, speak, audioEnabled, speechSupported, t]);
 
   const toggleListening = useCallback(() => {
     if (!recognitionSupported) {
@@ -534,11 +644,26 @@ export const PhoneAssistantSimulator = ({
                 {displayAvatar}
               </div>
               <div>
-                <h3 className={cn("font-bold text-base", isDarkTheme ? "text-white" : "text-gray-900")}>
-                  {botName}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className={cn("font-bold text-base", isDarkTheme ? "text-white" : "text-gray-900")}>
+                    {botName}
+                  </h3>
+                  {!validationError && nodes && nodes.length > 0 && (
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full font-medium",
+                      isDarkTheme ? "bg-green-500/20 text-green-300" : "bg-green-100 text-green-700"
+                    )}>
+                      ✓ {nodes.filter(n => n.data?.label && Array.isArray(n.data?.responses) && n.data.responses.length > 0).length} intents
+                    </span>
+                  )}
+                </div>
                 <p className={cn("text-xs font-medium", isDarkTheme ? "text-purple-300" : "text-purple-600")}>
-                  {continuousMode ? '🎤 ' + t('assistant.active', 'Active') : t('assistant.inactive', 'Tap mic to start')}
+                  {validationError 
+                    ? t('setupRequired') || 'Setup Required' 
+                    : continuousMode 
+                      ? '🎤 ' + t('assistant.active', 'Active') 
+                      : t('assistant.inactive', 'Tap mic to start')
+                  }
                 </p>
               </div>
             </div>
@@ -612,10 +737,21 @@ export const PhoneAssistantSimulator = ({
             
             {/* Validation Error */}
             {validationError && (
-              <div className="text-center py-8">
-                <p className={cn("text-sm", isDarkTheme ? "text-red-300" : "text-red-600")}>
+              <div className={cn(
+                "text-center py-8 px-4 rounded-2xl mx-2",
+                isDarkTheme ? "bg-red-500/10 border border-red-500/20" : "bg-red-50 border border-red-200"
+              )}>
+                <div className="text-4xl mb-3">⚠️</div>
+                <p className={cn("text-sm font-semibold mb-2", isDarkTheme ? "text-red-300" : "text-red-700")}>
                   {validationError}
                 </p>
+                <div className={cn("text-xs mt-3 space-y-1", isDarkTheme ? "text-red-200/70" : "text-red-600/70")}>
+                  <p className="font-medium mb-2">Quick fix:</p>
+                  <p>1. Click "Train" on any intent</p>
+                  <p>2. Add training phrases</p>
+                  <p>3. Add responses</p>
+                  <p>4. Save & test!</p>
+                </div>
               </div>
             )}
 
