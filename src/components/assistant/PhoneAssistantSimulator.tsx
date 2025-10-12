@@ -131,26 +131,35 @@ export const PhoneAssistantSimulator = ({
     
     if (!input) return null;
     
-    // Find intent nodes with training data
-    const intentNodes = nodes.filter(node => 
-      node.data?.intent && 
-      (Array.isArray(node.data?.responses) && node.data.responses.length > 0 || 
-       Array.isArray(node.data?.trainingPhrases) && node.data.trainingPhrases.length > 0)
-    );
+    // Find intent nodes with data - check both 'intent' and 'label' fields
+    const intentNodes = nodes.filter(node => {
+      const hasLabel = node.data?.label || node.data?.intent;
+      const hasResponses = Array.isArray(node.data?.responses) && node.data.responses.length > 0;
+      const hasTraining = Array.isArray(node.data?.trainingPhrases) && node.data.trainingPhrases.length > 0;
+      
+      // Node must have label and at least responses to be usable
+      return hasLabel && hasResponses;
+    });
     
     if (intentNodes.length === 0) return null;
     
     // Prepare search data with intent names and training phrases
     const searchData = intentNodes.flatMap(node => {
-      const phrases = [node.data.intent];
+      const intentName = node.data.label || node.data.intent;
+      const phrases = [intentName];
+      
+      // Add training phrases if they exist
       if (Array.isArray(node.data.trainingPhrases)) {
-        phrases.push(...node.data.trainingPhrases);
+        phrases.push(...node.data.trainingPhrases.filter(p => p && typeof p === 'string'));
       }
+      
       return phrases.map(phrase => ({
-        phrase: String(phrase),
+        phrase: String(phrase).toLowerCase(),
         nodeId: node.id
       }));
     });
+    
+    if (searchData.length === 0) return null;
     
     // Configure Fuse.js for fuzzy matching
     const fuse = new Fuse(searchData, {
@@ -173,7 +182,8 @@ export const PhoneAssistantSimulator = ({
   }, [nodes]);
 
   const generateResponse = useCallback((matchedNode: any) => {
-    if (!matchedNode?.data?.responses || matchedNode.data.responses.length === 0) {
+    // If no node matched, return fallback
+    if (!matchedNode) {
       const fallbackResponses = [
         t('sorryNoResponse') || "I'm not sure how to respond to that.",
         t('tryAgain') || "Could you rephrase that?",
@@ -182,8 +192,22 @@ export const PhoneAssistantSimulator = ({
       return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
     }
     
-    const randomIndex = Math.floor(Math.random() * matchedNode.data.responses.length);
-    return matchedNode.data.responses[randomIndex];
+    // Get responses from the matched node
+    const responses = matchedNode.data?.responses || [];
+    
+    if (responses.length === 0) {
+      return t('noResponseConfigured') || "I found the intent but no response is configured yet. Please add responses in the bot builder.";
+    }
+    
+    // Filter out empty responses
+    const validResponses = responses.filter((r: string) => r && r.trim());
+    
+    if (validResponses.length === 0) {
+      return t('noValidResponse') || "Response configured but empty. Please check your bot configuration.";
+    }
+    
+    const randomIndex = Math.floor(Math.random() * validResponses.length);
+    return validResponses[randomIndex];
   }, [t]);
 
   // Speech synthesis with queue management and language matching
