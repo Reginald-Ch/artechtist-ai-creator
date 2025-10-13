@@ -1,12 +1,9 @@
-import { useState, useEffect, useRef, useCallback, useMemo, startTransition } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User, Moon, Sun, Copy, RotateCcw, Settings2, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User, Moon, Sun } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -32,8 +29,6 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  confidence?: number; // For intent match confidence
-  cached?: boolean; // For showing cache hits
 }
 
 export const PhoneAssistantSimulator = ({
@@ -46,8 +41,10 @@ export const PhoneAssistantSimulator = ({
 }: PhoneAssistantSimulatorProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [state, setState] = useState<'idle' | 'processing' | 'typing' | 'speaking'>('idle');
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [recognitionSupported, setRecognitionSupported] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
@@ -60,10 +57,6 @@ export const PhoneAssistantSimulator = ({
   const [continuousMode, setContinuousMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [recognitionState, setRecognitionState] = useState<'idle' | 'starting' | 'active' | 'stopping'>('idle');
-  const [selectedVoiceId, setSelectedVoiceId] = useState<string>('');
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
   
   const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
   const { speak: speechSynth, stop: stopSpeech } = useSpeechSynthesis();
@@ -74,8 +67,6 @@ export const PhoneAssistantSimulator = ({
   const messageQueueRef = useRef<string[]>([]);
   const responseCache = useRef(new Map<string, { intent: any; response: string; timestamp: number }>());
   const CACHE_SIZE_LIMIT = 50; // LRU cache size limit
-  const typingAnimationRef = useRef<number | null>(null);
-  const voicesCacheRef = useRef<SpeechSynthesisVoice[]>([]);
 
   // Validation: Check if intents are configured with detailed logging
   useEffect(() => {
@@ -116,31 +107,21 @@ export const PhoneAssistantSimulator = ({
     }
   }, [open, nodes, t]);
 
-  // Optimized voice loading with caching
+  // Check browser support on mount
   useEffect(() => {
     setSpeechSupported('speechSynthesis' in window);
     setRecognitionSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
     
     if ('speechSynthesis' in window) {
       const loadVoices = () => {
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length > 0) {
-          voicesCacheRef.current = voices;
-          setAvailableVoices(voices);
-          
-          // Auto-select first voice if none selected
-          if (!selectedVoiceId && voices.length > 0) {
-            setSelectedVoiceId(voices[0].voiceURI);
-          }
-        }
+        window.speechSynthesis.getVoices();
       };
-      
       if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = loadVoices;
       }
       loadVoices();
     }
-  }, [selectedVoiceId]);
+  }, []);
 
   // Update time every minute and persist theme
   useEffect(() => {
@@ -152,15 +133,6 @@ export const PhoneAssistantSimulator = ({
   useEffect(() => {
     localStorage.setItem('phoneSimulator_theme', isDarkTheme ? 'dark' : 'light');
   }, [isDarkTheme]);
-
-  // Memoize expensive computations
-  const validIntentCount = useMemo(() => {
-    return nodes?.filter(n => n.data?.label && Array.isArray(n.data?.responses) && n.data.responses.length > 0).length || 0;
-  }, [nodes]);
-
-  const isProcessing = state === 'processing';
-  const isTyping = state === 'typing';
-  const isSpeaking = state === 'speaking';
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -330,34 +302,32 @@ export const PhoneAssistantSimulator = ({
   const clearSpeechQueue = useCallback(() => {
     messageQueueRef.current = [];
     window.speechSynthesis.cancel();
-    setState('idle');
+    setIsSpeaking(false);
   }, []);
 
-  // Optimized speech synthesis
+  // Speech synthesis with improved queue management and language matching
   const speak = useCallback((text: string) => {
     if (!audioEnabled || !speechSupported) return;
 
-    // Use cached voices for better performance
-    const voices = voicesCacheRef.current.length > 0 ? voicesCacheRef.current : window.speechSynthesis.getVoices();
+    // Get voice matching current language and user preferences
+    const targetLang = LANGUAGE_CODES[language as keyof typeof LANGUAGE_CODES] || LANGUAGE_CODES.en;
     
-    // Priority: user-selected > saved settings > language match > first available
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Priority: saved voice settings > language match > first available
     let matchedVoice = null;
     
-    if (selectedVoiceId) {
-      matchedVoice = voices.find(v => v.voiceURI === selectedVoiceId);
-    }
-    
-    if (!matchedVoice && isLoaded && voiceSettings.enabled) {
+    if (isLoaded && voiceSettings.enabled) {
       matchedVoice = getBrowserVoice();
     }
     
     if (!matchedVoice) {
-      const targetLang = LANGUAGE_CODES[language as keyof typeof LANGUAGE_CODES] || LANGUAGE_CODES.en;
       matchedVoice = voices.find(v => v.lang === targetLang) || voices[0];
     }
 
+    // Configure speech with language-matched voice
     const onEndCallback = () => {
-      setState('idle');
+      setIsSpeaking(false);
       
       // Process next message in queue
       if (messageQueueRef.current.length > 0) {
@@ -368,7 +338,7 @@ export const PhoneAssistantSimulator = ({
         return;
       }
       
-      // Restart listening in continuous mode
+      // Restart listening in continuous mode with delay
       if (continuousMode && recognitionRef.current) {
         setTimeout(() => {
           try {
@@ -384,12 +354,12 @@ export const PhoneAssistantSimulator = ({
       }
     };
 
-    if (state === 'speaking') {
+    if (isSpeaking) {
       messageQueueRef.current.push(text);
       return;
     }
 
-    setState('speaking');
+    setIsSpeaking(true);
     
     if (matchedVoice) {
       window.speechSynthesis.cancel();
@@ -404,7 +374,7 @@ export const PhoneAssistantSimulator = ({
       speechSynth(text, onEndCallback);
     }
   }, [audioEnabled, speechSupported, language, isLoaded, voiceSettings, getBrowserVoice, 
-      continuousMode, state, isListening, speechSynth, selectedVoiceId]);
+      continuousMode, recognitionState, isSpeaking, isListening, speechSynth]);
 
   const handleUserMessage = useCallback((userInput: string) => {
     const trimmedInput = userInput.trim();
@@ -424,8 +394,9 @@ export const PhoneAssistantSimulator = ({
     setMessages(prev => [...prev, userMessage]);
     setInputError('');
     
-    // Update state machine
-    setState('processing');
+    // Show processing state
+    setIsProcessing(true);
+    setIsTyping(true);
     
     // Check cache first for faster responses - use normalized input as cache key
     const cacheKey = normalizePhrase(trimmedInput);
@@ -435,23 +406,21 @@ export const PhoneAssistantSimulator = ({
     let responseText;
     
     if (cached) {
-      console.log('[Response Cache] ✓ Cache hit for:', trimmedInput);
+      console.log('[Response Cache] Using cached response for:', trimmedInput);
       matchedNode = cached.intent;
       responseText = cached.response;
       
-      // Instant response for cached - use startTransition for better performance
-      startTransition(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: responseText,
-          timestamp: new Date(),
-          cached: true,
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
-        setState('idle');
-      });
+      // Skip processing delay for cached responses
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: responseText,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+      setIsProcessing(false);
       
       // Speak immediately
       if (audioEnabled && speechSupported) {
@@ -484,36 +453,33 @@ export const PhoneAssistantSimulator = ({
         });
         console.log('[Response Cache] Cached new response. Cache size:', responseCache.current.size);
         
-        // Optimized typing animation with requestAnimationFrame
+        // For voice mode, skip typing animation for instant response
         const shouldSkipTyping = audioEnabled && TIMING.VOICE_MODE_SKIP_TYPING;
-        const MAX_TYPED_CHARS = 200; // Cap typing animation for long messages
         
-        if (shouldSkipTyping || responseText.length > MAX_TYPED_CHARS) {
-          // Show response immediately
-          startTransition(() => {
-            const assistantMessage: Message = {
-              id: (Date.now() + 1).toString(),
-              type: 'assistant',
-              content: responseText,
-              timestamp: new Date(),
-            };
-            
-            setMessages(prev => [...prev, assistantMessage]);
-            setState('idle');
-          });
+        if (shouldSkipTyping) {
+          // Show response immediately when audio is enabled
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: 'assistant',
+            content: responseText,
+            timestamp: new Date(),
+          };
           
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsTyping(false);
+          setIsProcessing(false);
+          
+          // Speak immediately
           speak(responseText);
           
           import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
             announceForScreenReader(`Assistant: ${responseText}`);
           });
         } else {
-          // Optimized typing with requestAnimationFrame
-          setState('typing');
+          // Type out response character by character
           let displayedText = '';
           const chars = responseText.split('');
           let charIndex = 0;
-          let lastFrameTime = performance.now();
           
           const assistantMessage: Message = {
             id: (Date.now() + 1).toString(),
@@ -522,46 +488,31 @@ export const PhoneAssistantSimulator = ({
             timestamp: new Date(),
           };
           
-          startTransition(() => {
-            setMessages(prev => [...prev, assistantMessage]);
-          });
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsTyping(false);
           
-          const animateTyping = (currentTime: number) => {
-            const elapsed = currentTime - lastFrameTime;
-            
-            if (elapsed >= TIMING.TYPING_SPEED) {
-              lastFrameTime = currentTime;
-              
-              if (charIndex < chars.length) {
-                displayedText += chars[charIndex];
-                
-                startTransition(() => {
-                  setMessages(prev => 
-                    prev.map(msg => 
-                      msg.id === assistantMessage.id 
-                        ? { ...msg, content: displayedText }
-                        : msg
-                    )
-                  );
-                });
-                
-                charIndex++;
-                typingAnimationRef.current = requestAnimationFrame(animateTyping);
-              } else {
-                // Typing complete
-                setState('idle');
-                speak(responseText);
-                
-                import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
-                  announceForScreenReader(`Assistant: ${responseText}`);
-                });
-              }
+          const typeInterval = setInterval(() => {
+            if (charIndex < chars.length) {
+              displayedText += chars[charIndex];
+              setMessages(prev => 
+                prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: displayedText }
+                    : msg
+                )
+              );
+              charIndex++;
             } else {
-              typingAnimationRef.current = requestAnimationFrame(animateTyping);
+              clearInterval(typeInterval);
+              setIsProcessing(false);
+              speak(responseText);
+              
+              // Announce response for screen readers
+              import('@/utils/phoneSimulatorHelpers').then(({ announceForScreenReader }) => {
+                announceForScreenReader(`Assistant: ${responseText}`);
+              });
             }
-          };
-          
-          typingAnimationRef.current = requestAnimationFrame(animateTyping);
+          }, TIMING.TYPING_SPEED);
         }
       }, TIMING.PROCESSING_DELAY);
     }
@@ -644,12 +595,8 @@ export const PhoneAssistantSimulator = ({
       setRecognitionState('stopping');
       setContinuousMode(false);
       
-      // Clear speech queue and cancel typing when user interrupts
+      // Clear speech queue when user interrupts
       clearSpeechQueue();
-      if (typingAnimationRef.current) {
-        cancelAnimationFrame(typingAnimationRef.current);
-        typingAnimationRef.current = null;
-      }
       
       try {
         recognitionRef.current.stop();
@@ -666,7 +613,7 @@ export const PhoneAssistantSimulator = ({
         setRecognitionState('idle');
       }
     }
-  }, [recognitionSupported, isListening, recognitionState, state, continuousMode, handleUserMessage, language, t, clearSpeechQueue]);
+  }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t, clearSpeechQueue]);
 
   const handleSendMessage = () => {
     const trimmed = inputText.trim();
@@ -692,7 +639,7 @@ export const PhoneAssistantSimulator = ({
     }
   };
 
-  // Cleanup on unmount and typing animation
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (recognitionRef.current) {
@@ -702,44 +649,10 @@ export const PhoneAssistantSimulator = ({
           // Ignore
         }
       }
-      if (typingAnimationRef.current) {
-        cancelAnimationFrame(typingAnimationRef.current);
-      }
       stopSpeech();
       messageQueueRef.current = [];
     };
   }, [stopSpeech]);
-
-  // Helper functions for UX improvements
-  const copyMessage = useCallback((content: string) => {
-    navigator.clipboard.writeText(content);
-    import('@/hooks/use-toast').then(({ toast }) => {
-      toast({
-        title: t('copied') || 'Copied!',
-      });
-    });
-  }, [t]);
-
-  const regenerateResponse = useCallback((userInput: string) => {
-    // Remove cached response and regenerate
-    const cacheKey = normalizePhrase(userInput);
-    responseCache.current.delete(cacheKey);
-    handleUserMessage(userInput);
-  }, [handleUserMessage]);
-
-  const testCurrentVoice = useCallback(() => {
-    const testText = t('voiceTestMessage') || 'Hello! This is how I sound.';
-    speak(testText);
-  }, [speak, t]);
-
-  const clearCache = useCallback(() => {
-    responseCache.current.clear();
-    import('@/hooks/use-toast').then(({ toast }) => {
-      toast({
-        title: t('cacheCleared') || 'Cache cleared!',
-      });
-    });
-  }, [t]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -812,21 +725,14 @@ export const PhoneAssistantSimulator = ({
                   <h3 className={cn("font-bold text-base", isDarkTheme ? "text-white" : "text-gray-900")}>
                     {botName}
                   </h3>
-                  {!validationError && validIntentCount > 0 ? (
+                  {!validationError && nodes && nodes.length > 0 && (
                     <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 animate-fade-in",
+                      "text-xs px-2 py-0.5 rounded-full font-medium",
                       isDarkTheme ? "bg-green-500/20 text-green-300" : "bg-green-100 text-green-700"
                     )}>
-                      <CheckCircle2 className="h-3 w-3" /> {validIntentCount} {validIntentCount === 1 ? 'intent' : 'intents'}
+                      ✓ {nodes.filter(n => n.data?.label && Array.isArray(n.data?.responses) && n.data.responses.length > 0).length} intents
                     </span>
-                  ) : validationError ? (
-                    <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1",
-                      isDarkTheme ? "bg-red-500/20 text-red-300" : "bg-red-100 text-red-700"
-                    )}>
-                      <XCircle className="h-3 w-3" /> Setup needed
-                    </span>
-                  ) : null}
+                  )}
                 </div>
                 <p className={cn("text-xs font-medium", isDarkTheme ? "text-purple-300" : "text-purple-600")}>
                   {validationError 
@@ -839,151 +745,62 @@ export const PhoneAssistantSimulator = ({
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <TooltipProvider>
-                {/* Voice Settings */}
-                <Popover open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        "h-9 w-9 rounded-full",
-                        isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-200"
-                      )}
-                      aria-label="Voice settings"
-                    >
-                      <Settings2 className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className={cn("w-72", isDarkTheme && "bg-gray-900 border-gray-700")}>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2">🎤 Voice Settings</h4>
-                        <p className="text-xs text-muted-foreground">Customize how {botName} sounds</p>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium">Select Voice</label>
-                        <Select value={selectedVoiceId} onValueChange={setSelectedVoiceId}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Choose a voice..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableVoices.map((voice) => (
-                              <SelectItem key={voice.voiceURI} value={voice.voiceURI}>
-                                {voice.name} ({voice.lang})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={testCurrentVoice} className="flex-1">
-                          🔊 Test Voice
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={clearCache} className="flex-1">
-                          🗑️ Clear Cache
-                        </Button>
-                      </div>
-                      
-                      <div className="text-xs text-muted-foreground pt-2 border-t">
-                        <p>Cache: {responseCache.current.size}/{CACHE_SIZE_LIMIT} entries</p>
-                        <p>Voices loaded: {availableVoices.length}</p>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                {/* Audio Toggle */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={toggleAudio}
-                      className={cn(
-                        "h-9 w-9 rounded-full transition-all",
-                        audioEnabled 
-                          ? "text-blue-500 hover:bg-blue-500/20 bg-blue-500/10"
-                          : isDarkTheme ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-200"
-                      )}
-                      aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
-                    >
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {audioEnabled ? 'Sound On' : 'Sound Off'}
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* Theme Toggle */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsDarkTheme(!isDarkTheme)}
-                      className={cn(
-                        "h-9 w-9 rounded-full",
-                        isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-200"
-                      )}
-                      aria-label="Toggle theme"
-                    >
-                      {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {isDarkTheme ? 'Light Mode' : 'Dark Mode'}
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* Close Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                  className={cn(
-                    "h-9 w-9 rounded-full",
-                    isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-200"
-                  )}
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </TooltipProvider>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleAudio}
+                className={cn(
+                  "h-9 w-9 rounded-full transition-all",
+                  audioEnabled 
+                    ? "text-blue-500 hover:bg-blue-500/20 bg-blue-500/10"
+                    : isDarkTheme ? "text-gray-500 hover:bg-gray-800" : "text-gray-400 hover:bg-gray-200"
+                )}
+                aria-label={audioEnabled ? "Disable audio" : "Enable audio"}
+              >
+                <Volume2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setIsDarkTheme(!isDarkTheme);
+                }}
+                className={cn(
+                  "h-9 w-9 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-200"
+                )}
+                aria-label="Toggle theme"
+              >
+                {isDarkTheme ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className={cn(
+                  "h-9 w-9 rounded-full",
+                  isDarkTheme ? "text-gray-400 hover:bg-gray-800" : "text-gray-600 hover:bg-gray-200"
+                )}
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
-          {/* Voice Animation Overlay with pulsing mic for continuous mode */}
+          {/* Voice Animation Overlay */}
           {(isListening || isSpeaking || isProcessing) && (
             <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm rounded-[3.5rem]">
-              {/* Pulsing ring for listening state */}
-              {isListening && continuousMode && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-64 rounded-full border-4 border-blue-500/30 animate-ping" />
-                  <div className="w-48 h-48 rounded-full border-4 border-purple-500/30 animate-ping absolute" style={{ animationDelay: '0.3s' }} />
-                </div>
-              )}
-              
-              <div className="scale-150 relative z-10">
+              <div className="scale-150">
                 <VoiceAnimation 
                   language={language as 'en' | 'sw' | 'ar'}
                   style={isProcessing ? "orb" : "waveform"}
                   isActive={isListening || isSpeaking || isProcessing}
                 />
               </div>
-              
               {isProcessing && (
-                <div className="absolute bottom-32 text-white text-sm font-medium animate-pulse">
+                <div className="absolute bottom-32 text-white text-sm font-medium">
                   {t('thinking') || 'Thinking...'}
-                </div>
-              )}
-              
-              {isListening && continuousMode && (
-                <div className="absolute bottom-32 text-white text-xs font-medium bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm">
-                  💡 {t('tapToInterrupt') || 'Tap mic to stop'}
                 </div>
               )}
             </div>
@@ -995,37 +812,25 @@ export const PhoneAssistantSimulator = ({
             isDarkTheme ? "bg-gradient-to-b from-indigo-950/40 to-purple-950/40" : "bg-gradient-to-b from-transparent to-white/30"
           )} dir={isRTL ? 'rtl' : 'ltr'}>
             
-            {/* Setup Banner - Less Intrusive */}
-            {validationError ? (
+            {/* Validation Error */}
+            {validationError && (
               <div className={cn(
-                "mx-2 mb-2 p-3 rounded-xl border-2 border-dashed",
-                isDarkTheme ? "bg-orange-500/10 border-orange-500/30" : "bg-orange-50 border-orange-300"
+                "text-center py-8 px-4 rounded-2xl mx-2",
+                isDarkTheme ? "bg-red-500/10 border border-red-500/20" : "bg-red-50 border border-red-200"
               )}>
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">🛠️</div>
-                  <div className="flex-1">
-                    <p className={cn("text-xs font-semibold mb-1", isDarkTheme ? "text-orange-300" : "text-orange-700")}>
-                      {t('setupRequired') || 'Quick Setup Needed!'}
-                    </p>
-                    <p className={cn("text-xs", isDarkTheme ? "text-orange-200/70" : "text-orange-600/80")}>
-                      ✨ Train an intent → Add phrases → Add responses → Test!
-                    </p>
-                  </div>
+                <div className="text-4xl mb-3">⚠️</div>
+                <p className={cn("text-sm font-semibold mb-2", isDarkTheme ? "text-red-300" : "text-red-700")}>
+                  {validationError}
+                </p>
+                <div className={cn("text-xs mt-3 space-y-1", isDarkTheme ? "text-red-200/70" : "text-red-600/70")}>
+                  <p className="font-medium mb-2">Quick fix:</p>
+                  <p>1. Click "Train" on any intent</p>
+                  <p>2. Add training phrases</p>
+                  <p>3. Add responses</p>
+                  <p>4. Save & test!</p>
                 </div>
               </div>
-            ) : validIntentCount > 0 && messages.length === 0 ? (
-              <div className={cn(
-                "mx-2 mb-2 p-3 rounded-xl animate-fade-in",
-                isDarkTheme ? "bg-green-500/10 border border-green-500/20" : "bg-green-50 border border-green-200"
-              )}>
-                <div className="flex items-center gap-2 justify-center">
-                  <CheckCircle2 className={cn("h-4 w-4", isDarkTheme ? "text-green-300" : "text-green-600")} />
-                  <p className={cn("text-xs font-medium", isDarkTheme ? "text-green-300" : "text-green-700")}>
-                    ✅ {botName} is ready! Say hi or type a message below.
-                  </p>
-                </div>
-              </div>
-            ) : null}
+            )}
 
             {/* Messages */}
             {messages.map((message) => (
@@ -1041,75 +846,25 @@ export const PhoneAssistantSimulator = ({
                     {displayAvatar}
                   </div>
                 )}
-                <div className="flex-1 flex flex-col gap-1 max-w-[75%]">
-                  <div
-                    className={cn(
-                      "rounded-2xl px-4 py-3 shadow-md relative group",
-                      message.type === 'user'
-                        ? "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-900"
-                        : isDarkTheme 
-                          ? "bg-white/10 text-white backdrop-blur-sm"
-                          : "bg-white text-gray-900"
-                    )}
-                  >
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    <div className="flex items-center justify-between mt-1 gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className={cn(
-                              "text-xs cursor-help flex items-center gap-1",
-                              message.type === 'user' 
-                                ? "text-gray-600" 
-                                : isDarkTheme ? "text-white/50" : "text-gray-500"
-                            )}>
-                              {message.cached && <span className="text-green-500">⚡</span>}
-                              {formatMessageTime(message.timestamp)}
-                              {debugMode && message.confidence !== undefined && (
-                                <span className="ml-1 text-xs opacity-70">
-                                  {Math.round(message.confidence * 100)}%
-                                </span>
-                              )}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="text-xs">
-                              <p>{message.timestamp.toLocaleString()}</p>
-                              {message.cached && <p className="text-green-500">⚡ From cache</p>}
-                              {debugMode && message.confidence !== undefined && (
-                                <p>Confidence: {Math.round(message.confidence * 100)}%</p>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      {/* Message Actions */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6"
-                          onClick={() => copyMessage(message.content)}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        {message.type === 'assistant' && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => {
-                              const userMsg = messages[messages.findIndex(m => m.id === message.id) - 1];
-                              if (userMsg) regenerateResponse(userMsg.content);
-                            }}
-                          >
-                            <RotateCcw className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                 <div
+                  className={cn(
+                    "max-w-[75%] rounded-2xl px-4 py-3 shadow-md",
+                    message.type === 'user'
+                      ? "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-900"
+                      : isDarkTheme 
+                        ? "bg-white/10 text-white backdrop-blur-sm"
+                        : "bg-white text-gray-900"
+                  )}
+                >
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                  <p className={cn(
+                    "text-xs mt-1",
+                    message.type === 'user' 
+                      ? "text-gray-600" 
+                      : isDarkTheme ? "text-white/50" : "text-gray-500"
+                  )}>
+                    {formatMessageTime(message.timestamp)}
+                  </p>
                 </div>
                 {message.type === 'user' && (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
@@ -1119,41 +874,25 @@ export const PhoneAssistantSimulator = ({
               </div>
             ))}
 
-            {/* Typing Indicator with Skip Button */}
+            {/* Typing Indicator */}
             {isTyping && (
-              <div className="flex gap-2 justify-start animate-fade-in items-end">
+              <div className="flex gap-2 justify-start animate-fade-in">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-sm flex-shrink-0">
                   {displayAvatar}
                 </div>
-                <div className="flex flex-col gap-1">
-                  <div className={cn(
-                    "rounded-2xl px-4 py-3 shadow-md",
-                    isDarkTheme ? "bg-white/10 backdrop-blur-sm" : "bg-white"
-                  )}>
-                    <div className="flex gap-1.5">
-                      {[0, 1, 2].map((i) => (
-                        <div
-                          key={i}
-                          className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-bounce"
-                          style={{ animationDelay: `${i * 150}ms` }}
-                        />
-                      ))}
-                    </div>
+                <div className={cn(
+                  "rounded-2xl px-4 py-3 shadow-md",
+                  isDarkTheme ? "bg-white/10 backdrop-blur-sm" : "bg-white"
+                )}>
+                  <div className="flex gap-1.5">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-bounce"
+                        style={{ animationDelay: `${i * 150}ms` }}
+                      />
+                    ))}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-xs h-6 px-2"
-                    onClick={() => {
-                      if (typingAnimationRef.current) {
-                        cancelAnimationFrame(typingAnimationRef.current);
-                        typingAnimationRef.current = null;
-                        setState('idle');
-                      }
-                    }}
-                  >
-                    ⏭️ Skip
-                  </Button>
                 </div>
               </div>
             )}
