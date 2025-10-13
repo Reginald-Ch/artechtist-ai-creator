@@ -1,6 +1,23 @@
 // Phone Simulator Helper Functions
 
 /**
+ * Normalize text for better intent matching
+ * - Converts to lowercase
+ * - Trims whitespace
+ * - Removes punctuation
+ * - Normalizes spaces
+ */
+export const normalizePhrase = (text: string): string => {
+  if (!text) return '';
+  
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, '') // Remove punctuation
+    .replace(/\s+/g, ' '); // Normalize multiple spaces to single space
+};
+
+/**
  * Format message timestamp for display
  */
 export const formatMessageTime = (date: Date): string => {

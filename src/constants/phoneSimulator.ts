@@ -14,8 +14,11 @@ export const TIMING = {
 
 // Intent matching constants
 export const INTENT_MATCHING = {
-  FUZZY_THRESHOLD: 0.3,
+  FUZZY_THRESHOLD: 0.4, // More lenient threshold for better matching
   MIN_MATCH_LENGTH: 2,
+  EXACT_MATCH_PRIORITY: 1,
+  FUZZY_MATCH_PRIORITY: 2,
+  FALLBACK_PRIORITY: 3,
 } as const;
 
 // Language mappings

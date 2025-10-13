@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User, Moon, Sun } from 'lucide-react';
@@ -12,7 +13,7 @@ import { VoiceAnimation } from './VoiceAnimations';
 import { useAvatarPersistence } from '@/hooks/useAvatarPersistence';
 import Fuse from 'fuse.js';
 import { TIMING, INTENT_MATCHING, LANGUAGE_CODES, PHONE_UI, ANIMATION, VOICE_DEFAULTS } from '@/constants/phoneSimulator';
-import { formatMessageTime } from '@/utils/phoneSimulatorHelpers';
+import { formatMessageTime, normalizePhrase } from '@/utils/phoneSimulatorHelpers';
 
 interface PhoneAssistantSimulatorProps {
   open: boolean;
@@ -64,7 +65,8 @@ export const PhoneAssistantSimulator = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const messageQueueRef = useRef<string[]>([]);
-  const responseCache = useRef(new Map<string, { intent: any; response: string }>());
+  const responseCache = useRef(new Map<string, { intent: any; response: string; timestamp: number }>());
+  const CACHE_SIZE_LIMIT = 50; // LRU cache size limit
 
   // Validation: Check if intents are configured with detailed logging
   useEffect(() => {
@@ -147,13 +149,14 @@ export const PhoneAssistantSimulator = ({
     }
   }, [messages]);
 
-  // Improved intent matching with fuzzy search and detailed logging
+  // Multi-strategy intent matching with normalization
   const findMatchingIntent = useCallback((userInput: string) => {
-    const input = userInput.toLowerCase().trim();
+    const normalizedInput = normalizePhrase(userInput);
     
-    if (!input) return null;
+    if (!normalizedInput) return null;
     
-    console.log('[Intent Matching] Starting search for:', input);
+    console.log('[Intent Matching] Starting search for:', userInput);
+    console.log('[Intent Matching] Normalized input:', normalizedInput);
     
     // Find intent nodes with valid data - use 'label' as primary identifier
     const intentNodes = nodes.filter(node => {
@@ -171,61 +174,98 @@ export const PhoneAssistantSimulator = ({
       return null;
     }
     
-    // Prepare search data with intent labels and training phrases
-    const searchData = intentNodes.flatMap(node => {
-      const intentLabel = node.data.label;
-      const phrases = [intentLabel];
+    // Strategy 1: Exact match (highest priority)
+    for (const node of intentNodes) {
+      const normalizedLabel = normalizePhrase(String(node.data.label || ''));
       
-      // Add training phrases if they exist
+      // Check training phrases for exact match
       if (Array.isArray(node.data.trainingPhrases)) {
-        const validPhrases = node.data.trainingPhrases.filter((p): p is string => p && typeof p === 'string');
+        for (const phrase of node.data.trainingPhrases) {
+          if (typeof phrase === 'string' && normalizePhrase(phrase) === normalizedInput) {
+            console.log('[Intent Matching] ✓ EXACT MATCH on training phrase:', phrase, 'for intent:', node.data.label);
+            return node;
+          }
+        }
+      }
+      
+      // Check label for exact match
+      if (normalizedLabel === normalizedInput) {
+        console.log('[Intent Matching] ✓ EXACT MATCH on label:', node.data.label);
+        return node;
+      }
+    }
+    
+    // Strategy 2: Fuzzy match on training phrases (medium priority)
+    const searchData = intentNodes.flatMap(node => {
+      const phrases: string[] = [];
+      
+      // Add normalized training phrases
+      if (Array.isArray(node.data.trainingPhrases)) {
+        const validPhrases = node.data.trainingPhrases
+          .filter((p): p is string => p && typeof p === 'string')
+          .map(p => normalizePhrase(p))
+          .filter(p => p.length > 0);
         phrases.push(...validPhrases);
       }
       
+      // Add normalized label
+      const normalizedLabel = normalizePhrase(String(node.data.label || ''));
+      if (normalizedLabel) {
+        phrases.push(normalizedLabel);
+      }
+      
       return phrases.map(phrase => ({
-        phrase: String(phrase).toLowerCase(),
+        phrase,
         nodeId: node.id,
-        originalPhrase: phrase
+        node
       }));
     });
     
-    console.log('[Intent Matching] Search data prepared:', searchData.length, 'phrases across', intentNodes.length, 'nodes');
+    console.log('[Intent Matching] Search data prepared:', searchData.length, 'normalized phrases across', intentNodes.length, 'nodes');
     
     if (searchData.length === 0) {
       console.warn('[Intent Matching] No search data available');
       return null;
     }
     
-    // Configure Fuse.js for fuzzy matching
+    // Configure Fuse.js for fuzzy matching with adjusted threshold
     const fuse = new Fuse(searchData, {
       keys: ['phrase'],
-      threshold: INTENT_MATCHING.FUZZY_THRESHOLD,
+      threshold: 0.4, // More lenient threshold (was 0.3)
       includeScore: true,
-      minMatchCharLength: INTENT_MATCHING.MIN_MATCH_LENGTH
+      minMatchCharLength: INTENT_MATCHING.MIN_MATCH_LENGTH,
+      distance: 100, // Allow more character variations
+      ignoreLocation: true // Don't penalize matches based on position
     });
     
     // Search for matches
-    const results = fuse.search(input);
+    const results = fuse.search(normalizedInput);
     
-    console.log('[Intent Matching] Fuse.js results:', results.map(r => ({
-      phrase: r.item.originalPhrase,
-      nodeId: r.item.nodeId,
+    console.log('[Intent Matching] Fuse.js results:', results.slice(0, 5).map(r => ({
+      phrase: r.item.phrase,
+      nodeLabel: r.item.node.data.label,
       score: r.score
     })));
     
     if (results.length > 0) {
       const bestMatch = results[0];
-      const matchedNode = intentNodes.find(node => node.id === bestMatch.item.nodeId);
-      console.log('[Intent Matching] Best match:', matchedNode?.data.label, 'with score:', bestMatch.score);
-      return matchedNode || null;
+      console.log('[Intent Matching] ✓ FUZZY MATCH:', bestMatch.item.node.data.label, 'with score:', bestMatch.score);
+      return bestMatch.item.node;
     }
     
-    // Return fallback node if no match found
+    // Strategy 3: Fallback node (lowest priority)
     console.log('[Intent Matching] No match found, looking for fallback');
     const fallback = intentNodes.find(node => 
-      typeof node.data.label === 'string' && node.data.label.toLowerCase().includes('fallback')
+      node.data.isDefault === true || 
+      (typeof node.data.label === 'string' && normalizePhrase(node.data.label).includes('fallback'))
     );
-    console.log('[Intent Matching] Fallback node:', fallback?.data.label);
+    
+    if (fallback) {
+      console.log('[Intent Matching] ✓ Using FALLBACK node:', fallback.data.label);
+    } else {
+      console.warn('[Intent Matching] ✗ No fallback node available');
+    }
+    
     return fallback || null;
   }, [nodes]);
 
@@ -258,17 +298,32 @@ export const PhoneAssistantSimulator = ({
     return validResponses[randomIndex];
   }, [t]);
 
-  // Speech synthesis with queue management and language matching
+  // Clear speech queue and stop speaking
+  const clearSpeechQueue = useCallback(() => {
+    messageQueueRef.current = [];
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  }, []);
+
+  // Speech synthesis with improved queue management and language matching
   const speak = useCallback((text: string) => {
     if (!audioEnabled || !speechSupported) return;
 
-    // Get voice matching current language
+    // Get voice matching current language and user preferences
     const targetLang = LANGUAGE_CODES[language as keyof typeof LANGUAGE_CODES] || LANGUAGE_CODES.en;
     
     const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find(v => v.lang === targetLang) || 
-                        (isLoaded && voiceSettings.enabled ? getBrowserVoice() : null) ||
-                        voices[0];
+    
+    // Priority: saved voice settings > language match > first available
+    let matchedVoice = null;
+    
+    if (isLoaded && voiceSettings.enabled) {
+      matchedVoice = getBrowserVoice();
+    }
+    
+    if (!matchedVoice) {
+      matchedVoice = voices.find(v => v.lang === targetLang) || voices[0];
+    }
 
     // Configure speech with language-matched voice
     const onEndCallback = () => {
@@ -293,7 +348,7 @@ export const PhoneAssistantSimulator = ({
               setRecognitionState('active');
             }
           } catch (error) {
-            // Ignore if already started
+            console.warn('[Speech] Failed to restart recognition:', error);
           }
         }, TIMING.CONTINUOUS_MODE_RESTART_DELAY);
       }
@@ -319,7 +374,7 @@ export const PhoneAssistantSimulator = ({
       speechSynth(text, onEndCallback);
     }
   }, [audioEnabled, speechSupported, language, isLoaded, voiceSettings, getBrowserVoice, 
-      continuousMode, recognitionState, isSpeaking, speechSynth]);
+      continuousMode, recognitionState, isSpeaking, isListening, speechSynth]);
 
   const handleUserMessage = useCallback((userInput: string) => {
     const trimmedInput = userInput.trim();
@@ -343,8 +398,8 @@ export const PhoneAssistantSimulator = ({
     setIsProcessing(true);
     setIsTyping(true);
     
-    // Check cache first for faster responses
-    const cacheKey = trimmedInput.toLowerCase();
+    // Check cache first for faster responses - use normalized input as cache key
+    const cacheKey = normalizePhrase(trimmedInput);
     const cached = responseCache.current.get(cacheKey);
     
     let matchedNode;
@@ -381,9 +436,22 @@ export const PhoneAssistantSimulator = ({
         matchedNode = findMatchingIntent(trimmedInput);
         responseText = generateResponse(matchedNode);
         
-        // Cache the response
-        responseCache.current.set(cacheKey, { intent: matchedNode, response: responseText });
-        console.log('[Response Cache] Cached new response for:', trimmedInput);
+        // Cache the response with LRU eviction
+        if (responseCache.current.size >= CACHE_SIZE_LIMIT) {
+          // Remove oldest entry (LRU eviction)
+          const oldestKey = responseCache.current.keys().next().value;
+          if (oldestKey) {
+            responseCache.current.delete(oldestKey);
+            console.log('[Response Cache] Evicted oldest entry:', oldestKey);
+          }
+        }
+        
+        responseCache.current.set(cacheKey, { 
+          intent: matchedNode, 
+          response: responseText,
+          timestamp: Date.now()
+        });
+        console.log('[Response Cache] Cached new response. Cache size:', responseCache.current.size);
         
         // For voice mode, skip typing animation for instant response
         const shouldSkipTyping = audioEnabled && TIMING.VOICE_MODE_SKIP_TYPING;
@@ -526,6 +594,10 @@ export const PhoneAssistantSimulator = ({
     if (isListening && recognitionState === 'active') {
       setRecognitionState('stopping');
       setContinuousMode(false);
+      
+      // Clear speech queue when user interrupts
+      clearSpeechQueue();
+      
       try {
         recognitionRef.current.stop();
       } catch (error) {
@@ -541,7 +613,7 @@ export const PhoneAssistantSimulator = ({
         setRecognitionState('idle');
       }
     }
-  }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t]);
+  }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t, clearSpeechQueue]);
 
   const handleSendMessage = () => {
     const trimmed = inputText.trim();
@@ -563,8 +635,7 @@ export const PhoneAssistantSimulator = ({
   const toggleAudio = () => {
     setAudioEnabled(!audioEnabled);
     if (audioEnabled && speechSupported) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+      clearSpeechQueue();
     }
   };
 
@@ -598,9 +669,15 @@ export const PhoneAssistantSimulator = ({
           borderRadius: PHONE_UI.BORDER_RADIUS
         }}
         dir={isRTL ? "rtl" : "ltr"}
-        role="dialog"
-        aria-label={`${botName} phone simulator`}
       >
+        {/* Accessibility - Hidden dialog title and description */}
+        <VisuallyHidden>
+          <DialogTitle>{botName} Phone Simulator</DialogTitle>
+          <DialogDescription>
+            Interactive voice assistant simulator. Use the microphone button to speak or type messages to interact with {botName}.
+          </DialogDescription>
+        </VisuallyHidden>
+        
         
         {/* Phone Frame with Kid-Friendly Gradient */}
         <div className={cn(
