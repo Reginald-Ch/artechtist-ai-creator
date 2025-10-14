@@ -56,9 +56,6 @@ export interface LessonProgress {
   completedAt?: Date;
   bookmarked?: boolean;
   lastVisited?: Date;
-  masteryLevel?: 'none' | 'bronze' | 'silver' | 'gold' | 'master';
-  consecutiveHighScores?: number;
-  quizAnswers?: Array<{ questionId: string; correct: boolean; timestamp: Date }>;
 }
 
 export interface Topic {

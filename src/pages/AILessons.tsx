@@ -39,11 +39,6 @@ import { LearningPath } from '@/components/enhanced/LearningPath';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { MasteryBadge } from '@/components/enhanced/MasteryBadge';
-import { DailyGoals } from '@/components/enhanced/DailyGoals';
-import { AchievementSystem } from '@/components/enhanced/AchievementSystem';
-import { MobileNavigation } from '@/components/enhanced/MobileNavigation';
-import { ErrorBoundary } from '@/components/enhanced/ErrorBoundary';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -74,8 +69,6 @@ const AILessons = () => {
     isLessonCompleted,
     isLessonBookmarked,
     getLessonScore,
-    getLessonMastery,
-    recordQuizAnswer,
     getTotalProgress
   } = useEnhancedLessonProgress();
 
@@ -244,7 +237,8 @@ const AILessons = () => {
     });
   };
 
-  const handleCompleteLesson = (lessonId: string, score: number) => {
+  const handleCompleteLesson = (lessonId: string) => {
+    const score = Math.floor(Math.random() * 20) + 80; // 80-100% random score
     const lesson = getLessonById(lessonId);
     const category = topics.find(t => t.lessons.includes(lessonId))?.id;
     
@@ -252,25 +246,6 @@ const AILessons = () => {
     recordActivity('lesson', score, lessonId, category);
     setSelectedLesson(null);
   };
-
-  // Calculate daily stats for goals
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const completedToday = Object.values(lessonProgress).filter(p => {
-    if (!p.completedAt) return false;
-    const completedDate = new Date(p.completedAt);
-    completedDate.setHours(0, 0, 0, 0);
-    return completedDate.getTime() === today.getTime();
-  }).length;
-
-  const timeSpentToday = Object.values(lessonProgress)
-    .filter(p => {
-      if (!p.lastVisited) return false;
-      const visitDate = new Date(p.lastVisited);
-      visitDate.setHours(0, 0, 0, 0);
-      return visitDate.getTime() === today.getTime();
-    })
-    .reduce((sum, p) => sum + p.timeSpent, 0);
 
   const handleSearchResult = (result: SearchResult) => {
     if (result.type === 'lesson') {
@@ -291,10 +266,9 @@ const AILessons = () => {
   };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pb-20 md:pb-6">
-        <AppNavigation showBackButton={true} title="AI Learning Hub" />
-        <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <AppNavigation showBackButton={true} title="AI Learning Hub" />
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -342,27 +316,18 @@ const AILessons = () => {
                    isBookmarked={isLessonBookmarked(selectedLesson)}
                    averageScore={analytics?.averageScore || 0}
                    streakDays={analytics?.streakDays || 0}
-                   onComplete={(score) => handleCompleteLesson(selectedLesson, score)}
+                   onComplete={() => handleCompleteLesson(selectedLesson)}
                    onBack={() => setSelectedLesson(null)}
                    onToggleBookmark={() => toggleBookmark(selectedLesson)}
                    onStartFlashcards={() => setShowFlashcardStudy(true)}
-                   onQuizAnswer={(questionId, correct) => recordQuizAnswer(selectedLesson, questionId, correct)}
                  />
               </Suspense>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-3">
-                {/* Mobile Navigation */}
-                <MobileNavigation 
-                  activeTab={activeTab} 
-                  onTabChange={setActiveTab}
-                  completedCount={completedCount}
-                />
-                
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  {/* Desktop Tabs - Hidden on mobile */}
-                  <TabsList className="hidden md:grid w-full grid-cols-5 max-w-5xl mx-auto">
+                  <TabsList className="grid w-full grid-cols-5 max-w-5xl mx-auto">
                     <TabsTrigger value="browse" className="text-xs sm:text-sm">
                       <BookOpen className="w-4 h-4 mr-0 sm:mr-2" />
                       <span className="hidden sm:inline">Topics</span>
@@ -426,11 +391,9 @@ const AILessons = () => {
                         <CardContent className="space-y-4">
                           <div className="flex items-center justify-between text-sm">
                             <span>{topicLessons.length} lessons</span>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline">
-                                  {topicCompletedCount}/{topicLessons.length} done
-                                </Badge>
-                              </div>
+                            <Badge variant="outline">
+                              {topicCompletedCount}/{topicLessons.length} done
+                            </Badge>
                           </div>
                           <div className="space-y-2">
                             {topicLessons.map((lesson) => (
@@ -443,10 +406,7 @@ const AILessons = () => {
                                   ) : (
                                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                                   )}
-                                  <div className="flex flex-col gap-1">
-                                    <span className="text-sm font-medium">{lesson.title}</span>
-                                    <MasteryBadge level={getLessonMastery(lesson.id)} size="sm" />
-                                  </div>
+                                  <span className="text-sm font-medium">{lesson.title}</span>
                                 </div>
                                 <Button
                                   size="sm"
@@ -535,7 +495,6 @@ const AILessons = () => {
                                   {getLessonScore(lesson.id)}%
                                 </Badge>
                               )}
-                              <MasteryBadge level={getLessonMastery(lesson.id)} size="sm" />
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
@@ -607,27 +566,14 @@ const AILessons = () => {
               </Tabs>
             </div>
 
-            {/* Sidebar - Progressive Learning & Goals */}
-            <div className="lg:col-span-1 space-y-6">
-              <DailyGoals 
-                completedToday={completedToday}
-                timeSpentToday={timeSpentToday}
-              />
-              
-              <AchievementSystem
-                completedLessons={completedCount}
-                streakDays={analytics?.streakDays || 0}
-                averageScore={analytics?.averageScore || 0}
-                totalTimeSpent={analytics?.totalTimeSpent || 0}
-              />
-              
+            {/* Sidebar - Progressive Learning */}
+            <div className="lg:col-span-1">
               <ProgressiveStreak />
             </div>
           </div>
         )}
       </div>
     </div>
-    </ErrorBoundary>
   );
 };
 
