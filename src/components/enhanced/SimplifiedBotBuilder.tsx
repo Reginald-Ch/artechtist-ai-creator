@@ -447,30 +447,39 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newNodes = [...nodes, newNode];
     let newEdges = [...edges];
     
-    // Enhanced auto-connect logic for tree structure
-    let sourceNodeId = parentId;
-    if (!parentId) {
-      // Auto-connect to most recent node (excluding fallback for clean tree)
-      const nonFallbackNodes = nodes.filter(n => n.id !== 'fallback');
-      const lastNode = nonFallbackNodes[nonFallbackNodes.length - 1];
-      sourceNodeId = lastNode?.id || 'greet';
-    }
+    // Auto-connect new intent to ALL existing non-fallback intents for shared context
+    const connectableNodes = nodes.filter(n => n.id !== 'fallback' && n.id !== newId);
     
-    if (sourceNodeId) {
-      const newEdge: Edge = {
-        id: `e${sourceNodeId}-${newId}`,
-        source: sourceNodeId,
+    connectableNodes.forEach(existingNode => {
+      // Create bidirectional connections so all intents are interconnected
+      const edgeToNew: Edge = {
+        id: `e${existingNode.id}-${newId}`,
+        source: existingNode.id,
         target: newId,
         markerEnd: { type: MarkerType.ArrowClosed },
         style: { 
           stroke: 'hsl(var(--primary))',
-          strokeWidth: 2,
-          strokeDasharray: parentId ? undefined : '5,5',
+          strokeWidth: 1.5,
+          strokeDasharray: '5,5',
         },
-        animated: true, // Add animation for better visual flow
+        animated: false,
       };
-      newEdges = [...edges, newEdge];
-    }
+      
+      const edgeFromNew: Edge = {
+        id: `e${newId}-${existingNode.id}`,
+        source: newId,
+        target: existingNode.id,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { 
+          stroke: 'hsl(var(--primary))',
+          strokeWidth: 1.5,
+          strokeDasharray: '5,5',
+        },
+        animated: false,
+      };
+      
+      newEdges.push(edgeToNew, edgeFromNew);
+    });
     
     setNodes(newNodes);
     setEdges(newEdges);
