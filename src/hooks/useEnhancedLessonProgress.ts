@@ -216,15 +216,52 @@ export const useEnhancedLessonProgress = () => {
   }, [isOnline]);
 
   const completeLesson = useCallback((lessonId: string, score: number) => {
+    const currentProgress = lessonProgress[lessonId] || { attempts: 0, consecutiveHighScores: 0 };
+    const attempts = currentProgress.attempts + 1;
+    
+    // Calculate mastery level
+    let masteryLevel: 'none' | 'bronze' | 'silver' | 'gold' | 'master' = 'none';
+    let consecutiveHighScores = currentProgress.consecutiveHighScores || 0;
+    
+    if (score >= 95) {
+      consecutiveHighScores++;
+      if (consecutiveHighScores >= 3) {
+        masteryLevel = 'master';
+      } else if (attempts >= 3 && score >= 90) {
+        masteryLevel = 'gold';
+      }
+    } else if (score >= 90 && attempts >= 3) {
+      masteryLevel = 'gold';
+      consecutiveHighScores = 0;
+    } else if (score >= 80 && attempts >= 3) {
+      masteryLevel = 'silver';
+      consecutiveHighScores = 0;
+    } else if (score >= 70 && attempts >= 3) {
+      masteryLevel = 'bronze';
+      consecutiveHighScores = 0;
+    } else {
+      consecutiveHighScores = 0;
+    }
+    
     updateProgress(lessonId, {
       completed: true,
       score,
       completedAt: new Date(),
-      attempts: (lessonProgress[lessonId]?.attempts || 0) + 1,
+      attempts,
+      masteryLevel,
+      consecutiveHighScores,
     });
-    toast.success('Lesson completed! 🎉', {
-      description: `You scored ${score}%`
-    });
+    
+    // Show mastery toast if achieved
+    if (masteryLevel !== 'none') {
+      toast.success(`🏆 ${masteryLevel.toUpperCase()} Mastery Achieved!`, {
+        description: `You scored ${score}% on attempt ${attempts}`
+      });
+    } else {
+      toast.success('Lesson completed! 🎉', {
+        description: `You scored ${score}%`
+      });
+    }
   }, [lessonProgress, updateProgress]);
 
   const toggleBookmark = useCallback((lessonId: string) => {
@@ -390,6 +427,13 @@ export const useEnhancedLessonProgress = () => {
     isLessonCompleted: (lessonId: string) => lessonProgress[lessonId]?.completed || false,
     isLessonBookmarked: (lessonId: string) => lessonProgress[lessonId]?.bookmarked || false,
     getLessonScore: (lessonId: string) => lessonProgress[lessonId]?.score || 0,
+    getLessonMastery: (lessonId: string) => lessonProgress[lessonId]?.masteryLevel || 'none',
+    recordQuizAnswer: (lessonId: string, questionId: string, correct: boolean) => {
+      const current = lessonProgress[lessonId]?.quizAnswers || [];
+      updateProgress(lessonId, {
+        quizAnswers: [...current, { questionId, correct, timestamp: new Date() }]
+      });
+    },
     getTotalProgress: () => {
       const total = Object.keys(lessonProgress).length;
       const completed = Object.values(lessonProgress).filter(p => p.completed).length;
