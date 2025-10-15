@@ -61,7 +61,21 @@ export const useEnhancedLessonProgress = () => {
     const localProgress = localStorage.getItem('lessonProgress');
     if (localProgress) {
       try {
-        setLessonProgress(JSON.parse(localProgress));
+        const parsed = JSON.parse(localProgress);
+        // Convert date strings back to Date objects
+        const progressWithDates: Record<string, LessonProgress> = {};
+        Object.entries(parsed).forEach(([key, value]: [string, any]) => {
+          progressWithDates[key] = {
+            ...value,
+            completedAt: value.completedAt ? new Date(value.completedAt) : undefined,
+            lastVisited: value.lastVisited ? new Date(value.lastVisited) : undefined,
+            quizAnswers: value.quizAnswers?.map((qa: any) => ({
+              ...qa,
+              timestamp: new Date(qa.timestamp)
+            }))
+          };
+        });
+        setLessonProgress(progressWithDates);
       } catch (error) {
         console.warn('Failed to parse localStorage progress:', error);
       }
