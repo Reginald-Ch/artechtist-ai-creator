@@ -22,8 +22,8 @@ export const MobileNavigation = ({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t shadow-lg md:hidden">
-      <div className="flex items-center justify-around px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-lg md:hidden safe-area-pb">
+      <div className="flex items-center justify-around px-2 py-3">
         {tabs.map(tab => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -32,7 +32,8 @@ export const MobileNavigation = ({
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              aria-label={tab.label}
+              className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-w-[60px] ${
                 isActive 
                   ? 'text-primary bg-primary/10' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -42,7 +43,7 @@ export const MobileNavigation = ({
                 <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''} transition-transform`} />
                 {tab.id === 'all' && completedCount && completedCount > 0 && (
                   <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
-                    {completedCount}
+                    {completedCount > 9 ? '9+' : completedCount}
                   </Badge>
                 )}
               </div>

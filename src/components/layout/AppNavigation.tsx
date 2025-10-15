@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home, BookOpen, Mic, Gamepad2, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,13 +17,8 @@ const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, t
   const { signOut } = useAuth();
   const { t } = useLanguage();
 
-
   const handleBack = () => {
-    if (location.pathname === '/ai-lessons') {
-      navigate('/dashboard');
-    } else {
-      navigate(-1);
-    }
+    navigate('/dashboard');
   };
 
   return (

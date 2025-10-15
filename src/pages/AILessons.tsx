@@ -31,7 +31,7 @@ import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView
 import { EnhancedFlashcardStudy } from '@/components/enhanced/EnhancedFlashcardStudy';
 import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AdvancedSearch } from '@/components/enhanced/AdvancedSearch';
-import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
+import { SimpleStreak } from '@/components/enhanced/SimpleStreak';
 import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
 import { ContinueLearning } from '@/components/enhanced/ContinueLearning';
 import { RecommendedLessons } from '@/components/enhanced/RecommendedLessons';
@@ -607,12 +607,14 @@ const AILessons = () => {
               </Tabs>
             </div>
 
-            {/* Sidebar - Progressive Learning & Goals */}
-            <div className="lg:col-span-1 space-y-6">
+            {/* Sidebar - Simplified Learning Progress */}
+            <div className="lg:col-span-1 space-y-4">
               <DailyGoals 
                 completedToday={completedToday}
                 timeSpentToday={timeSpentToday}
               />
+              
+              <SimpleStreak />
               
               <AchievementSystem
                 completedLessons={completedCount}
@@ -620,8 +622,6 @@ const AILessons = () => {
                 averageScore={analytics?.averageScore || 0}
                 totalTimeSpent={analytics?.totalTimeSpent || 0}
               />
-              
-              <ProgressiveStreak />
             </div>
           </div>
         )}
