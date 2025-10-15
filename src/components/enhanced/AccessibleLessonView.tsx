@@ -18,6 +18,7 @@ import {
 import { AnimatedCharacter } from '@/components/AnimatedCharacter';
 import { OptimizedEncouragingAI } from './OptimizedEncouragingAI';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
+import { QuizQuestion } from './QuizQuestion';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { Lesson } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -28,10 +29,11 @@ interface AccessibleLessonViewProps {
   isBookmarked: boolean;
   averageScore: number;
   streakDays: number;
-  onComplete: () => void;
+  onComplete: (score: number) => void;
   onBack: () => void;
   onToggleBookmark: () => void;
   onStartFlashcards?: () => void;
+  onQuizAnswer?: (questionId: string, correct: boolean) => void;
 }
 
 const AccessibleLessonView = memo(({ 
@@ -43,18 +45,31 @@ const AccessibleLessonView = memo(({
   onComplete, 
   onBack,
   onToggleBookmark,
-  onStartFlashcards
+  onStartFlashcards,
+  onQuizAnswer
 }: AccessibleLessonViewProps) => {
   const [currentPanel, setCurrentPanel] = useState(0);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, boolean>>({});
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [startTime] = useState(Date.now());
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
   const panelRef = useRef<HTMLDivElement>(null);
   const announcementRef = useRef<HTMLDivElement>(null);
 
   const currentPanelData = lesson.panels[currentPanel];
+
+  // Real-time tracking
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeSpent(Math.floor((Date.now() - startTime) / 1000 / 60)); // minutes
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [startTime]);
 
   const handleNext = useCallback(() => {
     if (currentPanel < lesson.panels.length - 1) {
@@ -385,29 +400,21 @@ const AccessibleLessonView = memo(({
             </div>
           </div>
 
-          {/* Interactive Element */}
+          {/* Interactive Element - Real Assessment */}
           {currentPanelData.interactiveElement?.type === 'question' && (
-            <Card className="p-4 bg-primary/5 border-primary/20">
-              <h4 className="font-medium mb-3">{currentPanelData.interactiveElement.content}</h4>
-              <div className="grid gap-2">
-                {currentPanelData.interactiveElement.options.map((option: string, index: number) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="justify-start h-auto p-3 text-left"
-                    onClick={() => {
-                      const isCorrect = option === currentPanelData.interactiveElement?.correctAnswer;
-                      toast[isCorrect ? 'success' : 'error'](
-                        isCorrect ? 'Correct! 🎉' : 'Try again!'
-                      );
-                    }}
-                    aria-label={`Option ${index + 1}: ${option}`}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </Card>
+            <QuizQuestion
+              question={currentPanelData.interactiveElement.content}
+              options={currentPanelData.interactiveElement.options}
+              correctAnswer={currentPanelData.interactiveElement.correctAnswer || ''}
+              explanation={currentPanelData.interactiveElement.explanation}
+              questionNumber={currentPanel + 1}
+              totalQuestions={lesson.panels.filter(p => p.interactiveElement).length}
+              onAnswer={(isCorrect) => {
+                const questionId = `${lesson.id}-panel-${currentPanel}`;
+                setQuizAnswers(prev => ({ ...prev, [questionId]: isCorrect }));
+                onQuizAnswer?.(questionId, isCorrect);
+              }}
+            />
           )}
 
           {/* Navigation */}
@@ -446,7 +453,15 @@ const AccessibleLessonView = memo(({
               
               {currentPanel === lesson.panels.length - 1 ? (
                 <Button 
-                  onClick={onComplete} 
+                  onClick={() => {
+                    // Calculate real score from quiz answers
+                    const totalQuestions = Object.keys(quizAnswers).length;
+                    const correctAnswers = Object.values(quizAnswers).filter(Boolean).length;
+                    const score = totalQuestions > 0 
+                      ? Math.round((correctAnswers / totalQuestions) * 100)
+                      : 80; // Default if no quiz questions
+                    onComplete(score);
+                  }} 
                   className="bg-gradient-to-r from-primary to-primary-glow min-w-[44px] min-h-[44px]"
                   aria-label="Complete lesson"
                 >
