@@ -233,24 +233,21 @@ export const useEnhancedLessonProgress = () => {
     const currentProgress = lessonProgress[lessonId] || { attempts: 0, consecutiveHighScores: 0 };
     const attempts = currentProgress.attempts + 1;
     
-    // Calculate mastery level
+    // Simplified mastery level calculation for kids
     let masteryLevel: 'none' | 'bronze' | 'silver' | 'gold' | 'master' = 'none';
     let consecutiveHighScores = currentProgress.consecutiveHighScores || 0;
     
-    if (score >= 95) {
+    // Simpler mastery thresholds
+    if (score >= 95 && attempts === 1) {
+      masteryLevel = 'master';
       consecutiveHighScores++;
-      if (consecutiveHighScores >= 3) {
-        masteryLevel = 'master';
-      } else if (attempts >= 3 && score >= 90) {
-        masteryLevel = 'gold';
-      }
-    } else if (score >= 90 && attempts >= 3) {
+    } else if (score >= 85) {
       masteryLevel = 'gold';
-      consecutiveHighScores = 0;
-    } else if (score >= 80 && attempts >= 3) {
+      consecutiveHighScores++;
+    } else if (score >= 75) {
       masteryLevel = 'silver';
       consecutiveHighScores = 0;
-    } else if (score >= 70 && attempts >= 3) {
+    } else if (score >= 60) {
       masteryLevel = 'bronze';
       consecutiveHighScores = 0;
     } else {
@@ -268,8 +265,14 @@ export const useEnhancedLessonProgress = () => {
     
     // Show mastery toast if achieved
     if (masteryLevel !== 'none') {
-      toast.success(`🏆 ${masteryLevel.toUpperCase()} Mastery Achieved!`, {
-        description: `You scored ${score}% on attempt ${attempts}`
+      const masteryEmojis = {
+        'master': '🏆',
+        'gold': '⭐',
+        'silver': '🥈',
+        'bronze': '🥉'
+      };
+      toast.success(`${masteryEmojis[masteryLevel]} ${masteryLevel.toUpperCase()} Mastery!`, {
+        description: `Amazing ${score}% score!`
       });
     } else {
       toast.success('Lesson completed! 🎉', {

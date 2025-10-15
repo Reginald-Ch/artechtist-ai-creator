@@ -19,6 +19,7 @@ import { AnimatedCharacter } from '@/components/AnimatedCharacter';
 import { OptimizedEncouragingAI } from './OptimizedEncouragingAI';
 import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog';
 import { QuizQuestion } from './QuizQuestion';
+import { AIHintAssistant } from './AIHintAssistant';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { Lesson } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -52,6 +53,7 @@ const AccessibleLessonView = memo(({
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showHints, setShowHints] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, boolean>>({});
   const [timeSpent, setTimeSpent] = useState(0);
@@ -59,6 +61,18 @@ const AccessibleLessonView = memo(({
   const { speak, stop, isPlaying, isSupported } = useSpeechSynthesis();
   const panelRef = useRef<HTMLDivElement>(null);
   const announcementRef = useRef<HTMLDivElement>(null);
+
+  // Validate lesson has panels
+  if (!lesson || !lesson.panels || lesson.panels.length === 0) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-8 text-center space-y-4">
+          <p className="text-lg text-muted-foreground">This lesson has no content available yet.</p>
+          <Button onClick={onBack}>Go Back</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const currentPanelData = lesson.panels[currentPanel];
 
@@ -81,6 +95,12 @@ const AccessibleLessonView = memo(({
     if (currentPanel > 0) {
       setCurrentPanel(prev => prev - 1);
     }
+  }, [currentPanel]);
+
+  // Save progress periodically (every panel change)
+  useEffect(() => {
+    // This will be handled by parent component through updateProgress
+    // Just ensure we track time spent
   }, [currentPanel]);
 
   const handlePlayAudio = useCallback(() => {
@@ -397,6 +417,27 @@ const AccessibleLessonView = memo(({
               style={{ background: currentPanelData.background }}
             >
               <p className="leading-relaxed text-base">{currentPanelData.dialogue}</p>
+              
+              {/* Real-world example */}
+              {currentPanelData.realWorldExample && (
+                <div className="mt-4 p-3 bg-white/50 dark:bg-black/20 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm font-medium text-primary mb-1">Real-World Application</p>
+                  <p className="text-sm">{currentPanelData.realWorldExample}</p>
+                </div>
+              )}
+
+              {/* Video support */}
+              {currentPanelData.videoUrl && (
+                <div className="mt-4">
+                  <video 
+                    controls 
+                    className="w-full rounded-lg"
+                    src={currentPanelData.videoUrl}
+                  >
+                    Your browser does not support videos.
+                  </video>
+                </div>
+              )}
             </div>
           </div>
 
@@ -431,6 +472,15 @@ const AccessibleLessonView = memo(({
             </Button>
             
             <div className="flex flex-col sm:flex-row items-stretch gap-2 flex-1 sm:flex-none">
+              <Button
+                variant="outline"
+                onClick={() => setShowHints(!showHints)}
+                className="min-w-[44px] min-h-[44px]"
+                aria-label="Get AI hint"
+              >
+                💡 Hint
+              </Button>
+              
               <Button
                 variant="outline"
                 onClick={() => setShowFlashcards(true)}
@@ -493,8 +543,17 @@ const AccessibleLessonView = memo(({
         </CardContent>
       </Card>
 
+      {/* AI Hint Assistant */}
+      {showHints && (
+        <AIHintAssistant 
+          panelContent={currentPanelData.dialogue}
+          difficulty={lesson.difficulty}
+          onClose={() => setShowHints(false)}
+        />
+      )}
+
       {/* Encouraging AI */}
-      <OptimizedEncouragingAI 
+      <OptimizedEncouragingAI
         completedLessons={completedLessons}
         currentPanel={currentPanel}
         totalPanels={lesson.panels.length}
