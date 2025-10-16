@@ -32,7 +32,7 @@ import { PhoneAssistantSimulator } from "@/components/assistant/PhoneAssistantSi
 import { Brain, Bot, MessageSquare, Play, Save, Mic, ArrowLeft, Plus, Undo, Redo, ChevronDown, Menu, Info, Zap, Layout, X, Send, RotateCcw, MicIcon, StopCircle, Speaker, Sparkles, Smartphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-import KidFriendlyIntentNode from "@/components/flow/KidFriendlyIntentNode";
+import IntentNode from "@/components/flow/IntentNode";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
 import { EnhancedTestChatInterface } from "@/components/chat/EnhancedTestChatInterface";
 import { BotBuilderToolbar } from "@/components/enhanced/BotBuilderToolbar";
@@ -89,7 +89,20 @@ const initialNodes: Node[] = [
 ];
 
 // Enhanced initial edges for tree flow
-const initialEdges: Edge[] = [];
+const initialEdges: Edge[] = [
+  {
+    id: 'greet-fallback',
+    source: 'greet',
+    target: 'fallback',
+    markerEnd: { type: MarkerType.ArrowClosed },
+    style: { 
+      stroke: 'hsl(var(--muted-foreground))',
+      strokeWidth: 2,
+      strokeDasharray: '8,4',
+    },
+    animated: false,
+  }
+];
 
 interface SimplifiedBotBuilderProps {
   template?: any;
@@ -319,16 +332,11 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     setEdges((eds) => addEdge({
       ...params,
       id: `e${params.source}-${params.target}`,
-      markerEnd: { 
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-      },
+      markerEnd: { type: MarkerType.ArrowClosed },
       style: { 
-        stroke: 'hsl(var(--primary))',
-        strokeWidth: 3,
-      },
-      animated: true,
+        stroke: 'hsl(var(--foreground))',
+        strokeWidth: 2,
+      }
     }, eds)),
     [setEdges]
   );
@@ -439,32 +447,43 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newNodes = [...nodes, newNode];
     let newEdges = [...edges];
     
-    // Only connect to parent node if specified (cleaner flow for kids)
-    if (parentId) {
-      const newEdge: Edge = {
-        id: `e${parentId}-${newId}`,
-        source: parentId,
+    // Auto-connect new intent to ALL existing non-fallback intents for shared context
+    const connectableNodes = nodes.filter(n => n.id !== 'fallback' && n.id !== newId);
+    
+    connectableNodes.forEach(existingNode => {
+      // Create bidirectional connections so all intents are interconnected
+      const edgeToNew: Edge = {
+        id: `e${existingNode.id}-${newId}`,
+        source: existingNode.id,
         target: newId,
-        markerEnd: { 
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-        },
+        markerEnd: { type: MarkerType.ArrowClosed },
         style: { 
           stroke: 'hsl(var(--primary))',
-          strokeWidth: 3,
+          strokeWidth: 1.5,
+          strokeDasharray: '5,5',
         },
-        animated: true,
+        animated: false,
       };
-      newEdges.push(newEdge);
-    }
+      
+      const edgeFromNew: Edge = {
+        id: `e${newId}-${existingNode.id}`,
+        source: newId,
+        target: existingNode.id,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { 
+          stroke: 'hsl(var(--primary))',
+          strokeWidth: 1.5,
+          strokeDasharray: '5,5',
+        },
+        animated: false,
+      };
+      
+      newEdges.push(edgeToNew, edgeFromNew);
+    });
     
     setNodes(newNodes);
     setEdges(newEdges);
     undoRedo.saveState(newNodes, newEdges);
-    
-    // Open training for the new intent immediately
-    setTimeout(() => openIntentTraining(newId), 100);
     
     toast({
       title: t('toast.intentAdded'),
@@ -596,19 +615,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   };
 
-  // Define node types with kid-friendly design
-  const nodeTypes = useMemo(() => ({
-    intent: (props: any) => (
-      <KidFriendlyIntentNode
-        {...props}
-        onDelete={deleteNode}
-        onEdit={openIntentTraining}
-        onAddFollowUp={(nodeId: string) => {
-          setFollowUpNameDialog({ open: true, parentId: nodeId });
-        }}
-      />
-    ),
-  }), [nodes, edges]);
+  // Optimize nodeTypes with proper dependencies
+  const memoizedNodeTypes = useMemo(() => ({
+    intent: IntentNode,
+  }), []);
 
 
   const handleSave = async () => {
@@ -1171,7 +1181,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
-                nodeTypes={nodeTypes}
+                nodeTypes={memoizedNodeTypes}
                 fitView
                 fitViewOptions={{ padding: 0.3, minZoom: 0.4, maxZoom: 1.0 }}
                 minZoom={0.2}
@@ -1181,27 +1191,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 selectionOnDrag={false}
                 panOnDrag={[1, 2]}
                 proOptions={{ hideAttribution: true }}
-                className="bg-gradient-to-br from-background to-muted/20 rounded-lg"
+                className="bg-gradient-to-br from-background via-muted/5 to-primary/5"
                 nodesDraggable={true}
                 nodesConnectable={true}
                 elementsSelectable={true}
                 connectionLineStyle={{ 
                   stroke: 'hsl(var(--primary))', 
-                  strokeWidth: 4,
+                  strokeWidth: 3,
                   strokeDasharray: '8,4',
                 }}
                 snapToGrid={true}
-                snapGrid={[20, 20]}
+                snapGrid={[25, 25]}
                 panOnScrollSpeed={0.8}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
               >
                 <Background 
                   variant={BackgroundVariant.Dots} 
-                  gap={30} 
+                  gap={25} 
                   size={2} 
-                  color="hsl(var(--primary))"
-                  className="opacity-20"
+                  color="hsl(var(--muted-foreground) / 0.2)"
+                  className="opacity-60"
                 />
                 <MiniMap 
                   nodeColor={(node) => {
