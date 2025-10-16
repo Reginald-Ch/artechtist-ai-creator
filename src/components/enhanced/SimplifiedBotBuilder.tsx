@@ -333,9 +333,10 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
       ...params,
       id: `e${params.source}-${params.target}`,
       markerEnd: { type: MarkerType.ArrowClosed },
+      animated: true,
       style: { 
-        stroke: 'hsl(var(--foreground))',
-        strokeWidth: 2,
+        stroke: 'hsl(var(--primary))',
+        strokeWidth: 3,
       }
     }, eds)),
     [setEdges]
@@ -397,6 +398,12 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   const addNewIntent = (parentId?: string, customName?: string) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
+    
+    // Calculate smart position for new node
+    const baseX = 250;
+    const baseY = 100;
+    const offsetX = 300; // Horizontal spacing
+    const offsetY = 150; // Vertical spacing
     
     // Enhanced tree-based positioning for conversational flow
     let newPosition;
