@@ -2,10 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, Send, User, Moon, Sun } from 'lucide-react';
+import { Mic, MicOff, X, Volume2, Wifi, Battery, Signal, User, Moon, Sun } from 'lucide-react';
 import { useVoicePersistence } from '@/hooks/useVoicePersistence';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
+import { useVoicePersonality } from '@/hooks/useVoicePersonality';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Node, Edge } from '@xyflow/react';
 import { cn } from '@/lib/utils';
@@ -62,6 +62,12 @@ export const PhoneAssistantSimulator = ({
   const { speak: speechSynth, stop: stopSpeech } = useSpeechSynthesis();
   const { avatar: displayAvatar } = useAvatarPersistence(botAvatar);
   const { language, isRTL, t } = useLanguage();
+  const { 
+    settings: personalitySettings, 
+    addToHistory, 
+    getVoiceSettings: getPersonalityVoice,
+    getGreeting 
+  } = useVoicePersonality();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const messageQueueRef = useRef<string[]>([]);
@@ -361,12 +367,16 @@ export const PhoneAssistantSimulator = ({
 
     setIsSpeaking(true);
     
+    // Get personality-adjusted voice settings
+    const personalityVoice = getPersonalityVoice();
+    
     if (matchedVoice) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = matchedVoice;
-      utterance.rate = (isLoaded && voiceSettings.speed) ? voiceSettings.speed : VOICE_DEFAULTS.RATE;
-      utterance.pitch = (isLoaded && voiceSettings.pitch) ? voiceSettings.pitch : VOICE_DEFAULTS.PITCH;
+      // Use personality settings with fallback to user settings
+      utterance.rate = personalityVoice.speed || ((isLoaded && voiceSettings.speed) ? voiceSettings.speed : VOICE_DEFAULTS.RATE);
+      utterance.pitch = personalityVoice.pitch || ((isLoaded && voiceSettings.pitch) ? voiceSettings.pitch : VOICE_DEFAULTS.PITCH);
       window.speechSynthesis.speak(utterance);
       utterance.onend = onEndCallback;
       utterance.onerror = onEndCallback;
@@ -374,7 +384,7 @@ export const PhoneAssistantSimulator = ({
       speechSynth(text, onEndCallback);
     }
   }, [audioEnabled, speechSupported, language, isLoaded, voiceSettings, getBrowserVoice, 
-      continuousMode, recognitionState, isSpeaking, isListening, speechSynth]);
+      continuousMode, recognitionState, isSpeaking, isListening, speechSynth, getPersonalityVoice]);
 
   const handleUserMessage = useCallback((userInput: string) => {
     const trimmedInput = userInput.trim();
@@ -397,6 +407,29 @@ export const PhoneAssistantSimulator = ({
     // Show processing state
     setIsProcessing(true);
     setIsTyping(true);
+    
+    // Use personality greeting for first message
+    if (messages.length === 0) {
+      const greeting = getGreeting();
+      const greetingMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: greeting,
+        timestamp: new Date(),
+      };
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, greetingMessage]);
+        setIsProcessing(false);
+        setIsTyping(false);
+        
+        if (audioEnabled) {
+          speak(greeting);
+        }
+      }, TIMING.PROCESSING_DELAY);
+      
+      return;
+    }
     
     // Check cache first for faster responses - use normalized input as cache key
     const cacheKey = normalizePhrase(trimmedInput);
@@ -469,6 +502,9 @@ export const PhoneAssistantSimulator = ({
           setIsTyping(false);
           setIsProcessing(false);
           
+          // Add to conversation history for personality learning
+          addToHistory(trimmedInput, responseText);
+          
           // Speak immediately
           speak(responseText);
           
@@ -505,6 +541,10 @@ export const PhoneAssistantSimulator = ({
             } else {
               clearInterval(typeInterval);
               setIsProcessing(false);
+              
+              // Add to conversation history for personality learning
+              addToHistory(trimmedInput, responseText);
+              
               speak(responseText);
               
               // Announce response for screen readers
@@ -516,7 +556,7 @@ export const PhoneAssistantSimulator = ({
         }
       }, TIMING.PROCESSING_DELAY);
     }
-  }, [findMatchingIntent, generateResponse, speak, audioEnabled, speechSupported, t]);
+  }, [findMatchingIntent, generateResponse, speak, audioEnabled, speechSupported, t, addToHistory]);
 
   const toggleListening = useCallback(() => {
     if (!recognitionSupported) {
@@ -900,56 +940,39 @@ export const PhoneAssistantSimulator = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
+          {/* Voice-Only Input Area */}
           <div className={cn(
-            "p-4 flex-shrink-0 border-t",
+            "p-6 flex-shrink-0 border-t",
             isDarkTheme ? "bg-black/30 border-white/10" : "bg-white/50 border-gray-200"
           )}>
-            {inputError && (
-              <p className="text-xs text-red-500 mb-2 text-center">{inputError}</p>
-            )}
-            <div className="flex items-center gap-2">
-              <Input
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  if (e.target.value.trim()) {
-                    setInputError('');
-                  }
-                }}
-                onKeyPress={handleKeyPress}
-                placeholder={t('typeMessage') || 'Type a message...'}
-                disabled={continuousMode}
-                className={cn(
-                  "flex-1 rounded-full border-2 px-4 py-2",
-                  isDarkTheme 
-                    ? "bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    : "bg-white border-gray-300 text-gray-900"
-                )}
-                aria-label="Message input"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputText.trim() || continuousMode}
-                className={cn(
-                  "rounded-full h-10 w-10 p-0",
-                  isDarkTheme ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-500 hover:bg-blue-600"
-                )}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-col items-center gap-3">
+              <p className={cn(
+                "text-sm font-medium text-center",
+                isDarkTheme ? "text-white/70" : "text-gray-600"
+              )}>
+                {continuousMode 
+                  ? t('assistant.tapToStop', 'Tap to stop listening')
+                  : t('assistant.tapToTalk', 'Tap mic to talk')
+                }
+              </p>
               <Button
                 onClick={toggleListening}
                 disabled={!recognitionSupported}
                 className={cn(
-                  "rounded-full h-16 w-16 p-0 shadow-xl transition-all",
+                  "rounded-full h-20 w-20 p-0 shadow-2xl transition-all",
                   continuousMode
-                    ? "bg-gradient-to-br from-red-500 via-pink-500 to-purple-500 animate-pulse"
+                    ? "bg-gradient-to-br from-red-500 via-pink-500 to-purple-500 animate-pulse scale-110"
                     : "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:scale-110"
                 )}
+                aria-label={continuousMode ? "Stop listening" : "Start listening"}
               >
-                {continuousMode ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7" />}
+                {continuousMode ? <MicOff className="h-9 w-9" /> : <Mic className="h-9 w-9" />}
               </Button>
+              {!recognitionSupported && (
+                <p className="text-xs text-red-500 text-center">
+                  {t('assistant.micNotSupported', 'Voice recognition not supported')}
+                </p>
+              )}
             </div>
           </div>
 
