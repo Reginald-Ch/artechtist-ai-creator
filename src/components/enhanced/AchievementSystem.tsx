@@ -77,9 +77,9 @@ export const AchievementSystem = ({
       color: 'from-amber-500 to-yellow-600'
     },
     {
-      id: 'streak-starter',
-      title: '🔥 3 Day Streak',
-      description: 'Learn 3 days in a row!',
+      id: 'on-fire',
+      title: '🔥 On Fire!',
+      description: 'Learn 3 days in a row',
       icon: Flame,
       requirement: 3,
       current: streakDays,
@@ -88,8 +88,8 @@ export const AchievementSystem = ({
     },
     {
       id: 'week-master',
-      title: '⚡ Week Superstar',
-      description: 'Learn 7 days in a row!',
+      title: '⚡ Week Master',
+      description: 'Learn 7 days in a row',
       icon: Zap,
       requirement: 7,
       current: streakDays,
@@ -98,10 +98,10 @@ export const AchievementSystem = ({
     },
     {
       id: 'perfect-score',
-      title: '⭐ Star Performer',
-      description: 'Get 90% or higher average',
+      title: '🏆 Perfect Score',
+      description: 'Get a high average score',
       icon: Trophy,
-      requirement: 90,
+      requirement: 80,
       current: averageScore,
       category: 'score',
       color: 'from-green-500 to-emerald-600'

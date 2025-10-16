@@ -33,8 +33,7 @@ export const ai4k12Lessons: Record<string, Lesson> = {
         character: 'Vision Explorer',
         dialogue: '📸 Computers don\'t "see" like humans. They convert images into millions of numbers - each pixel becomes data! A camera is just a sensor that captures light.',
         background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-        animation: 'slideRight',
-        realWorldExample: '🌟 Real Example: Face ID on phones uses infrared cameras to create a 3D map of your face with over 30,000 invisible dots! This creates a unique mathematical pattern that unlocks your phone.'
+        animation: 'slideRight'
       },
       {
         id: 'panel-4',
@@ -81,8 +80,7 @@ export const ai4k12Lessons: Record<string, Lesson> = {
         character: 'Vision Explorer',
         dialogue: '🎤 Microphones capture sound waves, LiDAR measures distances with lasers, thermal sensors detect heat, and touchscreens feel pressure!',
         background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)',
-        animation: 'slideLeft',
-        realWorldExample: '🚗 Real Example: Tesla self-driving cars use 8 cameras, 12 ultrasonic sensors, and radar to "see" 360 degrees around the car in all weather conditions!'
+        animation: 'slideLeft'
       },
       {
         id: 'panel-9',

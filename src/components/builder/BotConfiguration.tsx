@@ -4,10 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bot, Settings, Mic, Globe, Sparkles } from "lucide-react";
+import { Bot, Settings, Mic, Globe } from "lucide-react";
 import { OptimizedAvatarSelector } from "@/components/enhanced/OptimizedAvatarSelector";
-import { VoicePersonalitySettings } from "@/components/enhanced/VoicePersonalitySettings";
 import { validateBotName } from "@/utils/validation";
 import { useState } from "react";
 
@@ -32,7 +30,6 @@ export const BotConfiguration = ({
 }: BotConfigurationProps) => {
   const [nameError, setNameError] = useState<string>("");
   const [descError, setDescError] = useState<string>("");
-  const [showPersonalityDialog, setShowPersonalityDialog] = useState(false);
 
   const handleNameChange = (value: string) => {
     const result = validateBotName(value);
@@ -129,26 +126,6 @@ export const BotConfiguration = ({
         <div className="space-y-2 pt-2 border-t">
           <Label className="text-xs text-muted-foreground">ADVANCED</Label>
           <div className="flex gap-2">
-            <Dialog open={showPersonalityDialog} onOpenChange={setShowPersonalityDialog}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="justify-start flex-1"
-                  aria-label="Voice personality settings"
-                >
-                  <Sparkles className="h-3.5 w-3.5 mr-2" />
-                  Personality
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Voice Personality & Memory</DialogTitle>
-                </DialogHeader>
-                <VoicePersonalitySettings onClose={() => setShowPersonalityDialog(false)} />
-              </DialogContent>
-            </Dialog>
-            
             <Button
               variant="outline"
               size="sm"

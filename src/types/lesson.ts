@@ -7,8 +7,6 @@ export interface Panel {
   background?: string;
   animation?: string;
   interactiveElement?: InteractiveElement;
-  videoUrl?: string; // Support for educational videos
-  realWorldExample?: string; // Real-world application example
 }
 
 export interface InteractiveElement {

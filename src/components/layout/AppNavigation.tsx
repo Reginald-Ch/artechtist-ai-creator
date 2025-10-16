@@ -9,23 +9,16 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 interface AppNavigationProps {
   showBackButton?: boolean;
   title?: string;
-  onBack?: () => void;
 }
 
-const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, title, onBack }) => {
+const AppNavigation: React.FC<AppNavigationProps> = ({ showBackButton = false, title }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
   const { t } = useLanguage();
 
   const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate('/dashboard');
-    }
+    navigate('/dashboard');
   };
 
   return (

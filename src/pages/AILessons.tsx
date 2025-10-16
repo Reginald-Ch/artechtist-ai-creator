@@ -215,13 +215,9 @@ const AILessons = () => {
     return lessons;
   }, [debouncedSearchQuery, selectedDifficulty, selectedAgeGroup, sortBy, enhancedComicLessons, getLessonScore]);
 
-  // Get lesson details from all sources
+  // Get lesson details from both sources
   const getLessonById = (id: string) => {
-    // Check AI4K12 lessons first
-    const ai4k12Lesson = ai4k12Lessons[id as keyof typeof ai4k12Lessons];
-    if (ai4k12Lesson) return ai4k12Lesson;
-    
-    // Then check enhanced lessons
+    // First check enhanced lessons
     const enhancedLesson = enhancedComicLessons[id as keyof typeof enhancedComicLessons];
     if (enhancedLesson) return enhancedLesson;
     
@@ -241,19 +237,10 @@ const AILessons = () => {
   const averageScore = analytics?.averageScore || 0;
 
   const handleStartLesson = (lessonId: string) => {
-    const lesson = getLessonById(lessonId);
-    if (!lesson) {
-      toast.error('Lesson not found');
-      return;
-    }
-    if (!lesson.panels || lesson.panels.length === 0) {
-      toast.error('This lesson has no content yet');
-      return;
-    }
     setSelectedLesson(lessonId);
-    updateProgress(lessonId, { currentPanel: 0, lastVisited: new Date() });
+    updateProgress(lessonId, { currentPanel: 0 });
     toast.success(t('toast.lessonStarted'), {
-      description: lesson.title
+      description: getLessonById(lessonId)?.title
     });
   };
 
@@ -349,25 +336,14 @@ const AILessons = () => {
           />
         ) : selectedLesson ? (
               <Suspense fallback={<div className="animate-pulse">Loading lesson...</div>}>
-                  <AccessibleLessonView 
+                 <AccessibleLessonView 
                    lesson={getLessonById(selectedLesson) as any} 
                    completedLessons={completedCount}
                    isBookmarked={isLessonBookmarked(selectedLesson)}
                    averageScore={analytics?.averageScore || 0}
                    streakDays={analytics?.streakDays || 0}
                    onComplete={(score) => handleCompleteLesson(selectedLesson, score)}
-                   onBack={() => {
-                     // Save progress and current state before going back
-                     const currentProgress = lessonProgress[selectedLesson];
-                     if (currentProgress) {
-                       updateProgress(selectedLesson, { 
-                         lastVisited: new Date(),
-                         timeSpent: currentProgress.timeSpent || 0,
-                         currentPanel: currentProgress.currentPanel || 0
-                       });
-                     }
-                     setSelectedLesson(null);
-                   }}
+                   onBack={() => setSelectedLesson(null)}
                    onToggleBookmark={() => toggleBookmark(selectedLesson)}
                    onStartFlashcards={() => setShowFlashcardStudy(true)}
                    onQuizAnswer={(questionId, correct) => recordQuizAnswer(selectedLesson, questionId, correct)}
