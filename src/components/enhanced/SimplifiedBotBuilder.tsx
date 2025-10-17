@@ -1203,9 +1203,9 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               </div>
             </div>
             <div className="h-[calc(100vh-14rem)] relative">
-              {/* Empty state with engaging design for kids */}
+              {/* PHASE 5: Enhanced empty state with animated tutorial pointer */}
               {nodes.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-background">
                   <div className="text-center space-y-6 p-8 max-w-md">
                     <div className="relative">
                       <div className="text-8xl animate-bounce">🤖</div>
@@ -1213,22 +1213,28 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                         <div className="text-3xl animate-pulse">✨</div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Let's Build Your First Chatbot!
+                    <div className="space-y-3">
+                      <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                        Let's Build Your First Bot!
                       </h3>
-                      <p className="text-muted-foreground">
-                        Create conversation flows by adding intents. Each intent teaches your bot what to say when users ask different questions.
+                      <p className="text-muted-foreground text-lg leading-relaxed">
+                        Create conversation flows by adding intents. Click the button below to start! 👇
                       </p>
                     </div>
-                    <Button 
-                      onClick={() => addNewIntent()} 
-                      className="mt-6 px-8 py-3 text-lg font-semibold bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                      size="lg"
-                    >
-                      <Plus className="h-5 w-5 mr-2" />
-                      Create First Intent
-                    </Button>
+                    <div className="relative">
+                      <Button 
+                        onClick={() => addNewIntent()} 
+                        className="mt-4 px-10 py-6 text-xl font-bold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                        size="lg"
+                      >
+                        <Plus className="h-6 w-6 mr-3" />
+                        Create First Intent
+                      </Button>
+                      {/* PHASE 5: Animated pointer */}
+                      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 animate-bounce">
+                        <span className="text-4xl">👆</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
