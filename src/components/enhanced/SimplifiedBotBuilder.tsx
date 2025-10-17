@@ -328,7 +328,17 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     }
   }, [isBeginnerMode]);
   
-  const onConnect = useCallback((params: Connection) => 
+  const onConnect = useCallback((params: Connection) => {
+    // Prevent self-connections
+    if (params.source === params.target) return;
+    
+    // Check if connection already exists
+    const connectionExists = edges.some(
+      edge => edge.source === params.source && edge.target === params.target
+    );
+    
+    if (connectionExists) return;
+    
     setEdges((eds) => addEdge({
       ...params,
       id: `e${params.source}-${params.target}`,
@@ -338,9 +348,8 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         stroke: 'hsl(var(--primary))',
         strokeWidth: 3,
       }
-    }, eds)),
-    [setEdges]
-  );
+    }, eds));
+  }, [edges, setEdges]);
 
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     event.stopPropagation();
@@ -399,36 +408,25 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
     
-    // Calculate smart position for new node
-    const baseX = 250;
-    const baseY = 100;
-    const offsetX = 300; // Horizontal spacing
-    const offsetY = 150; // Vertical spacing
-    
-    // Enhanced tree-based positioning for conversational flow
+    // PHASE 1: Simple vertical tree layout
     let newPosition;
     if (parentNode) {
-      // Create tree-like structure with better spacing
-      const childrenCount = edges.filter(e => e.source === parentId).length;
-      const angle = (childrenCount * 60) - 30; // Spread children in fan pattern
-      const distance = 250;
-      const radians = (angle * Math.PI) / 180;
+      // Position children directly below parent, offset horizontally by child count
+      const existingChildren = edges.filter(e => e.source === parentId).length;
+      const horizontalSpacing = 350; // Consistent horizontal spacing
+      const verticalSpacing = 200; // Consistent vertical spacing
       
       newPosition = {
-        x: parentNode.position.x + Math.cos(radians) * distance,
-        y: parentNode.position.y + Math.sin(radians) * distance + 150
+        x: parentNode.position.x + (existingChildren * horizontalSpacing) - (existingChildren > 0 ? horizontalSpacing / 2 : 0),
+        y: parentNode.position.y + verticalSpacing
       };
     } else {
-      // Auto-connect to the most recent non-fallback node in tree layout
-      const connectableNodes = nodes.filter(n => n.id !== 'fallback');
-      const targetNode = connectableNodes[connectableNodes.length - 1] || nodes.find(n => n.id === 'greet');
-      
-      if (targetNode) {
-        // Position new nodes to the right and slightly down for tree flow
-        const existingChildren = edges.filter(e => e.source === targetNode.id).length;
+      // Position to the right of the last node
+      const lastNode = nodes[nodes.length - 1];
+      if (lastNode) {
         newPosition = { 
-          x: targetNode.position.x + 280 + (existingChildren * 150), 
-          y: targetNode.position.y + 120 
+          x: lastNode.position.x + 350, 
+          y: lastNode.position.y 
         };
       } else {
         newPosition = { x: 600, y: 100 };
@@ -448,45 +446,27 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
         responses: [],
         isDefault: false,
       },
-      draggable: true, // Enable drag & rearrange
+      draggable: true,
     };
     
     const newNodes = [...nodes, newNode];
     let newEdges = [...edges];
     
-    // Auto-connect new intent to ALL existing non-fallback intents for shared context
-    const connectableNodes = nodes.filter(n => n.id !== 'fallback' && n.id !== newId);
-    
-    connectableNodes.forEach(existingNode => {
-      // Create bidirectional connections so all intents are interconnected
-      const edgeToNew: Edge = {
-        id: `e${existingNode.id}-${newId}`,
-        source: existingNode.id,
+    // PHASE 2: Only create ONE connection from parent to child (if parent exists)
+    if (parentId) {
+      const newEdge: Edge = {
+        id: `e${parentId}-${newId}`,
+        source: parentId,
         target: newId,
         markerEnd: { type: MarkerType.ArrowClosed },
+        animated: true,
         style: { 
           stroke: 'hsl(var(--primary))',
-          strokeWidth: 1.5,
-          strokeDasharray: '5,5',
+          strokeWidth: 3,
         },
-        animated: false,
       };
-      
-      const edgeFromNew: Edge = {
-        id: `e${newId}-${existingNode.id}`,
-        source: newId,
-        target: existingNode.id,
-        markerEnd: { type: MarkerType.ArrowClosed },
-        style: { 
-          stroke: 'hsl(var(--primary))',
-          strokeWidth: 1.5,
-          strokeDasharray: '5,5',
-        },
-        animated: false,
-      };
-      
-      newEdges.push(edgeToNew, edgeFromNew);
-    });
+      newEdges.push(newEdge);
+    }
     
     setNodes(newNodes);
     setEdges(newEdges);
@@ -776,15 +756,87 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
   }, [nodes, edges]);
 
   const autoLayoutNodes = () => {
-    const layoutedNodes = nodes.map((node, index) => ({
-      ...node,
-      position: {
-        x: 150 + (index % 3) * 250,
-        y: 100 + Math.floor(index / 3) * 200,
-      },
-    }));
+    // PHASE 1: Hierarchical tree layout algorithm
+    const horizontalSpacing = 350;
+    const verticalSpacing = 200;
+    const startX = 200;
+    const startY = 100;
+    
+    // Build hierarchy: find root nodes (nodes with no incoming edges)
+    const rootNodes = nodes.filter(node => 
+      !edges.some(edge => edge.target === node.id)
+    );
+    
+    // Build children map
+    const childrenMap = new Map<string, string[]>();
+    edges.forEach(edge => {
+      if (!childrenMap.has(edge.source)) {
+        childrenMap.set(edge.source, []);
+      }
+      childrenMap.get(edge.source)!.push(edge.target);
+    });
+    
+    // Position nodes in tiers
+    const positioned = new Set<string>();
+    const layoutedNodes = [...nodes];
+    
+    // Helper function to position a node and its children
+    const positionSubtree = (nodeId: string, x: number, y: number, tier: number): number => {
+      const nodeIndex = layoutedNodes.findIndex(n => n.id === nodeId);
+      if (nodeIndex === -1 || positioned.has(nodeId)) return x;
+      
+      layoutedNodes[nodeIndex] = {
+        ...layoutedNodes[nodeIndex],
+        position: { x, y }
+      };
+      positioned.add(nodeId);
+      
+      // Position children
+      const children = childrenMap.get(nodeId) || [];
+      let currentX = x;
+      
+      children.forEach((childId, index) => {
+        currentX = positionSubtree(
+          childId,
+          currentX + (index > 0 ? horizontalSpacing : 0),
+          y + verticalSpacing,
+          tier + 1
+        );
+      });
+      
+      // Center parent over children if multiple children
+      if (children.length > 1) {
+        const firstChildIndex = layoutedNodes.findIndex(n => n.id === children[0]);
+        const lastChildIndex = layoutedNodes.findIndex(n => n.id === children[children.length - 1]);
+        if (firstChildIndex !== -1 && lastChildIndex !== -1) {
+          const centerX = (layoutedNodes[firstChildIndex].position.x + layoutedNodes[lastChildIndex].position.x) / 2;
+          layoutedNodes[nodeIndex].position.x = centerX;
+        }
+      }
+      
+      return currentX;
+    };
+    
+    // Position each root node and its subtree
+    let currentX = startX;
+    rootNodes.forEach((rootNode, index) => {
+      currentX = positionSubtree(rootNode.id, currentX + (index > 0 ? horizontalSpacing : 0), startY, 0);
+    });
+    
+    // Position any remaining nodes that weren't part of the tree
+    let orphanX = currentX + horizontalSpacing;
+    layoutedNodes.forEach((node, index) => {
+      if (!positioned.has(node.id)) {
+        layoutedNodes[index] = {
+          ...node,
+          position: { x: orphanX, y: startY }
+        };
+        orphanX += horizontalSpacing;
+      }
+    });
+    
     setNodes(layoutedNodes);
-    toast({ title: "Layout updated", description: "Nodes have been automatically arranged" });
+    toast({ title: "Layout updated", description: "Nodes arranged in tree hierarchy" });
   };
 
   const completionPercentage = Math.round((nodes.filter(n => 
@@ -1190,35 +1242,33 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onNodeClick={onNodeClick}
                 nodeTypes={memoizedNodeTypes}
                 fitView
-                fitViewOptions={{ padding: 0.3, minZoom: 0.4, maxZoom: 1.0 }}
-                minZoom={0.2}
-                maxZoom={2}
-                defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
+                fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 1.0 }}
+                minZoom={0.5}
+                maxZoom={1.5}
+                defaultViewport={{ x: 100, y: 50, zoom: 0.8 }}
                 panOnScroll={true}
                 selectionOnDrag={false}
                 panOnDrag={[1, 2]}
                 proOptions={{ hideAttribution: true }}
-                className="bg-gradient-to-br from-background via-muted/5 to-primary/5"
+                className="bg-background"
                 nodesDraggable={true}
                 nodesConnectable={true}
                 elementsSelectable={true}
                 connectionLineStyle={{ 
                   stroke: 'hsl(var(--primary))', 
                   strokeWidth: 3,
-                  strokeDasharray: '8,4',
                 }}
                 snapToGrid={true}
-                snapGrid={[25, 25]}
+                snapGrid={[50, 50]}
                 panOnScrollSpeed={0.8}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
               >
                 <Background 
                   variant={BackgroundVariant.Dots} 
-                  gap={25} 
-                  size={2} 
-                  color="hsl(var(--muted-foreground) / 0.2)"
-                  className="opacity-60"
+                  gap={50} 
+                  size={1.5} 
+                  color="hsl(var(--muted-foreground) / 0.3)"
                 />
                 <MiniMap 
                   nodeColor={(node) => {
@@ -1226,14 +1276,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                     if (node.data.isDefault) return 'hsl(var(--primary))';
                     return 'hsl(var(--accent-foreground))';
                   }}
-                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-xl"
-                  style={{ width: 180, height: 120 }}
-                  position="bottom-right"
+                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-lg"
+                  style={{ width: 150, height: 100 }}
+                  position="top-right"
                   pannable
                   zoomable
                 />
                 <Controls 
-                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-xl" 
+                  className="bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-lg scale-110" 
                   showZoom={true}
                   showFitView={true}
                   showInteractive={true}
