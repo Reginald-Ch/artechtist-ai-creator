@@ -62,27 +62,24 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   const hasResponses = responses.length > 0;
   const isComplete = hasTraining && hasResponses;
   
-  // PHASE 4: Kid-friendly icons and status
+  // Get icon and example based on intent
   const getIntentIcon = () => {
     if (label.toLowerCase().includes('greet') || label.toLowerCase().includes('hello')) return '👋';
     if (label.toLowerCase().includes('fallback') || label.toLowerCase().includes('default')) return '❓';
-    if (label.toLowerCase().includes('help')) return '🆘';
-    if (label.toLowerCase().includes('bye') || label.toLowerCase().includes('goodbye')) return '👋';
     return '💬';
   };
 
   const getExamplePhrase = () => {
     if (trainingPhrases.length > 0) return trainingPhrases[0];
-    if (label.toLowerCase().includes('greet')) return 'Hello';
-    return 'Add examples';
+    if (label.toLowerCase().includes('greet')) return '"Hello"';
+    return 'No training';
   };
 
-  // PHASE 4: Simplified status with emojis
   const getStatusInfo = () => {
-    if (isComplete) return { emoji: '✅', text: 'Ready', bgColor: 'bg-green-100 dark:bg-green-900/30', textColor: 'text-green-700 dark:text-green-400', borderColor: 'border-green-300 dark:border-green-700' };
-    if (!hasTraining) return { emoji: '⚠️', text: 'Add Examples', bgColor: 'bg-orange-100 dark:bg-orange-900/30', textColor: 'text-orange-700 dark:text-orange-400', borderColor: 'border-orange-300 dark:border-orange-700' };
-    if (!hasResponses) return { emoji: '⚠️', text: 'Add Responses', bgColor: 'bg-orange-100 dark:bg-orange-900/30', textColor: 'text-orange-700 dark:text-orange-400', borderColor: 'border-orange-300 dark:border-orange-700' };
-    return { emoji: '🚧', text: 'Getting Started', bgColor: 'bg-blue-100 dark:bg-blue-900/30', textColor: 'text-blue-700 dark:text-blue-400', borderColor: 'border-blue-300 dark:border-blue-700' };
+    if (isComplete) return { color: 'text-green-600', text: 'Ready', icon: '✓' };
+    if (!hasTraining) return { color: 'text-orange-500', text: 'No training', icon: '⚠' };
+    if (!hasResponses) return { color: 'text-orange-500', text: 'No responses', icon: '⚠' };
+    return { color: 'text-muted-foreground', text: 'Incomplete', icon: '○' };
   };
 
   const statusInfo = getStatusInfo();
@@ -91,7 +88,7 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
     <div 
       className={cn(
         "relative group cursor-pointer",
-        "min-w-[260px] max-w-[280px]" // PHASE 4: Increased from 200px to 260px
+        "min-w-[200px] max-w-[240px]"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -101,152 +98,148 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
       aria-label={`Intent: ${label}. ${trainingPhrases.length} training phrases, ${responses.length} responses. Press Enter to edit${isDefault ? '' : ', Delete to remove'}`}
     >
       
-      {/* PHASE 4: Enhanced Main Card with kid-friendly design */}
+      {/* Main Card - Enhanced with better spacing and colors */}
       <div 
         className={cn(
-          "bg-card border-2 rounded-2xl shadow-lg p-6 space-y-4 transition-all duration-200",
+          "bg-card border-2 rounded-xl shadow-md p-5 space-y-4 transition-all duration-200",
           selected 
-            ? `border-primary shadow-2xl ring-4 ring-primary/20 ${statusInfo.bgColor}` 
+            ? 'border-primary shadow-xl ring-2 ring-primary/30 bg-primary/5' 
             : isDefault 
               ? 'border-primary/70 bg-primary/5' 
-              : `${statusInfo.borderColor} bg-background`,
-          "hover:shadow-2xl hover:scale-[1.02]"
+              : 'border-border bg-background',
+          "hover:shadow-xl hover:border-primary/80 hover:bg-card"
         )}
       >
-        {/* PHASE 4: Header with larger Icon and Title */}
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-sm">
-            <span className="text-3xl">{getIntentIcon()}</span>
+        {/* Header with Icon and Title */}
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-lg">{getIntentIcon()}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-foreground text-base truncate leading-tight">{label}</h3>
-            <div className="flex items-center gap-2 mt-1.5">
+            <h3 className="font-semibold text-foreground text-sm truncate">{label}</h3>
+            <div className="flex items-center gap-2 mt-1">
               {isDefault && (
                 <Badge variant="secondary" className="text-xs px-2 py-0.5 font-medium">
-                  ⭐ Core
+                  Core Intent
                 </Badge>
               )}
+              <span className="text-xs text-muted-foreground">Intent Node</span>
             </div>
           </div>
-        </div>
-
-        {/* PHASE 4: Prominent Status Badge */}
-        <div className={cn(
-          "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2",
-          statusInfo.bgColor,
-          statusInfo.borderColor
-        )}>
-          <span className="text-2xl">{statusInfo.emoji}</span>
-          <span className={cn("font-bold text-base", statusInfo.textColor)}>{statusInfo.text}</span>
-        </div>
-
-        {/* PHASE 4: Simplified Stats */}
-        <div className="flex items-center justify-around py-2">
-          <div className="flex flex-col items-center gap-1">
-            <MessageSquare className="h-5 w-5 text-blue-500" />
-            <span className="font-bold text-lg text-foreground">{trainingPhrases.length}</span>
-            <span className="text-xs text-muted-foreground">examples</span>
-          </div>
-          <div className="w-px h-12 bg-border"></div>
-          <div className="flex flex-col items-center gap-1">
-            <Bot className="h-5 w-5 text-green-500" />
-            <span className="font-bold text-lg text-foreground">{responses.length}</span>
-            <span className="text-xs text-muted-foreground">replies</span>
-          </div>
-        </div>
-
-        {/* Example phrase preview - only if has training */}
-        {trainingPhrases.length > 0 && (
-          <div className="bg-muted/50 border border-border rounded-lg p-3">
-            <div className="text-xs text-muted-foreground font-medium mb-1">💭 Example:</div>
-            <div className="text-sm text-foreground font-medium">"{getExamplePhrase()}"</div>
-          </div>
-        )}
-
-        {/* PHASE 4: Always visible action buttons for better discoverability */}
-        <div className="absolute -top-3 -right-3 flex gap-2 z-30">
-          {/* Lock fallback intent */}
-          {label.toLowerCase().includes('fallback') ? (
-            <div className="h-10 w-10 rounded-full bg-muted border-2 border-background shadow-lg flex items-center justify-center">
-              <span className="text-xl">🔒</span>
-            </div>
-          ) : (
-            <>
-              {/* PHASE 4: Edit/Train Button - Always visible */}
+          {/* Edit Button - improved UX */}
+          <div className="flex items-center gap-1">
+            {selected && (
+              <Badge variant="secondary" className="text-xs">
+                Selected
+              </Badge>
+            )}
+            {/* Lock fallback intent - only allow training for greet intent */}
+            {label.toLowerCase().includes('fallback') ? (
+              <Badge variant="secondary" className="text-xs px-2 py-1">
+                🔒 Locked
+              </Badge>
+            ) : (
               <Button
                 size="sm"
-                variant="outline"
-                className="h-10 w-10 p-0 rounded-full bg-primary border-2 border-background shadow-lg hover:bg-primary/90 hover:scale-110 transition-transform"
+                variant={selected ? "default" : "outline"}
+                className={cn(
+                  "px-3 py-1 text-xs font-medium",
+                  selected ? "bg-primary text-primary-foreground" : "hover:bg-primary hover:text-primary-foreground"
+                )}
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
+                  // Open training dialog instead of inline editing
                   if ((window as any).openIntentTraining) {
                     (window as any).openIntentTraining(id || '');
                   } else {
                     onEdit?.(id || '');
                   }
                 }}
-                title="Train this intent"
               >
-                <Edit className="h-4 w-4 text-primary-foreground" />
+                <Brain className="h-3 w-3 mr-1" />
+                Train
               </Button>
-              
-              {/* PHASE 4: Add Follow-up Button - Larger (8x8) */}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-10 w-10 p-0 rounded-full bg-blue-500 border-2 border-background shadow-lg hover:bg-blue-600 hover:scale-110 transition-transform"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if ((window as any).addFollowUpIntent) {
-                    (window as any).addFollowUpIntent(id || '');
-                  }
-                }}
-                title="Add follow-up intent"
-              >
-                <span className="text-white text-xl font-bold">+</span>
-              </Button>
-            </>
-          )}
-          
-          {/* Delete button for non-default nodes */}
-          {!isDefault && (
+            )}
+          </div>
+        </div>
+
+        {/* Stats with improved visual hierarchy */}
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MessageSquare className="h-4 w-4 text-blue-500" />
+              <span className="font-medium">{trainingPhrases.length}</span>
+              <span className="text-xs">phrases</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Bot className="h-4 w-4 text-green-500" />
+              <span className="font-medium">{responses.length}</span>
+              <span className="text-xs">responses</span>
+            </div>
+          </div>
+          <div className={cn("flex items-center gap-1.5 text-xs font-medium", statusInfo.color)}>
+            <span>{statusInfo.icon}</span>
+            <span>{statusInfo.text}</span>
+          </div>
+        </div>
+
+        {/* Example phrase preview */}
+        <div className="bg-background border border-border rounded-md p-2">
+          <div className="text-xs text-muted-foreground font-medium mb-1">Example trigger:</div>
+          <div className="text-sm text-foreground italic">"{getExamplePhrase()}"</div>
+        </div>
+
+        {/* Action buttons for node management */}
+        {(isHovered || selected) && (
+          <div className="absolute -top-2 -right-2 flex gap-1 z-30">
+            {/* Add Follow-up Intent Button (Blue Plus) - Ambi style */}
             <Button
               size="sm"
               variant="outline"
-              className="h-10 w-10 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 hover:scale-110 transition-transform"
+              className="h-6 w-6 p-0 rounded-full bg-blue-500 border-2 border-background shadow-lg hover:bg-blue-600 z-30"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelete?.(id || '');
+                // Trigger add follow-up intent
+                if ((window as any).addFollowUpIntent) {
+                  (window as any).addFollowUpIntent(id || '');
+                }
               }}
-              title="Delete intent"
+              title="Add follow-up intent"
             >
-              <X className="h-5 w-5 text-destructive-foreground" />
+              <span className="text-white text-sm font-bold">+</span>
             </Button>
-          )}
-        </div>
+            
+            {/* Delete button for non-default nodes */}
+            {!isDefault && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete?.(id || '');
+                }}
+                title="Delete intent"
+              >
+                <X className="h-3 w-3 text-destructive-foreground" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* PHASE 4 & 5: Enhanced React Flow Handles with larger touch targets */}
+      {/* React Flow Handles - Clean styling without conflicts */}
       <Handle 
         type="target" 
         position={Position.Top} 
-        className={cn(
-          "w-4 h-4 bg-primary border-2 border-background shadow-md transition-all",
-          "hover:w-5 hover:h-5 hover:bg-primary/80"
-        )}
-        style={{ top: -8 }}
+        className="w-3 h-3 bg-primary border-2 border-background shadow-sm"
       />
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        className={cn(
-          "w-4 h-4 bg-primary border-2 border-background shadow-md transition-all",
-          "hover:w-5 hover:h-5 hover:bg-primary/80"
-        )}
-        style={{ bottom: -8 }}
+        className="w-3 h-3 bg-primary border-2 border-background shadow-sm"
       />
     </div>
   );
