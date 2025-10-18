@@ -1202,7 +1202,7 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 </Button>
               </div>
             </div>
-            <div className="h-[calc(100vh-14rem)] relative">
+            <div className="h-[calc(100vh-8rem)] relative">
               {/* Empty state with engaging design for kids */}
               {nodes.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
@@ -1241,14 +1241,13 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 onConnect={onConnect}
                 onNodeClick={onNodeClick}
                 nodeTypes={memoizedNodeTypes}
-                fitView
-                fitViewOptions={{ padding: 0.3, minZoom: 0.5, maxZoom: 1.0 }}
-                minZoom={0.5}
-                maxZoom={1.5}
-                defaultViewport={{ x: 100, y: 50, zoom: 0.8 }}
+                fitViewOptions={{ padding: 0.2, minZoom: 0.2, maxZoom: 1.2 }}
+                minZoom={0.15}
+                maxZoom={2.0}
+                defaultViewport={{ x: 200, y: 100, zoom: 0.65 }}
                 panOnScroll={true}
-                selectionOnDrag={false}
-                panOnDrag={[1, 2]}
+                selectionOnDrag={true}
+                panOnDrag={[2]}
                 proOptions={{ hideAttribution: true }}
                 className="bg-background"
                 nodesDraggable={true}
@@ -1259,14 +1258,14 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                   strokeWidth: 3,
                 }}
                 snapToGrid={true}
-                snapGrid={[50, 50]}
-                panOnScrollSpeed={0.8}
+                snapGrid={[20, 20]}
+                panOnScrollSpeed={1.2}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
               >
                 <Background 
                   variant={BackgroundVariant.Dots} 
-                  gap={50} 
+                  gap={20} 
                   size={1.5} 
                   color="hsl(var(--muted-foreground) / 0.3)"
                 />
