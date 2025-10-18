@@ -408,26 +408,49 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
     const newId = `intent-${Date.now()}`;
     const parentNode = parentId ? nodes.find(n => n.id === parentId) : null;
     
-    // PHASE 1: Simple vertical tree layout
+    // Smart positioning algorithm
     let newPosition;
     if (parentNode) {
-      // Position children directly below parent, offset horizontally by child count
+      // Center children under parent
       const existingChildren = edges.filter(e => e.source === parentId).length;
-      const horizontalSpacing = 350; // Consistent horizontal spacing
-      const verticalSpacing = 200; // Consistent vertical spacing
+      const horizontalSpacing = 300;
+      const verticalSpacing = 180;
+      
+      // Calculate centered position
+      const childOffset = existingChildren * horizontalSpacing;
+      const centerOffset = (existingChildren * horizontalSpacing) / 2;
       
       newPosition = {
-        x: parentNode.position.x + (existingChildren * horizontalSpacing) - (existingChildren > 0 ? horizontalSpacing / 2 : 0),
+        x: parentNode.position.x - centerOffset + childOffset,
         y: parentNode.position.y + verticalSpacing
       };
+      
+      // Bounds checking - keep nodes visible
+      if (newPosition.x > 1500) {
+        newPosition.x = 400;
+        newPosition.y = parentNode.position.y + verticalSpacing * 2;
+      }
+      if (newPosition.y > 1000) {
+        newPosition.y = 200;
+      }
     } else {
-      // Position to the right of the last node
+      // Smart positioning for standalone nodes
       const lastNode = nodes[nodes.length - 1];
       if (lastNode) {
-        newPosition = { 
-          x: lastNode.position.x + 350, 
-          y: lastNode.position.y 
-        };
+        // Check if there's space to the right
+        const rightSpace = lastNode.position.x + 300;
+        if (rightSpace < 1500) {
+          newPosition = { 
+            x: rightSpace, 
+            y: lastNode.position.y 
+          };
+        } else {
+          // Wrap to new row
+          newPosition = { 
+            x: 400, 
+            y: lastNode.position.y + 200 
+          };
+        }
       } else {
         newPosition = { x: 600, y: 100 };
       }
@@ -1253,21 +1276,23 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
                 nodesDraggable={true}
                 nodesConnectable={true}
                 elementsSelectable={true}
-                connectionLineStyle={{ 
-                  stroke: 'hsl(var(--primary))', 
+                connectionLineStyle={{
+                  stroke: 'hsl(var(--primary))',
                   strokeWidth: 3,
+                  strokeDasharray: '8,4'
                 }}
                 snapToGrid={true}
                 snapGrid={[20, 20]}
                 panOnScrollSpeed={1.2}
                 zoomOnScroll={true}
                 zoomOnPinch={true}
+                zoomOnDoubleClick={true}
               >
                 <Background 
-                  variant={BackgroundVariant.Dots} 
+                  variant={BackgroundVariant.Lines} 
                   gap={20} 
-                  size={1.5} 
-                  color="hsl(var(--muted-foreground) / 0.3)"
+                  size={1} 
+                  color="hsl(var(--muted-foreground) / 0.15)"
                 />
                 <MiniMap 
                   nodeColor={(node) => {

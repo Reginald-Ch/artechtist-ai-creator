@@ -87,8 +87,8 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
   return (
     <div 
       className={cn(
-        "relative group cursor-pointer",
-        "min-w-[200px] max-w-[240px]"
+        "relative group cursor-pointer transition-transform hover:scale-105",
+        "min-w-[220px] max-w-[280px]"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -215,11 +215,14 @@ const IntentNode = memo(({ data, selected, onDelete, onDuplicate, onEdit, id }: 
               <Button
                 size="sm"
                 variant="outline"
-                className="h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30"
+                className="h-6 w-6 p-0 rounded-full bg-destructive border-2 border-background shadow-lg hover:bg-destructive/90 z-30 nodrag nopan"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onDelete?.(id || '');
+                  console.log('Delete button clicked for node:', id);
+                  if (onDelete && id) {
+                    onDelete(id);
+                  }
                 }}
                 title="Delete intent"
               >
