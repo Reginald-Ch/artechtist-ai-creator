@@ -57,6 +57,9 @@ export const PhoneAssistantSimulator = ({
   const [continuousMode, setContinuousMode] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [recognitionState, setRecognitionState] = useState<'idle' | 'starting' | 'active' | 'stopping'>('idle');
+  const [retryCount, setRetryCount] = useState(0);
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [themeLoaded, setThemeLoaded] = useState(false);
   
   const { voiceSettings, getBrowserVoice, isLoaded } = useVoicePersistence();
   const { speak: speechSynth, stop: stopSpeech } = useSpeechSynthesis();
@@ -135,18 +138,22 @@ export const PhoneAssistantSimulator = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Persist theme preference
+  // Persist theme preference and handle theme loading
   useEffect(() => {
     localStorage.setItem('phoneSimulator_theme', isDarkTheme ? 'dark' : 'light');
+    // Mark theme as loaded after first render to prevent flash
+    setTimeout(() => setThemeLoaded(true), 50);
   }, [isDarkTheme]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom - debounced and only when typing ends
   useEffect(() => {
+    if (isTyping) return; // Don't scroll while typing
+    
     const timer = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }, TIMING.AUTO_SCROLL_DELAY);
     return () => clearTimeout(timer);
-  }, [messages, isTyping]);
+  }, [messages.length, isTyping]);
 
   // Limit message history to prevent memory issues
   useEffect(() => {
@@ -615,17 +622,23 @@ export const PhoneAssistantSimulator = ({
         setIsListening(false);
         setRecognitionState('idle');
         
-        // Auto-retry on network errors
-        if (event.error === 'network' && continuousMode) {
+        // Auto-retry with exponential backoff and max retries
+        if (event.error === 'network' && continuousMode && retryCount < 3) {
+          const backoffDelay = TIMING.NETWORK_ERROR_RETRY_DELAY * Math.pow(2, retryCount);
           setTimeout(() => {
             if (recognitionState !== 'stopping') {
               try {
                 recognitionRef.current?.start();
+                setRetryCount(prev => prev + 1);
               } catch (e) {
-                // Ignore
+                console.warn('Failed to restart recognition:', e);
               }
             }
-          }, TIMING.NETWORK_ERROR_RETRY_DELAY);
+          }, backoffDelay);
+        } else if (retryCount >= 3) {
+          setInputError(t('maxRetriesReached') || 'Failed to connect. Please tap mic to retry manually.');
+          setRetryCount(0);
+          setContinuousMode(false);
         }
       };
     }
@@ -634,6 +647,7 @@ export const PhoneAssistantSimulator = ({
     if (isListening && recognitionState === 'active') {
       setRecognitionState('stopping');
       setContinuousMode(false);
+      setRetryCount(0); // Reset retry count
       
       // Clear speech queue when user interrupts
       clearSpeechQueue();
@@ -646,6 +660,7 @@ export const PhoneAssistantSimulator = ({
     } else if (!isListening && recognitionState === 'idle' && !isSpeaking) {
       setRecognitionState('starting');
       setContinuousMode(true);
+      setRetryCount(0); // Reset retry count on new start
       try {
         recognitionRef.current.start();
       } catch (error) {
@@ -653,7 +668,7 @@ export const PhoneAssistantSimulator = ({
         setRecognitionState('idle');
       }
     }
-  }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t, clearSpeechQueue]);
+  }, [recognitionSupported, isListening, recognitionState, isSpeaking, continuousMode, handleUserMessage, language, t, clearSpeechQueue, retryCount]);
 
   const handleSendMessage = () => {
     const trimmed = inputText.trim();
@@ -698,15 +713,17 @@ export const PhoneAssistantSimulator = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className={cn(
-          "p-0 gap-0 flex flex-col overflow-hidden mx-auto border-[12px]",
+          "p-0 gap-0 flex flex-col overflow-hidden mx-auto border-[12px] transition-opacity duration-300",
           isDarkTheme ? "border-gray-900" : "border-gray-800",
-          isRTL && "rtl"
+          isRTL && "rtl",
+          themeLoaded ? "opacity-100" : "opacity-0"
         )} 
         style={{ 
           width: `${PHONE_UI.WIDTH}px`, 
           height: `${PHONE_UI.HEIGHT}px`,
           maxHeight: '95vh',
-          borderRadius: PHONE_UI.BORDER_RADIUS
+          borderRadius: PHONE_UI.BORDER_RADIUS,
+          paddingTop: 'env(safe-area-inset-top, 0px)'
         }}
         dir={isRTL ? "rtl" : "ltr"}
       >
@@ -720,12 +737,15 @@ export const PhoneAssistantSimulator = ({
         
         
         {/* Phone Frame with Kid-Friendly Gradient */}
-        <div className={cn(
-          "relative w-full h-full overflow-hidden flex flex-col rounded-[3rem]",
-          isDarkTheme 
-            ? "bg-gradient-to-br from-indigo-950 via-purple-950 to-blue-950" 
-            : "bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50"
-        )}>
+        <div 
+          className={cn(
+            "relative w-full h-full overflow-hidden flex flex-col rounded-[3rem]",
+            isDarkTheme 
+              ? "bg-gradient-to-br from-indigo-950 via-purple-950 to-blue-950" 
+              : "bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50"
+          )}
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
           
           {/* Status Bar */}
           <div className={cn(
@@ -828,10 +848,19 @@ export const PhoneAssistantSimulator = ({
             </div>
           </div>
 
-          {/* Voice Animation Overlay */}
+          {/* Voice Animation Overlay - Improved positioning and opacity */}
           {(isListening || isSpeaking || isProcessing) && (
-            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm rounded-[3.5rem]">
-              <div className="scale-150">
+            <div 
+              className="absolute inset-0 z-50 flex flex-col items-center justify-start pt-32 bg-black/30 backdrop-blur-sm rounded-[3.5rem] pointer-events-none will-change-transform"
+              onClick={(e) => {
+                if (isListening || isSpeaking) {
+                  e.stopPropagation();
+                  toggleListening();
+                }
+              }}
+              style={{ pointerEvents: isListening || isSpeaking ? 'auto' : 'none' }}
+            >
+              <div className="scale-125 will-change-transform">
                 <VoiceAnimation 
                   language={language as 'en' | 'sw' | 'ar'}
                   style={isProcessing ? "orb" : "waveform"}
@@ -839,16 +868,21 @@ export const PhoneAssistantSimulator = ({
                 />
               </div>
               {isProcessing && (
-                <div className="absolute bottom-32 text-white text-sm font-medium">
+                <div className="mt-8 text-white text-sm font-medium">
                   {t('thinking') || 'Thinking...'}
+                </div>
+              )}
+              {(isListening || isSpeaking) && (
+                <div className="mt-4 text-white/70 text-xs">
+                  {t('tapToDismiss') || 'Tap to dismiss'}
                 </div>
               )}
             </div>
           )}
 
-          {/* Chat Area */}
+          {/* Chat Area - Improved flex layout */}
           <div className={cn(
-            "flex-1 overflow-y-auto px-4 py-4 space-y-3",
+            "flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-safe-area space-y-3",
             isDarkTheme ? "bg-gradient-to-b from-indigo-950/40 to-purple-950/40" : "bg-gradient-to-b from-transparent to-white/30"
           )} dir={isRTL ? 'rtl' : 'ltr'}>
             
@@ -897,12 +931,18 @@ export const PhoneAssistantSimulator = ({
                   )}
                 >
                   <p className="text-sm leading-relaxed">{message.content}</p>
-                  <p className={cn(
-                    "text-xs mt-1",
-                    message.type === 'user' 
-                      ? "text-gray-600" 
-                      : isDarkTheme ? "text-white/50" : "text-gray-500"
-                  )}>
+                  <p 
+                    className={cn(
+                      "text-xs mt-1",
+                      message.type === 'user' 
+                        ? "text-gray-600" 
+                        : isDarkTheme ? "text-white/50" : "text-gray-500"
+                    )}
+                    style={{ 
+                      marginInlineStart: isRTL ? '0' : 'auto',
+                      textAlign: isRTL ? 'right' : 'left' 
+                    }}
+                  >
                     {formatMessageTime(message.timestamp)}
                   </p>
                 </div>
@@ -940,38 +980,98 @@ export const PhoneAssistantSimulator = ({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Voice-Only Input Area */}
+          {/* Input Area with Voice and Text options */}
           <div className={cn(
-            "p-6 flex-shrink-0 border-t",
+            "p-6 pb-8 flex-shrink-0 border-t",
             isDarkTheme ? "bg-black/30 border-white/10" : "bg-white/50 border-gray-200"
           )}>
             <div className="flex flex-col items-center gap-3">
-              <p className={cn(
-                "text-sm font-medium text-center",
-                isDarkTheme ? "text-white/70" : "text-gray-600"
-              )}>
-                {continuousMode 
-                  ? t('assistant.tapToStop', 'Tap to stop listening')
-                  : t('assistant.tapToTalk', 'Tap mic to talk')
-                }
-              </p>
-              <Button
-                onClick={toggleListening}
-                disabled={!recognitionSupported}
-                className={cn(
-                  "rounded-full h-20 w-20 p-0 shadow-2xl transition-all",
-                  continuousMode
-                    ? "bg-gradient-to-br from-red-500 via-pink-500 to-purple-500 animate-pulse scale-110"
-                    : "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:scale-110"
-                )}
-                aria-label={continuousMode ? "Stop listening" : "Start listening"}
-              >
-                {continuousMode ? <MicOff className="h-9 w-9" /> : <Mic className="h-9 w-9" />}
-              </Button>
-              {!recognitionSupported && (
-                <p className="text-xs text-red-500 text-center">
-                  {t('assistant.micNotSupported', 'Voice recognition not supported')}
-                </p>
+              {!showTextInput ? (
+                <>
+                  <p className={cn(
+                    "text-sm font-medium text-center",
+                    isDarkTheme ? "text-white/70" : "text-gray-600"
+                  )}>
+                    {continuousMode 
+                      ? t('assistant.tapToStop', 'Tap to stop listening')
+                      : t('assistant.tapToTalk', 'Tap mic to talk')
+                    }
+                  </p>
+                  <Button
+                    onClick={toggleListening}
+                    disabled={!recognitionSupported}
+                    className={cn(
+                      "rounded-full h-24 w-24 p-0 shadow-2xl transition-all touch-manipulation",
+                      continuousMode
+                        ? "bg-gradient-to-br from-red-500 via-pink-500 to-purple-500 animate-pulse scale-110"
+                        : "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 hover:scale-110 active:scale-95"
+                    )}
+                    style={{ minHeight: '96px', minWidth: '96px' }}
+                    aria-label={continuousMode ? "Stop listening" : "Start listening"}
+                  >
+                    {continuousMode ? <MicOff className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTextInput(true)}
+                    className={cn(
+                      "text-xs",
+                      isDarkTheme ? "text-white/60 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                    )}
+                  >
+                    {t('assistant.typeInstead', 'Type instead')}
+                  </Button>
+                  {!recognitionSupported && (
+                    <p className="text-xs text-red-500 text-center">
+                      {t('assistant.micNotSupported', 'Voice recognition not supported')}
+                    </p>
+                  )}
+                  {inputError && (
+                    <p className="text-xs text-red-500 text-center max-w-[250px]">
+                      {inputError}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={t('assistant.typeMessage', 'Type a message...')}
+                      className={cn(
+                        "flex-1 px-4 py-3 rounded-full text-sm outline-none focus:ring-2 focus:ring-primary",
+                        isDarkTheme 
+                          ? "bg-white/10 text-white placeholder:text-white/40" 
+                          : "bg-white text-gray-900 placeholder:text-gray-400"
+                      )}
+                      dir={isRTL ? "rtl" : "ltr"}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!inputText.trim()}
+                      className="rounded-full h-12 w-12 p-0 shadow-lg"
+                      aria-label="Send message"
+                    >
+                      <span className="text-xl">→</span>
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTextInput(false)}
+                    className={cn(
+                      "text-xs",
+                      isDarkTheme ? "text-white/60 hover:text-white" : "text-gray-500 hover:text-gray-900"
+                    )}
+                  >
+                    <Mic className="h-3 w-3 mr-1" />
+                    {t('assistant.useVoice', 'Use voice instead')}
+                  </Button>
+                </>
               )}
             </div>
           </div>
