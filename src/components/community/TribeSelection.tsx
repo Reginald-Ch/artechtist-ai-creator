@@ -101,8 +101,11 @@ export function TribeSelection({ onTribeSelected }: TribeSelectionProps) {
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
             Choose Your Tech Tribe
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground mb-2">
             Join a community that matches your passion! 🚀
+          </p>
+          <p className="text-sm text-muted-foreground">
+            ✨ All tribes have access to the General Chat for cross-tribe fun!
           </p>
         </motion.div>
 

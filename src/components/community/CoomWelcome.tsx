@@ -1,15 +1,57 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Rocket } from 'lucide-react';
+import { Sparkles, Rocket, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 
 interface CoomWelcomeProps {
   onComplete: () => void;
 }
 
 export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
+  const { speak, speaking } = useSpeechSynthesis();
+  const [hasSpoken, setHasSpoken] = useState(false);
+
+  const welcomeMessage = "Welcome fellow innovator! I'm Coom, your AI buddy! Let's build, explore, and create together!";
+
+  useEffect(() => {
+    if (!hasSpoken) {
+      // Auto-play welcome message
+      setTimeout(() => {
+        speak(welcomeMessage);
+        setHasSpoken(true);
+      }, 1000);
+    }
+  }, []);
+
+  const handleSpeak = () => {
+    speak(welcomeMessage);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary via-secondary to-accent overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary via-secondary to-accent overflow-hidden relative"
+>
+      {/* Animated background particles */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-3 h-3 bg-white/20 rounded-full"
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          animate={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          transition={{
+            duration: 10 + Math.random() * 10,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      ))}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -60,16 +102,24 @@ export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
             </p>
 
             <motion.div
-              className="p-6 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-lg border-2 border-primary/20"
+              className="p-6 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-lg border-2 border-primary/20 relative"
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               <p className="text-lg leading-relaxed">
-                Ready to join your <span className="font-bold text-primary">tech tribe</span> and unlock{' '}
-                <span className="font-bold text-secondary">epic challenges</span>,{' '}
-                <span className="font-bold text-accent">cool chats</span>, and{' '}
-                <span className="font-bold text-primary">awesome badges</span>?
+                "Welcome fellow innovator! Let's <span className="font-bold text-primary">build</span>,{' '}
+                <span className="font-bold text-secondary">explore</span>, and{' '}
+                <span className="font-bold text-accent">create</span> together!"
               </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSpeak}
+                className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-primary hover:bg-primary/90"
+                disabled={speaking}
+              >
+                <Volume2 className={`w-5 h-5 text-white ${speaking ? 'animate-pulse' : ''}`} />
+              </Button>
             </motion.div>
 
             <motion.div
