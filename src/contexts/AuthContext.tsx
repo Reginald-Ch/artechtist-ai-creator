@@ -29,25 +29,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!mounted) return;
+
+        console.log('Auth event:', event);
+
+        // Handle different auth events
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        }
+
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          localStorage.clear();
+        }
+
+        if (event === 'USER_UPDATED') {
+          setUser(session?.user ?? null);
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+
+        // Only set loading false after first auth event
+        if (!initialized) {
+          setLoading(false);
+          setInitialized(true);
+        }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+
+      if (error) {
+        console.error('Session error:', error);
+        toast({
+          title: "Session expired",
+          description: "Please sign in again.",
+          variant: "destructive",
+        });
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      setInitialized(true);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string, parentEmail?: string) => {
