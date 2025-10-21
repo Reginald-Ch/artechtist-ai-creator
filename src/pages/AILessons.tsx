@@ -25,13 +25,13 @@ import {
   Bookmark
 } from 'lucide-react';
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
-import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
+
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
 import { EnhancedFlashcardStudy } from '@/components/enhanced/EnhancedFlashcardStudy';
 import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AdvancedSearch } from '@/components/enhanced/AdvancedSearch';
-import { SimpleStreak } from '@/components/enhanced/SimpleStreak';
+
 import { SyncStatusIndicator } from '@/components/enhanced/SyncStatusIndicator';
 import { ContinueLearning } from '@/components/enhanced/ContinueLearning';
 import { RecommendedLessons } from '@/components/enhanced/RecommendedLessons';
@@ -79,7 +79,7 @@ const AILessons = () => {
     getTotalProgress
   } = useEnhancedLessonProgress();
 
-  const { recordActivity } = useProgressiveStreak();
+  
 
   // Topics with icons and descriptions
   const topics = useMemo((): Topic[] => [
@@ -262,7 +262,6 @@ const AILessons = () => {
     const category = topics.find(t => t.lessons.includes(lessonId))?.id;
     
     completeLesson(lessonId, score);
-    recordActivity('lesson', score, lessonId, category);
     setSelectedLesson(null);
   };
 
@@ -637,8 +636,6 @@ const AILessons = () => {
                 completedToday={completedToday}
                 timeSpentToday={timeSpentToday}
               />
-              
-              <SimpleStreak />
               
               <AchievementSystem
                 completedLessons={completedCount}

@@ -53,7 +53,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { VoiceFirstExperience } from "./VoiceFirstExperience";
-import { KidFriendlyProgressTracker } from "./KidFriendlyProgressTracker";
 import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -1070,11 +1069,6 @@ const SimplifiedBotBuilder = ({ template }: SimplifiedBotBuilderProps) => {
               onVoiceTest={() => setShowVoiceSettings(true)}
               botName={botName}
             />
-            
-            {/* Kid Friendly Progress Tracker */}
-            {isBeginnerMode && (
-              <KidFriendlyProgressTracker />
-            )}
           </div>
         </TabsContent>
 

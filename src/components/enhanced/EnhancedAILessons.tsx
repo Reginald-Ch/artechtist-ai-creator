@@ -30,11 +30,9 @@ import {
   Zap
 } from 'lucide-react';
 import { useEnhancedLessonProgress } from '@/hooks/useEnhancedLessonProgress';
-import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
 import { SearchInterface } from '@/components/enhanced/SearchInterface';
 import { EnhancedProgressAnalytics } from '@/components/enhanced/EnhancedProgressAnalytics';
 import { AccessibleLessonView } from '@/components/enhanced/AccessibleLessonView';
-import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { LessonCardSkeleton, TopicCardSkeleton } from '@/components/enhanced/LoadingStates';
 import { Lesson, Topic, SearchResult } from '@/types/lesson';
 import { toast } from 'sonner';
@@ -62,8 +60,6 @@ const EnhancedAILessons = () => {
     getLessonScore,
     getTotalProgress
   } = useEnhancedLessonProgress();
-
-  const { recordActivity, streakData } = useProgressiveStreak();
 
   // Enhanced topics with more comprehensive data
   const topics = useMemo((): Topic[] => [
@@ -151,7 +147,7 @@ const EnhancedAILessons = () => {
   const completedCount = Object.values(lessonProgress).filter(p => p.completed).length;
   const progress = getTotalProgress();
   const averageScore = analytics?.averageScore || 0;
-  const weeklyGoalProgress = (streakData.currentStreak / 7) * 100;
+  
 
   const handleStartLesson = (lessonId: string) => {
     setSelectedLesson(lessonId);
@@ -165,7 +161,6 @@ const EnhancedAILessons = () => {
     const category = topics.find(t => t.lessons.includes(lessonId))?.id;
     
     completeLesson(lessonId, score);
-    recordActivity('lesson', score, lessonId, category);
     setSelectedLesson(null);
     
     // Show completion celebration
@@ -246,29 +241,6 @@ const EnhancedAILessons = () => {
               <div className="text-2xl font-bold text-green-700">{averageScore.toFixed(0)}%</div>
             </motion.div>
             
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="p-4 rounded-lg bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 border border-orange-200 dark:border-orange-800"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-5 w-5 text-orange-600" />
-                <span className="text-sm font-medium text-orange-600">Current Streak</span>
-              </div>
-              <div className="text-2xl font-bold text-orange-700">{streakData.currentStreak} days</div>
-            </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border border-purple-200 dark:border-purple-800"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Award className="h-5 w-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-600">Achievements</span>
-              </div>
-              <div className="text-2xl font-bold text-purple-700">
-                {streakData.achievements.filter(a => a.unlocked).length}
-              </div>
-            </motion.div>
           </div>
         </motion.div>
 
@@ -562,10 +534,6 @@ const EnhancedAILessons = () => {
                 </Tabs>
               </div>
 
-              {/* Enhanced Sidebar */}
-              <div className="lg:col-span-1">
-                <ProgressiveStreak />
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

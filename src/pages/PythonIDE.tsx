@@ -23,8 +23,6 @@ import {
   Upload
 } from "lucide-react";
 import { AIMascot } from "@/components/ai-tutor/AIMascot";
-import { useProgressiveStreak } from '@/hooks/useProgressiveStreak';
-import { ProgressiveStreak } from '@/components/enhanced/ProgressiveStreak';
 import { PythonIDEChallenges } from '@/components/enhanced/PythonIDEChallenges';
 import { PythonLessons } from '@/components/enhanced/PythonLessons';
 import { PythonChallenges } from '@/components/enhanced/PythonChallenges';
@@ -38,13 +36,13 @@ print("Let's learn Python together!")`);
   
   const [output, setOutput] = useState('');
   const [aiHelperVisible, setAiHelperVisible] = useState(true);
-  const { recordActivity } = useProgressiveStreak();
+  
 
   const runCode = () => {
     // Simulate code execution
     try {
       setOutput('Hello, World!\nLet\'s learn Python together!\n\n✨ Great job! Your code ran successfully!');
-      recordActivity('code_run', 10, 'python_execution', 'python');
+      
       toast.success('Code executed successfully! 🎉');
     } catch (error) {
       setOutput('Error: Something went wrong. Check your code and try again!');
@@ -81,9 +79,6 @@ print("Let's learn Python together!")`);
             <div className="lg:col-span-1 space-y-4">
               <div className="sticky top-4 space-y-4">
                 <AIMascot />
-                
-                {/* Progressive Learning Streak */}
-                <ProgressiveStreak />
               </div>
             </div>
           )}
@@ -169,7 +164,7 @@ print("Let's learn Python together!")`);
 
               <TabsContent value="projects" className="space-y-6">
                 <PythonChallenges onChallengeComplete={(challengeId: string, score: number) => {
-                  recordActivity('project', score, challengeId, 'python');
+                  
                   toast.success(`🏆 Project completed! Earned ${score} points.`);
                 }} />
               </TabsContent>

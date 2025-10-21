@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Trophy, Medal, Award, Crown, Zap, Star } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Medal, Award, Zap } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 
 interface LeaderboardProps {
   tribeId: string;
@@ -31,63 +32,127 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
   const getRankIcon = (index: number) => {
     switch (index) {
       case 0:
-        return <Trophy className="w-6 h-6 text-yellow-500" />;
+        return <Trophy className="w-6 h-6 text-white" />;
       case 1:
-        return <Medal className="w-6 h-6 text-gray-400" />;
+        return <Medal className="w-6 h-6 text-white" />;
       case 2:
-        return <Award className="w-6 h-6 text-amber-600" />;
+        return <Award className="w-6 h-6 text-white" />;
       default:
         return null;
     }
   };
 
+  const getPodiumColor = (index: number) => {
+    if (index === 0) return 'from-amber-500/20 to-yellow-500/20';
+    if (index === 1) return 'from-slate-400/20 to-slate-300/20';
+    if (index === 2) return 'from-orange-600/20 to-orange-500/20';
+    return '';
+  };
+
   return (
-    <Card className="shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-primary" />
-          Top Tribe Members
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-3">
-          {topUsers.map((member, index) => (
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <div className="p-6 border-b border-border/40">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Leaderboard</h2>
+            <p className="text-sm text-muted-foreground">Top tribe innovators</p>
+          </div>
+        </div>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-6 space-y-3">
+          {topUsers.map((user, index) => (
             <motion.div
-              key={member.id}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              key={user.user_id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`flex items-center gap-4 p-4 rounded-lg border ${
-                index < 3 ? 'bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20' : 'bg-card'
-              }`}
+              className={`
+                group relative overflow-hidden rounded-xl p-4 
+                ${index < 3 
+                  ? `bg-gradient-to-r ${getPodiumColor(index)} border-2 ${
+                      index === 0 ? 'border-amber-500/50' : 
+                      index === 1 ? 'border-slate-400/50' : 
+                      'border-orange-600/50'
+                    }` 
+                  : 'bg-card hover:bg-accent/50 border border-border/40'
+                }
+                transition-all duration-300 hover:shadow-lg hover:scale-[1.02]
+              `}
             >
-              <div className="flex items-center gap-3 flex-1">
-                <div className="text-2xl font-bold text-muted-foreground w-8">
-                  {index < 3 ? getRankIcon(index) : `#${index + 1}`}
+              <div className="flex items-center gap-4">
+                {/* Rank */}
+                <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center">
+                  {index < 3 ? (
+                    <div className={`
+                      w-12 h-12 rounded-full flex items-center justify-center
+                      ${index === 0 ? 'bg-gradient-to-br from-amber-500 to-yellow-500' :
+                        index === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-300' :
+                        'bg-gradient-to-br from-orange-600 to-orange-500'}
+                    `}>
+                      {getRankIcon(index)}
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-lg font-bold text-muted-foreground">#{index + 1}</span>
+                    </div>
+                  )}
                 </div>
-                
-                <Avatar className="h-12 w-12 border-2 border-primary">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
-                    {member.profiles?.first_name?.[0] || '?'}
+
+                {/* Avatar & Info */}
+                <Avatar className="w-14 h-14 border-2 border-background">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.user_id}`} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user.profiles?.first_name?.charAt(0) || 'A'}
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1">
-                  <div className="font-semibold">{member.profiles?.first_name || 'Anonymous'}</div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-1">
-                    Level {member.level} • {member.badges?.length || 0} badges
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-foreground truncate">
+                      {user.profiles?.first_name || 'Anonymous'}
+                    </h3>
+                    {index === 0 && <Crown className="w-4 h-4 text-amber-500 flex-shrink-0" />}
                   </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      Level {user.level || 1}
+                    </span>
+                    {user.badges && user.badges.length > 0 && (
+                      <Badge variant="secondary" className="text-xs px-2 py-0">
+                        {user.badges.length} {user.badges.length === 1 ? 'Badge' : 'Badges'}
+                      </Badge>
+                    )}
+                  </div>
+                  {index < 3 && (
+                    <Progress 
+                      value={((user.xp_points || 0) % 1000) / 10} 
+                      className="mt-2 h-1.5"
+                    />
+                  )}
+                </div>
+
+                {/* XP Points */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="flex items-center gap-1 text-xl font-bold">
+                    <Zap className={`w-5 h-5 ${index < 3 ? 'text-amber-500' : 'text-primary'}`} />
+                    <span className={index < 3 ? 'text-amber-500' : 'text-primary'}>
+                      {user.xp_points || 0}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">XP</span>
                 </div>
               </div>
-
-              <Badge variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                <Zap className="w-3 h-3 text-primary" />
-                {member.xp_points} XP
-              </Badge>
             </motion.div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </ScrollArea>
+    </div>
   );
 }

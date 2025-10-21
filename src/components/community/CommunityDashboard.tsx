@@ -1,118 +1,157 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { MessageCircle, Trophy, Gamepad2, User, Share2, Flame } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { MessageSquare, Trophy, Target, User, BookOpen, Hash, Bell, Settings, Zap, Crown, Medal } from 'lucide-react';
 import { TribeChatRoom } from './TribeChatRoom';
 import { Leaderboard } from './Leaderboard';
 import { ChallengeZone } from './ChallengeZone';
 import { ProfileCustomization } from './ProfileCustomization';
 import { ProjectFeed } from './ProjectFeed';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CommunityDashboardProps {
   userTribe: any;
 }
 
 export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
-  const [activeTab, setActiveTab] = useState('chat');
+  const { user } = useAuth();
+  const [activeView, setActiveView] = useState('chat');
 
-  const xpToNextLevel = 1000;
-  const xpProgress = (userTribe.xp_points % xpToNextLevel) / xpToNextLevel * 100;
+  const channels = [
+    { id: 'chat', name: 'general-chat', icon: MessageSquare, type: 'text' },
+    { id: 'projects', name: 'project-feed', icon: BookOpen, type: 'text' },
+    { id: 'leaderboard', name: 'leaderboard', icon: Trophy, type: 'text' },
+    { id: 'challenges', name: 'challenges', icon: Target, type: 'text' },
+  ];
+
+  const getViewTitle = () => {
+    const channel = channels.find(c => c.id === activeView);
+    return channel ? channel.name : 'profile';
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with Tribe Info */}
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="mb-6"
-        >
-          <Card className={`p-6 bg-gradient-to-r ${userTribe.tribes.color} text-white border-0 shadow-xl`}>
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                <span className="text-6xl">{userTribe.tribes.emoji}</span>
-                <div>
-                  <h1 className="text-3xl font-bold">{userTribe.tribes.name}</h1>
-                  <p className="text-white/90">{userTribe.tribes.description}</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold">Lv. {userTribe.level}</div>
-                  <div className="text-sm text-white/80">Level</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold">{userTribe.xp_points}</div>
-                  <div className="text-sm text-white/80">XP</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold flex items-center gap-1">
-                    <Flame className="w-6 h-6 text-orange-400" />7
-                  </div>
-                  <div className="text-sm text-white/80">Streak</div>
-                </div>
-              </div>
+    <div className="min-h-screen flex w-full bg-background">
+      {/* Left Sidebar - Discord Style */}
+      <div className="w-60 bg-card border-r border-border/40 flex flex-col">
+        {/* Tribe Header */}
+        <div className="h-14 border-b border-border/40 px-4 flex items-center justify-between hover:bg-accent/50 cursor-pointer transition-colors">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-2xl flex-shrink-0">{userTribe.tribe?.emoji}</span>
+            <h2 className="font-bold text-foreground truncate">
+              {userTribe.tribe?.name}
+            </h2>
+          </div>
+          <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        </div>
+
+        {/* Channels */}
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-0.5">
+            <div className="px-2 py-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Channels
+              </span>
             </div>
             
-            <div className="mt-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Level {userTribe.level}</span>
-                <span>{userTribe.xp_points % xpToNextLevel}/{xpToNextLevel} XP</span>
+            {channels.map((channel) => (
+              <button
+                key={channel.id}
+                onClick={() => setActiveView(channel.id)}
+                className={`
+                  w-full flex items-center gap-2 px-2 py-1.5 rounded
+                  transition-colors group
+                  ${activeView === channel.id 
+                    ? 'bg-accent text-foreground' 
+                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  }
+                `}
+              >
+                <Hash className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm font-medium truncate">{channel.name}</span>
+              </button>
+            ))}
+
+            <Separator className="my-2" />
+
+            <button
+              onClick={() => setActiveView('profile')}
+              className={`
+                w-full flex items-center gap-2 px-2 py-1.5 rounded
+                transition-colors
+                ${activeView === 'profile' 
+                  ? 'bg-accent text-foreground' 
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                }
+              `}
+            >
+              <User className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm font-medium">Profile</span>
+            </button>
+          </div>
+        </ScrollArea>
+
+        {/* User Footer */}
+        <div className="p-2 border-t border-border/40 bg-muted/30">
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                {user?.email?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">
+                {user?.email?.split('@')[0]}
+              </p>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Zap className="w-3 h-3 text-amber-500" />
+                <span>{userTribe.xp_points || 0} XP</span>
               </div>
-              <Progress value={xpProgress} className="h-3 bg-white/20" />
             </div>
-          </Card>
-        </motion.div>
+            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0">
+              <Bell className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full bg-card/50 backdrop-blur p-1 h-auto">
-            <TabsTrigger value="chat" className="flex flex-col items-center gap-2 py-3">
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-xs">Chat</span>
-            </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex flex-col items-center gap-2 py-3">
-              <Trophy className="w-5 h-5" />
-              <span className="text-xs">Leaderboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="flex flex-col items-center gap-2 py-3">
-              <Gamepad2 className="w-5 h-5" />
-              <span className="text-xs">Challenges</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex flex-col items-center gap-2 py-3">
-              <User className="w-5 h-5" />
-              <span className="text-xs">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="projects" className="flex flex-col items-center gap-2 py-3">
-              <Share2 className="w-5 h-5" />
-              <span className="text-xs">Projects</span>
-            </TabsTrigger>
-          </TabsList>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar */}
+        <div className="h-14 border-b border-border/40 px-6 flex items-center justify-between bg-card/50 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Hash className="w-5 h-5 text-muted-foreground" />
+              <h1 className="text-lg font-semibold text-foreground">{getViewTitle()}</h1>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="gap-1">
+              <Crown className="w-3 h-3 text-amber-500" />
+              Level {userTribe.level || 1}
+            </Badge>
+            {userTribe.badges && userTribe.badges.length > 0 && (
+              <Badge variant="outline" className="gap-1">
+                <Medal className="w-3 h-3" />
+                {userTribe.badges.length} Badges
+              </Badge>
+            )}
+          </div>
+        </div>
 
-          <TabsContent value="chat" className="mt-0">
-            <TribeChatRoom tribeId={userTribe.tribes.id} />
-          </TabsContent>
-
-          <TabsContent value="leaderboard" className="mt-0">
-            <Leaderboard tribeId={userTribe.tribes.id} />
-          </TabsContent>
-
-          <TabsContent value="challenges" className="mt-0">
-            <ChallengeZone tribeId={userTribe.tribes.id} />
-          </TabsContent>
-
-          <TabsContent value="profile" className="mt-0">
-            <ProfileCustomization membership={userTribe} />
-          </TabsContent>
-
-          <TabsContent value="projects" className="mt-0">
-            <ProjectFeed tribeId={userTribe.tribes.id} />
-          </TabsContent>
-        </Tabs>
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          {activeView === 'chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
+          {activeView === 'leaderboard' && <Leaderboard tribeId={userTribe.tribe_id} />}
+          {activeView === 'challenges' && <ChallengeZone tribeId={userTribe.tribe_id} />}
+          {activeView === 'profile' && <ProfileCustomization membership={userTribe} />}
+          {activeView === 'projects' && <ProjectFeed tribeId={userTribe.tribe_id} />}
+        </div>
       </div>
     </div>
   );
