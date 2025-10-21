@@ -158,6 +158,53 @@ export type Database = {
         }
         Relationships: []
       }
+      community_challenges: {
+        Row: {
+          created_at: string | null
+          description: string
+          difficulty: string | null
+          end_date: string | null
+          id: string
+          participants: number | null
+          start_date: string | null
+          title: string
+          tribe_id: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          difficulty?: string | null
+          end_date?: string | null
+          id?: string
+          participants?: number | null
+          start_date?: string | null
+          title: string
+          tribe_id?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          difficulty?: string | null
+          end_date?: string | null
+          id?: string
+          participants?: number | null
+          start_date?: string | null
+          title?: string
+          tribe_id?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_challenges_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_messages: {
         Row: {
           confidence_score: number | null
@@ -587,6 +634,115 @@ export type Database = {
           },
         ]
       }
+      tribe_chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_moderated: boolean | null
+          reactions: Json | null
+          tribe_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          reactions?: Json | null
+          tribe_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          reactions?: Json | null
+          tribe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_chat_messages_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tribe_memberships: {
+        Row: {
+          badges: Json | null
+          id: string
+          joined_at: string | null
+          level: number | null
+          tribe_id: string
+          user_id: string
+          xp_points: number | null
+        }
+        Insert: {
+          badges?: Json | null
+          id?: string
+          joined_at?: string | null
+          level?: number | null
+          tribe_id: string
+          user_id: string
+          xp_points?: number | null
+        }
+        Update: {
+          badges?: Json | null
+          id?: string
+          joined_at?: string | null
+          level?: number | null
+          tribe_id?: string
+          user_id?: string
+          xp_points?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribe_memberships_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tribes: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string
+          emoji: string
+          id: string
+          member_count: number | null
+          name: string
+          tribe_type: Database["public"]["Enums"]["tech_tribe"]
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          description: string
+          emoji: string
+          id?: string
+          member_count?: number | null
+          name: string
+          tribe_type: Database["public"]["Enums"]["tech_tribe"]
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string
+          emoji?: string
+          id?: string
+          member_count?: number | null
+          name?: string
+          tribe_type?: Database["public"]["Enums"]["tech_tribe"]
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -703,6 +859,50 @@ export type Database = {
           },
         ]
       }
+      user_projects: {
+        Row: {
+          comments: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          likes: number | null
+          project_data: Json | null
+          title: string
+          tribe_id: string | null
+          user_id: string
+        }
+        Insert: {
+          comments?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          likes?: number | null
+          project_data?: Json | null
+          title: string
+          tribe_id?: string | null
+          user_id: string
+        }
+        Update: {
+          comments?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          likes?: number | null
+          project_data?: Json | null
+          title?: string
+          tribe_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_projects_tribe_id_fkey"
+            columns: ["tribe_id"]
+            isOneToOne: false
+            referencedRelation: "tribes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_streaks: {
         Row: {
           created_at: string
@@ -792,7 +992,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tech_tribe:
+        | "pythonpals"
+        | "aiexplorers"
+        | "techwizards"
+        | "roboticsridge"
+        | "scratchstars"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,6 +1124,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      tech_tribe: [
+        "pythonpals",
+        "aiexplorers",
+        "techwizards",
+        "roboticsridge",
+        "scratchstars",
+      ],
+    },
   },
 } as const

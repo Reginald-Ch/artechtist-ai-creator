@@ -57,10 +57,12 @@ const Dashboard = () => {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              {t('common.community')}
-            </Button>
+            <Link to="/community">
+              <Button variant="ghost" size="sm">
+                <Users className="h-4 w-4 mr-2" />
+                {t('common.community')}
+              </Button>
+            </Link>
             <LanguageSelector />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />

@@ -15,6 +15,7 @@ import AILessons from "./pages/AILessons";
 import CulturalHub from "./pages/CulturalHub";
 import PythonIDE from "./pages/PythonIDE";
 import CreateAgent from "./pages/CreateAgent";
+import Community from "./pages/Community";
 import EnhancedAuth from "./pages/EnhancedAuth";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/cultural-hub" element={<ProtectedRoute><CulturalHub /></ProtectedRoute>} />
               <Route path="/python-ide" element={<ProtectedRoute><PythonIDE /></ProtectedRoute>} />
               <Route path="/create-agent" element={<ProtectedRoute><CreateAgent /></ProtectedRoute>} />
+              <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
