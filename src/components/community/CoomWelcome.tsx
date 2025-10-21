@@ -10,7 +10,7 @@ interface CoomWelcomeProps {
 }
 
 export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
-  const { speak, speaking } = useSpeechSynthesis();
+  const { speak, isPlaying } = useSpeechSynthesis();
   const [hasSpoken, setHasSpoken] = useState(false);
 
   const welcomeMessage = "Welcome fellow innovator! I'm Coom, your AI buddy! Let's build, explore, and create together!";
@@ -30,20 +30,19 @@ export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary via-secondary to-accent overflow-hidden relative"
->
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary via-secondary to-accent overflow-hidden relative">
       {/* Animated background particles */}
       {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-3 h-3 bg-white/20 rounded-full"
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
           }}
           animate={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+            y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
           }}
           transition={{
             duration: 10 + Math.random() * 10,
@@ -116,9 +115,9 @@ export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
                 size="icon"
                 onClick={handleSpeak}
                 className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-primary hover:bg-primary/90"
-                disabled={speaking}
+                disabled={isPlaying}
               >
-                <Volume2 className={`w-5 h-5 text-white ${speaking ? 'animate-pulse' : ''}`} />
+                <Volume2 className={`w-5 h-5 text-white ${isPlaying ? 'animate-pulse' : ''}`} />
               </Button>
             </motion.div>
 
