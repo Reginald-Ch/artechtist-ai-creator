@@ -63,6 +63,21 @@ const EnhancedAuth = () => {
     }
   }, [user, navigate]);
 
+  // Detect password reset token from URL hash
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery' && accessToken) {
+      setActiveTab('change-password');
+      toast({
+        title: "Reset your password",
+        description: "Enter your new password below.",
+      });
+    }
+  }, []);
+
   // Real-time validation
   const validateField = (field: string, value: string, form: 'login' | 'signup' | 'reset' | 'change-password') => {
     let error = '';

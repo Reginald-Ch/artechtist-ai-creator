@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,7 +13,41 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   redirectTo = '/auth' 
 }) => {
-  const { user, loading } = useAuth();
+  const { user, session, loading, signOut } = useAuth();
+
+  // Session validation and auto-refresh
+  useEffect(() => {
+    if (!user || !session) return;
+
+    const expiresAt = session.expires_at;
+    if (expiresAt) {
+      const now = Math.floor(Date.now() / 1000);
+      const timeUntilExpiry = expiresAt - now;
+
+      if (timeUntilExpiry < 0) {
+        // Session already expired
+        toast({
+          title: "Session expired",
+          description: "Please sign in again.",
+          variant: "destructive",
+        });
+        signOut();
+      } else if (timeUntilExpiry < 300) {
+        // Less than 5 minutes until expiry, try refresh
+        supabase.auth.refreshSession().then(({ error }) => {
+          if (error) {
+            console.error('Failed to refresh session:', error);
+            toast({
+              title: "Session expired",
+              description: "Please sign in again.",
+              variant: "destructive",
+            });
+            signOut();
+          }
+        });
+      }
+    }
+  }, [user, session, signOut]);
 
   if (loading) {
     return (

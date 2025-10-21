@@ -92,20 +92,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Sanitize user inputs to prevent XSS
+  const sanitizeInput = (input: string): string => {
+    return input.trim().replace(/[<>]/g, '');
+  };
+
   const signUp = async (email: string, password: string, firstName: string, lastName: string, parentEmail?: string) => {
     setLoading(true);
     try {
+      // Sanitize all inputs
+      const sanitizedEmail = email.trim().toLowerCase();
+      const sanitizedFirstName = sanitizeInput(firstName);
+      const sanitizedLastName = sanitizeInput(lastName);
+      const sanitizedParentEmail = parentEmail ? parentEmail.trim().toLowerCase() : undefined;
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitizedEmail)) {
+        toast({
+          title: "Invalid email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return { error: new Error("Invalid email format") };
+      }
+
       const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            first_name: firstName,
-            last_name: lastName,
-            parent_email: parentEmail || null,
+            first_name: sanitizedFirstName,
+            last_name: sanitizedLastName,
+            parent_email: sanitizedParentEmail || null,
           }
         }
       });
@@ -117,6 +139,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive",
         });
         return { error };
+      }
+
+      // Verify profile creation after signup
+      if (data.user && data.session) {
+        // Wait a moment for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.warn('Profile not created by trigger, creating manually...');
+          // Profile wasn't created by trigger, create manually
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: data.user.id,
+              first_name: sanitizedFirstName,
+              last_name: sanitizedLastName,
+              parent_email: sanitizedParentEmail || null
+            });
+
+          if (insertError) {
+            console.error('Failed to create profile manually:', insertError);
+          }
+        }
       }
 
       if (data.user && !data.session) {
@@ -147,8 +198,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Sanitize email input
+      const sanitizedEmail = email.trim().toLowerCase();
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
 
@@ -277,9 +331,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     try {
-      const redirectUrl = `${window.location.origin}/auth?tab=reset-password`;
+      // Sanitize email input
+      const sanitizedEmail = email.trim().toLowerCase();
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitizedEmail)) {
+        toast({
+          title: "Invalid email",
+          description: "Please enter a valid email address.",
+          variant: "destructive",
+        });
+        return { error: new Error("Invalid email format") };
+      }
+
+      const redirectUrl = `${window.location.origin}/auth?tab=change-password`;
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
         redirectTo: redirectUrl,
       });
 
