@@ -719,7 +719,7 @@ export type Database = {
           id: string
           member_count: number | null
           name: string
-          tribe_type: Database["public"]["Enums"]["tech_tribe"]
+          tribe_type: string
         }
         Insert: {
           color: string
@@ -729,7 +729,7 @@ export type Database = {
           id?: string
           member_count?: number | null
           name: string
-          tribe_type: Database["public"]["Enums"]["tech_tribe"]
+          tribe_type: string
         }
         Update: {
           color?: string
@@ -739,7 +739,7 @@ export type Database = {
           id?: string
           member_count?: number | null
           name?: string
-          tribe_type?: Database["public"]["Enums"]["tech_tribe"]
+          tribe_type?: string
         }
         Relationships: []
       }
