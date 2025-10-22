@@ -22,10 +22,11 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
   const [activeView, setActiveView] = useState('chat');
 
   const channels = [
-    { id: 'chat', name: 'general-chat', icon: MessageSquare, type: 'text' },
-    { id: 'projects', name: 'project-feed', icon: BookOpen, type: 'text' },
-    { id: 'leaderboard', name: 'leaderboard', icon: Trophy, type: 'text' },
-    { id: 'challenges', name: 'challenges', icon: Target, type: 'text' },
+    { id: 'general', name: 'general-chat', icon: MessageSquare, type: 'text', description: 'Cross-tribe chat for everyone!' },
+    { id: 'tribe-chat', name: `${userTribe.tribe?.name.toLowerCase().replace(' ', '-')}`, icon: Hash, type: 'text', description: 'Your tribe channel' },
+    { id: 'projects', name: 'project-feed', icon: BookOpen, type: 'text', description: 'Share your creations' },
+    { id: 'leaderboard', name: 'leaderboard', icon: Trophy, type: 'text', description: 'Top innovators' },
+    { id: 'challenges', name: 'challenges', icon: Target, type: 'text', description: 'Epic quests await' },
   ];
 
   const getViewTitle = () => {
@@ -146,7 +147,8 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
-          {activeView === 'chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
+          {activeView === 'general' && <TribeChatRoom tribeId="general" isGeneral={true} />}
+          {activeView === 'tribe-chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
           {activeView === 'leaderboard' && <Leaderboard tribeId={userTribe.tribe_id} />}
           {activeView === 'challenges' && <ChallengeZone tribeId={userTribe.tribe_id} />}
           {activeView === 'profile' && <ProfileCustomization membership={userTribe} />}

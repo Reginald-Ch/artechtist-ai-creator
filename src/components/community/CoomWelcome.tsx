@@ -13,7 +13,7 @@ export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
   const { speak, isPlaying } = useSpeechSynthesis();
   const [hasSpoken, setHasSpoken] = useState(false);
 
-  const welcomeMessage = "Welcome fellow innovator! I'm Coom, your AI buddy! Let's build, explore, and create together!";
+  const welcomeMessage = "Welcome to Me AI! Let's build, explore, and create together!";
 
   useEffect(() => {
     if (!hasSpoken) {
@@ -106,9 +106,10 @@ export function CoomWelcome({ onComplete }: CoomWelcomeProps) {
               transition={{ duration: 2, repeat: Infinity }}
             >
               <p className="text-lg leading-relaxed">
-                "Welcome fellow innovator! Let's <span className="font-bold text-primary">build</span>,{' '}
-                <span className="font-bold text-secondary">explore</span>, and{' '}
-                <span className="font-bold text-accent">create</span> together!"
+                "Welcome to <span className="font-bold text-primary">Me AI</span>! Let's{' '}
+                <span className="font-bold text-secondary">build</span>,{' '}
+                <span className="font-bold text-accent">explore</span>, and{' '}
+                <span className="font-bold text-primary">create</span> together!"
               </p>
               <Button
                 variant="ghost"

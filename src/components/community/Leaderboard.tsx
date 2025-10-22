@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
-import { Trophy, Medal, Award, Crown, Zap, Star } from 'lucide-react';
+import { Trophy, Medal, Award, Crown, Zap, Star, Filter, TrendingUp, Hash } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CelebrationModal } from './CelebrationModal';
 
 interface LeaderboardProps {
   tribeId: string;
@@ -13,16 +16,23 @@ interface LeaderboardProps {
 
 export function Leaderboard({ tribeId }: LeaderboardProps) {
   const [topUsers, setTopUsers] = useState<any[]>([]);
+  const [filter, setFilter] = useState<'tribe' | 'global'>('tribe');
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     loadLeaderboard();
-  }, [tribeId]);
+  }, [tribeId, filter]);
 
   const loadLeaderboard = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('tribe_memberships')
-      .select('*, profiles(first_name)')
-      .eq('tribe_id', tribeId)
+      .select('*, profiles(first_name), tribes(name, emoji)');
+
+    if (filter === 'tribe') {
+      query = query.eq('tribe_id', tribeId);
+    }
+
+    const { data } = await query
       .order('xp_points', { ascending: false })
       .limit(10);
 
@@ -51,15 +61,52 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
 
   return (
     <div className="h-full flex flex-col bg-background">
+      <CelebrationModal
+        isOpen={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        type="top_10"
+        title="Top 10!"
+        message="You're among the best innovators! Keep crushing it! 🔥"
+        rank={5}
+      />
+
       {/* Header */}
-      <div className="p-6 border-b border-border/40">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
-            <Trophy className="w-5 h-5 text-white" />
+      <div className="p-6 border-b border-border/40 bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-orange-500/10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center shadow-lg">
+              <Trophy className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-foreground bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">
+                Leaderboard
+              </h2>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Top innovators across tribes
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Leaderboard</h2>
-            <p className="text-sm text-muted-foreground">Top tribe innovators</p>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant={filter === 'tribe' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter('tribe')}
+              className="gap-2"
+            >
+              <Hash className="w-4 h-4" />
+              My Tribe
+            </Button>
+            <Button
+              variant={filter === 'global' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter('global')}
+              className="gap-2"
+            >
+              <Trophy className="w-4 h-4" />
+              Global
+            </Button>
           </div>
         </div>
       </div>
@@ -118,6 +165,11 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
                       {user.profiles?.first_name || 'Anonymous'}
                     </h3>
                     {index === 0 && <Crown className="w-4 h-4 text-amber-500 flex-shrink-0" />}
+                    {filter === 'global' && user.tribes && (
+                      <Badge variant="secondary" className="text-xs">
+                        {user.tribes.emoji} {user.tribes.name}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">

@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 
 interface TribeChatRoomProps {
   tribeId: string;
+  isGeneral?: boolean;
 }
 
 interface Message {
@@ -19,13 +20,14 @@ interface Message {
   content: string;
   created_at: string;
   user_id: string;
-  reactions: any;
+  tribe_id?: string;
+  reactions?: any;
   profiles?: {
     first_name: string;
   };
 }
 
-export function TribeChatRoom({ tribeId }: TribeChatRoomProps) {
+export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -38,6 +40,21 @@ export function TribeChatRoom({ tribeId }: TribeChatRoomProps) {
   }, [tribeId]);
 
   const loadMessages = async () => {
+    if (isGeneral) {
+      // For general chat, show welcome message
+      setMessages([
+        {
+          id: '1',
+          content: 'Welcome to the General Chat! Connect with innovators from all tribes! 🚀',
+          user_id: 'system',
+          tribe_id: 'general',
+          created_at: new Date().toISOString(),
+          profiles: { first_name: 'Coom' }
+        }
+      ] as Message[]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from('tribe_chat_messages')
       .select('*')
@@ -113,6 +130,12 @@ export function TribeChatRoom({ tribeId }: TribeChatRoomProps) {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
+
+    if (isGeneral) {
+      toast.info('General chat messaging coming soon! Stay tuned! 🎉');
+      setNewMessage('');
+      return;
+    }
 
     setSending(true);
     try {
