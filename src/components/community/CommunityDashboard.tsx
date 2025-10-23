@@ -39,7 +39,10 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
       {/* Left Sidebar - Discord Style */}
       <div className="w-60 bg-card border-r border-border/40 flex flex-col">
         {/* Tribe Header */}
-        <div className="h-14 border-b border-border/40 px-4 flex items-center justify-between hover:bg-accent/50 cursor-pointer transition-colors">
+        <div 
+          onClick={() => setActiveView('chat')}
+          className="h-14 border-b border-border/40 px-4 flex items-center justify-between hover:bg-accent/50 cursor-pointer transition-colors"
+        >
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-2xl flex-shrink-0">{userTribe.tribe?.emoji}</span>
             <h2 className="font-bold text-foreground truncate">
@@ -147,6 +150,7 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
+          {activeView === 'chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
           {activeView === 'general' && <TribeChatRoom tribeId="general" isGeneral={true} />}
           {activeView === 'tribe-chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
           {activeView === 'leaderboard' && <Leaderboard tribeId={userTribe.tribe_id} />}

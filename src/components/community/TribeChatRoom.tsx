@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Smile, Hash, Users, Settings } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Send, Smile, Hash, Users, Settings, ThumbsUp, Heart, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -32,7 +33,9 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     loadMessages();
@@ -40,25 +43,10 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
   }, [tribeId]);
 
   const loadMessages = async () => {
-    if (isGeneral) {
-      // For general chat, show welcome message
-      setMessages([
-        {
-          id: '1',
-          content: 'Welcome to the General Chat! Connect with innovators from all tribes! 🚀',
-          user_id: 'system',
-          tribe_id: 'general',
-          created_at: new Date().toISOString(),
-          profiles: { first_name: 'Coom' }
-        }
-      ] as Message[]);
-      return;
-    }
-
     const { data, error } = await supabase
       .from('tribe_chat_messages')
       .select('*')
-      .eq('tribe_id', tribeId)
+      .eq('tribe_id', isGeneral ? 'general' : tribeId)
       .order('created_at', { ascending: true })
       .limit(50);
 
@@ -85,15 +73,16 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
   };
 
   const subscribeToMessages = () => {
+    const channelId = isGeneral ? 'general' : tribeId;
     const channel = supabase
-      .channel('tribe-messages')
+      .channel(`tribe-messages-${channelId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'tribe_chat_messages',
-          filter: `tribe_id=eq.${tribeId}`
+          filter: `tribe_id=eq.${channelId}`
         },
         async (payload) => {
           const { data } = await supabase
@@ -114,11 +103,48 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
           }
         }
       )
-      .subscribe();
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typing = Object.values(state)
+          .flat()
+          .filter((p: any) => p.typing && p.user_id !== user?.id)
+          .map((p: any) => p.username);
+        setTypingUsers(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: user?.id,
+            username: user?.email?.split('@')[0],
+            typing: false
+          });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
+  };
+
+  const handleTyping = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    const channel = supabase.channel(`tribe-messages-${isGeneral ? 'general' : tribeId}`);
+    channel.track({
+      user_id: user?.id,
+      username: user?.email?.split('@')[0],
+      typing: true
+    });
+
+    typingTimeoutRef.current = setTimeout(() => {
+      channel.track({
+        user_id: user?.id,
+        username: user?.email?.split('@')[0],
+        typing: false
+      });
+    }, 1000);
   };
 
   const scrollToBottom = () => {
@@ -131,29 +157,58 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
 
-    if (isGeneral) {
-      toast.info('General chat messaging coming soon! Stay tuned! 🎉');
-      setNewMessage('');
-      return;
-    }
-
     setSending(true);
     try {
       const { error } = await supabase
         .from('tribe_chat_messages')
         .insert({
-          tribe_id: tribeId,
+          tribe_id: isGeneral ? 'general' : tribeId,
           user_id: user.id,
           content: newMessage.trim(),
         });
 
       if (error) throw error;
       setNewMessage('');
+      
+      // Stop typing indicator
+      const channel = supabase.channel(`tribe-messages-${isGeneral ? 'general' : tribeId}`);
+      channel.track({
+        user_id: user?.id,
+        username: user?.email?.split('@')[0],
+        typing: false
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
     } finally {
       setSending(false);
+    }
+  };
+
+  const addReaction = async (messageId: string, emoji: string) => {
+    try {
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const reactions = message.reactions || {};
+      const userReactions = reactions[emoji] || [];
+      
+      const newReactions = userReactions.includes(user?.id)
+        ? { ...reactions, [emoji]: userReactions.filter((id: string) => id !== user?.id) }
+        : { ...reactions, [emoji]: [...userReactions, user?.id] };
+
+      const { error } = await supabase
+        .from('tribe_chat_messages')
+        .update({ reactions: newReactions })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.map(m => 
+        m.id === messageId ? { ...m, reactions: newReactions } : m
+      ));
+    } catch (error) {
+      console.error('Error adding reaction:', error);
     }
   };
 
@@ -218,12 +273,78 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
                       <div className="text-sm text-foreground break-words">
                         {message.content}
                       </div>
+                      
+                      {/* Reactions */}
+                      {message.reactions && Object.keys(message.reactions).length > 0 && (
+                        <div className="flex gap-1 mt-1 flex-wrap">
+                          {Object.entries(message.reactions).map(([emoji, users]: [string, any]) => {
+                            if (!users || users.length === 0) return null;
+                            const reacted = users.includes(user?.id);
+                            return (
+                              <Badge
+                                key={emoji}
+                                variant={reacted ? "default" : "secondary"}
+                                className="cursor-pointer px-2 py-0.5 text-xs gap-1 hover:scale-110 transition-transform"
+                                onClick={() => addReaction(message.id, emoji)}
+                              >
+                                <span>{emoji}</span>
+                                <span>{users.length}</span>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Quick Reactions - Show on hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 mt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => addReaction(message.id, '👍')}
+                        >
+                          <ThumbsUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => addReaction(message.id, '❤️')}
+                        >
+                          <Heart className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs"
+                          onClick={() => addReaction(message.id, '⚡')}
+                        >
+                          <Zap className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
+          
+          {/* Typing Indicator */}
+          {typingUsers.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 text-sm text-muted-foreground italic px-4"
+            >
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span>{typingUsers[0]} is typing...</span>
+            </motion.div>
+          )}
+          
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
@@ -234,8 +355,11 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
           <div className="bg-muted/50 rounded-lg px-4 py-3 flex items-center gap-2">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Message #general-chat"
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                handleTyping();
+              }}
+              placeholder={`Message #${isGeneral ? 'general-chat' : 'tribe-chat'}`}
               disabled={sending}
               className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
             />
