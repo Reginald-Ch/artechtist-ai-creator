@@ -5,13 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, Trophy, Target, User, BookOpen, Hash, Bell, Settings, Zap, Crown, Medal } from 'lucide-react';
+import { MessageSquare, Trophy, Target, User, BookOpen, Hash, Bell, Settings, Zap, Crown, Medal, LogOut, Users } from 'lucide-react';
 import { TribeChatRoom } from './TribeChatRoom';
 import { Leaderboard } from './Leaderboard';
 import { ChallengeZone } from './ChallengeZone';
 import { ProfileCustomization } from './ProfileCustomization';
 import { ProjectFeed } from './ProjectFeed';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CommunityDashboardProps {
   userTribe: any;
@@ -19,15 +33,44 @@ interface CommunityDashboardProps {
 
 export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
   const { user } = useAuth();
-  const [activeView, setActiveView] = useState('chat');
+  const navigate = useNavigate();
+  const [activeView, setActiveView] = useState('general');
+  const [leaving, setLeaving] = useState(false);
 
   const channels = [
-    { id: 'general', name: 'general-chat', icon: MessageSquare, type: 'text', description: 'Cross-tribe chat for everyone!' },
-    { id: 'tribe-chat', name: `${userTribe.tribe?.name.toLowerCase().replace(' ', '-')}`, icon: Hash, type: 'text', description: 'Your tribe channel' },
-    { id: 'projects', name: 'project-feed', icon: BookOpen, type: 'text', description: 'Share your creations' },
-    { id: 'leaderboard', name: 'leaderboard', icon: Trophy, type: 'text', description: 'Top innovators' },
-    { id: 'challenges', name: 'challenges', icon: Target, type: 'text', description: 'Epic quests await' },
+    { id: 'general', name: 'global-chat', icon: Users, type: 'text', description: 'Everyone across all tribes!' },
+    { id: 'tribe-chat', name: `${userTribe.tribe?.name.toLowerCase().replace(/\s+/g, '-')}`, icon: Hash, type: 'text', description: 'Your tribe channel' },
+    { id: 'projects', name: 'project-showcase', icon: BookOpen, type: 'text', description: 'Share your creations' },
+    { id: 'leaderboard', name: 'hall-of-fame', icon: Trophy, type: 'text', description: 'Top innovators' },
+    { id: 'challenges', name: 'quest-board', icon: Target, type: 'text', description: 'Epic quests await' },
   ];
+
+  const handleLeaveTribe = async () => {
+    setLeaving(true);
+    try {
+      // Delete tribe membership
+      const { error: deleteError } = await supabase
+        .from('tribe_memberships')
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (deleteError) throw deleteError;
+
+      // Update tribe member count
+      await supabase
+        .from('tribes')
+        .update({ member_count: Math.max(0, (userTribe.tribe?.member_count || 1) - 1) })
+        .eq('id', userTribe.tribe_id);
+
+      toast.success('Left tribe successfully');
+      navigate('/community');
+    } catch (error) {
+      console.error('Error leaving tribe:', error);
+      toast.error('Failed to leave tribe');
+    } finally {
+      setLeaving(false);
+    }
+  };
 
   const getViewTitle = () => {
     const channel = channels.find(c => c.id === activeView);
@@ -39,17 +82,38 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
       {/* Left Sidebar - Discord Style */}
       <div className="w-60 bg-card border-r border-border/40 flex flex-col">
         {/* Tribe Header */}
-        <div 
-          onClick={() => setActiveView('chat')}
-          className="h-14 border-b border-border/40 px-4 flex items-center justify-between hover:bg-accent/50 cursor-pointer transition-colors"
-        >
+        <div className="h-14 border-b border-border/40 px-4 flex items-center justify-between bg-muted/30">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-2xl flex-shrink-0">{userTribe.tribe?.emoji}</span>
             <h2 className="font-bold text-foreground truncate">
               {userTribe.tribe?.name}
             </h2>
           </div>
-          <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                <LogOut className="w-4 h-4 text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Leave {userTribe.tribe?.name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to leave your tribe? You'll lose your progress, XP, and badges. You can join a different tribe afterward.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleLeaveTribe}
+                  disabled={leaving}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {leaving ? 'Leaving...' : 'Leave Tribe'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Channels */}
@@ -150,7 +214,6 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
-          {activeView === 'chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
           {activeView === 'general' && <TribeChatRoom tribeId="general" isGeneral={true} />}
           {activeView === 'tribe-chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
           {activeView === 'leaderboard' && <Leaderboard tribeId={userTribe.tribe_id} />}
