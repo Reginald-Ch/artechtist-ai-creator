@@ -26,6 +26,7 @@ const avatarStyles = [
 export function ProfileSetup({ onComplete }: ProfileSetupProps) {
   const { user } = useAuth();
   const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(avatarStyles[0]);
   const [saving, setSaving] = useState(false);
 
@@ -48,6 +49,9 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
         .upsert({
           user_id: user?.id,
           first_name: username,
+          bio: bio,
+          avatar_seed: selectedAvatar.seed,
+          avatar_color: selectedAvatar.color,
           updated_at: new Date().toISOString(),
         });
 
@@ -91,7 +95,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
           </div>
 
           {/* Username Input */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Label htmlFor="username" className="flex items-center gap-2 text-lg mb-3">
               <User className="w-5 h-5 text-primary" />
               Choose Your Username
@@ -106,6 +110,25 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
             />
             <p className="text-sm text-muted-foreground mt-2">
               {username.length}/20 characters
+            </p>
+          </div>
+
+          {/* Bio Input */}
+          <div className="mb-8">
+            <Label htmlFor="bio" className="flex items-center gap-2 text-lg mb-3">
+              <Sparkles className="w-5 h-5 text-secondary" />
+              Tell Us About Yourself
+            </Label>
+            <Input
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="I love building amazing things..."
+              className="text-lg p-6 border-2 border-primary/20 focus:border-primary transition-all"
+              maxLength={100}
+            />
+            <p className="text-sm text-muted-foreground mt-2">
+              {bio.length}/100 characters (optional)
             </p>
           </div>
 
