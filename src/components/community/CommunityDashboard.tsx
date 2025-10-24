@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,22 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('general');
   const [leaving, setLeaving] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('avatar_seed, avatar_color, first_name')
+      .eq('user_id', user.id)
+      .single();
+    
+    setUserProfile(data);
+  };
 
   const channels = [
     { id: 'general', name: 'global-chat', icon: Users, type: 'text', description: 'Everyone across all tribes!' },
@@ -163,17 +179,17 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
         </ScrollArea>
 
         {/* User Footer */}
-        <div className="p-2 border-t border-border/40 bg-muted/30">
+          <div className="p-2 border-t border-border/40 bg-muted/30">
           <div className="flex items-center gap-2 px-2 py-1.5">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userProfile?.avatar_seed || user?.id}`} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                {user?.email?.charAt(0).toUpperCase()}
+                {userProfile?.first_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">
-                {user?.email?.split('@')[0]}
+                {userProfile?.first_name || user?.email?.split('@')[0]}
               </p>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Zap className="w-3 h-3 text-amber-500" />

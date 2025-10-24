@@ -25,6 +25,8 @@ interface Message {
   reactions?: any;
   profiles?: {
     first_name: string;
+    avatar_seed?: string;
+    avatar_color?: string;
   };
 }
 
@@ -34,73 +36,89 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [channelName] = useState(isGeneral ? 'global-chat' : `tribe-${tribeId}`);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     loadMessages();
-    subscribeToMessages();
-  }, [tribeId]);
+    const cleanup = subscribeToMessages();
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      cleanup?.();
+    };
+  }, [tribeId, isGeneral]);
 
   const loadMessages = async () => {
-    const { data, error } = await supabase
-      .from('tribe_chat_messages')
-      .select('*')
-      .eq('tribe_id', isGeneral ? 'general' : tribeId)
-      .order('created_at', { ascending: true })
-      .limit(50);
+    if (isGeneral) {
+      const { data, error } = await supabase
+        .from('global_chat_messages')
+        .select('*, profiles(first_name, avatar_seed, avatar_color)')
+        .order('created_at', { ascending: true })
+        .limit(50);
 
-    if (error) {
-      console.error('Error loading messages:', error);
-      return;
+      if (error) {
+        console.error('Error loading messages:', error);
+        return;
+      }
+      setMessages((data || []) as any);
+    } else {
+      const { data, error } = await supabase
+        .from('tribe_chat_messages')
+        .select('*, profiles(first_name, avatar_seed, avatar_color)')
+        .eq('tribe_id', tribeId)
+        .order('created_at', { ascending: true })
+        .limit(50);
+
+      if (error) {
+        console.error('Error loading messages:', error);
+        return;
+      }
+      setMessages((data || []) as any);
     }
-
-    // Fetch profiles for each message
-    const messagesWithProfiles = await Promise.all(
-      (data || []).map(async (msg) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name')
-          .eq('user_id', msg.user_id)
-          .single();
-        
-        return { ...msg, profiles: profile };
-      })
-    );
-
-    setMessages(messagesWithProfiles as Message[]);
     scrollToBottom();
   };
 
   const subscribeToMessages = () => {
     const channelId = isGeneral ? 'general' : tribeId;
+    const tableName = isGeneral ? 'global_chat_messages' : 'tribe_chat_messages';
     const channel = supabase
-      .channel(`tribe-messages-${channelId}`)
+      .channel(`chat-messages-${channelName}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'tribe_chat_messages',
-          filter: `tribe_id=eq.${channelId}`
+          table: tableName
         },
         async (payload) => {
           const { data } = await supabase
-            .from('tribe_chat_messages')
-            .select('*')
+            .from(tableName)
+            .select('*, profiles(first_name, avatar_seed, avatar_color)')
             .eq('id', payload.new.id)
             .single();
           
           if (data) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('first_name')
-              .eq('user_id', data.user_id)
-              .single();
-            
-            setMessages(prev => [...prev, { ...data, profiles: profile } as Message]);
+            setMessages(prev => [...prev, data as any]);
             scrollToBottom();
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: tableName
+        },
+        (payload) => {
+          // Update message in state (for reactions)
+          setMessages(prev => prev.map(m => 
+            m.id === payload.new.id ? { ...m, ...payload.new } : m
+          ));
         }
       )
       .on('presence', { event: 'sync' }, () => {
@@ -121,25 +139,30 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
         }
       });
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
   };
 
   const handleTyping = () => {
+    if (!channelRef.current) return;
+    
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    const channel = supabase.channel(`tribe-messages-${isGeneral ? 'general' : tribeId}`);
-    channel.track({
+    channelRef.current.track({
       user_id: user?.id,
       username: user?.email?.split('@')[0],
       typing: true
     });
 
     typingTimeoutRef.current = setTimeout(() => {
-      channel.track({
+      channelRef.current?.track({
         user_id: user?.id,
         username: user?.email?.split('@')[0],
         typing: false
@@ -159,24 +182,38 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
 
     setSending(true);
     try {
+      const tableName = isGeneral ? 'global_chat_messages' : 'tribe_chat_messages';
+      const messageData: any = {
+        user_id: user.id,
+        content: newMessage.trim(),
+      };
+
+      // Only add tribe_id for tribe chat
+      if (!isGeneral) {
+        messageData.tribe_id = tribeId;
+      }
+
       const { error } = await supabase
-        .from('tribe_chat_messages')
-        .insert({
-          tribe_id: isGeneral ? 'general' : tribeId,
-          user_id: user.id,
-          content: newMessage.trim(),
-        });
+        .from(tableName)
+        .insert(messageData);
 
       if (error) throw error;
       setNewMessage('');
       
-      // Stop typing indicator
-      const channel = supabase.channel(`tribe-messages-${isGeneral ? 'general' : tribeId}`);
+      // Stop typing indicator via existing channel
+      if (channelRef.current) {
+        channelRef.current.track({
+          user_id: user?.id,
+          username: user?.email?.split('@')[0],
+          typing: false
+        });
+      }
+      /*const channel = supabase.channel(`chat-messages-${channelName}`);
       channel.track({
         user_id: user?.id,
         username: user?.email?.split('@')[0],
         typing: false
-      });
+      });*/
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -197,16 +234,15 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
         ? { ...reactions, [emoji]: userReactions.filter((id: string) => id !== user?.id) }
         : { ...reactions, [emoji]: [...userReactions, user?.id] };
 
+      const tableName = isGeneral ? 'global_chat_messages' : 'tribe_chat_messages';
       const { error } = await supabase
-        .from('tribe_chat_messages')
+        .from(tableName)
         .update({ reactions: newReactions })
         .eq('id', messageId);
 
       if (error) throw error;
 
-      setMessages(prev => prev.map(m => 
-        m.id === messageId ? { ...m, reactions: newReactions } : m
-      ));
+      // Don't update local state - let realtime handle it
     } catch (error) {
       console.error('Error adding reaction:', error);
     }
@@ -217,7 +253,7 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
       {/* Channel Header */}
       <div className="h-12 border-b border-border/40 flex items-center px-4 shadow-sm">
         <Hash className="w-5 h-5 text-muted-foreground mr-2" />
-        <h2 className="font-semibold text-foreground">general-chat</h2>
+        <h2 className="font-semibold text-foreground">{channelName}</h2>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Users className="w-4 h-4" />
@@ -246,7 +282,7 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
                   <div className="flex gap-3">
                     {showAvatar ? (
                       <Avatar className="w-10 h-10 mt-0.5">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.user_id}`} />
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.profiles?.avatar_seed || message.user_id}`} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
                           {message.profiles?.first_name?.charAt(0) || 'A'}
                         </AvatarFallback>
@@ -359,7 +395,7 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
                 setNewMessage(e.target.value);
                 handleTyping();
               }}
-              placeholder={`Message #${isGeneral ? 'general-chat' : 'tribe-chat'}`}
+              placeholder={`Message #${channelName}`}
               disabled={sending}
               className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
             />

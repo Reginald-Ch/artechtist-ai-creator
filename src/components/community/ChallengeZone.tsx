@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trophy, Users, Calendar, Target, Flame, Zap } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
 
 interface ChallengeZoneProps {
   tribeId: string;
 }
 
 export function ChallengeZone({ tribeId }: ChallengeZoneProps) {
+  const { user } = useAuth();
   const [challenges, setChallenges] = useState<any[]>([]);
+  const [userProgress, setUserProgress] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     loadChallenges();
-  }, [tribeId]);
+    loadUserProgress();
+  }, [tribeId, user]);
 
   const loadChallenges = async () => {
     const { data } = await supabase
@@ -27,6 +32,59 @@ export function ChallengeZone({ tribeId }: ChallengeZoneProps) {
       .order('created_at', { ascending: false });
 
     setChallenges(data || []);
+  };
+
+  const loadUserProgress = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('user_challenge_progress')
+      .select('*')
+      .eq('user_id', user.id);
+
+    const progressMap = new Map();
+    data?.forEach(p => progressMap.set(p.challenge_id, p));
+    setUserProgress(progressMap);
+  };
+
+  const joinChallenge = async (challengeId: string) => {
+    if (!user) {
+      toast.error('Please log in to join challenges');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('user_challenge_progress')
+        .insert({
+          user_id: user.id,
+          challenge_id: challengeId,
+          current_value: 0,
+          completed: false,
+        });
+
+      if (error) throw error;
+
+      // Update participant count
+      const challenge = challenges.find(c => c.id === challengeId);
+      if (challenge) {
+        await supabase
+          .from('community_challenges')
+          .update({ participants: (challenge.participants || 0) + 1 })
+          .eq('id', challengeId);
+      }
+
+      toast.success('Challenge joined! 🎉');
+      loadChallenges();
+      loadUserProgress();
+    } catch (error: any) {
+      console.error('Error joining challenge:', error);
+      if (error.code === '23505') {
+        toast.error('You already joined this challenge!');
+      } else {
+        toast.error('Failed to join challenge');
+      }
+    }
   };
 
   const getDifficultyConfig = (difficulty: string) => {
@@ -77,7 +135,11 @@ export function ChallengeZone({ tribeId }: ChallengeZoneProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-6">
           {challenges.map((challenge, index) => {
             const config = getDifficultyConfig(challenge.difficulty);
-            const progress = Math.floor(Math.random() * 100); // TODO: Get actual progress
+            const userChallengeProgress = userProgress.get(challenge.id);
+            const hasJoined = !!userChallengeProgress;
+            const progress = userChallengeProgress ? 
+              Math.min(100, (userChallengeProgress.current_value / (challenge.target_value || 100)) * 100) : 
+              0;
             
             return (
               <motion.div
@@ -145,10 +207,12 @@ export function ChallengeZone({ tribeId }: ChallengeZoneProps) {
 
                     {/* Action Button */}
                     <Button 
-                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                      onClick={() => joinChallenge(challenge.id)}
+                      disabled={hasJoined}
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
                       <Flame className="w-4 h-4 mr-2" />
-                      Join Challenge
+                      {hasJoined ? 'Joined!' : 'Join Challenge'}
                     </Button>
                   </div>
                 </div>

@@ -26,7 +26,7 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
   const loadLeaderboard = async () => {
     let query = supabase
       .from('tribe_memberships')
-      .select('*, profiles(first_name), tribes(name, emoji)');
+      .select('*, profiles(first_name, bio, avatar_seed, avatar_color), tribes(name, emoji)');
 
     if (filter === 'tribe') {
       query = query.eq('tribe_id', tribeId);
@@ -153,7 +153,7 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
 
                 {/* Avatar & Info */}
                 <Avatar className="w-14 h-14 border-2 border-background">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.user_id}`} />
+                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.profiles?.avatar_seed || user.user_id}`} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.profiles?.first_name?.charAt(0) || 'A'}
                   </AvatarFallback>
@@ -182,6 +182,11 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
                       </Badge>
                     )}
                   </div>
+                  {user.profiles?.bio && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                      {user.profiles.bio}
+                    </p>
+                  )}
                   {index < 3 && (
                     <Progress 
                       value={((user.xp_points || 0) % 1000) / 10} 

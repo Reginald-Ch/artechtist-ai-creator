@@ -345,6 +345,33 @@ export type Database = {
         }
         Relationships: []
       }
+      global_chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_moderated: boolean | null
+          reactions: Json | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          reactions?: Json | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          reactions?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           attempts: number
@@ -395,6 +422,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_color: string | null
+          avatar_seed: string | null
+          bio: string | null
           created_at: string
           first_name: string | null
           id: string
@@ -404,6 +434,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_color?: string | null
+          avatar_seed?: string | null
+          bio?: string | null
           created_at?: string
           first_name?: string | null
           id?: string
@@ -413,6 +446,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_color?: string | null
+          avatar_seed?: string | null
+          bio?: string | null
           created_at?: string
           first_name?: string | null
           id?: string
@@ -429,7 +465,7 @@ export type Database = {
           created_at: string
           endpoint: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           request_count: number | null
           user_id: string | null
           window_start: string
@@ -439,7 +475,7 @@ export type Database = {
           created_at?: string
           endpoint: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           request_count?: number | null
           user_id?: string | null
           window_start?: string
@@ -449,7 +485,7 @@ export type Database = {
           created_at?: string
           endpoint?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           request_count?: number | null
           user_id?: string | null
           window_start?: string
@@ -785,7 +821,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           page_url: string | null
           processed: boolean | null
           session_id: string | null
@@ -797,7 +833,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           processed?: boolean | null
           session_id?: string | null
@@ -809,7 +845,7 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           processed?: boolean | null
           session_id?: string | null

@@ -1,21 +1,73 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Star, Zap, Target } from 'lucide-react';
+import { Trophy, Star, Zap, Target, MessageSquare } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileCustomizationProps {
   membership: any;
 }
 
 export function ProfileCustomization({ membership }: ProfileCustomizationProps) {
-  const sampleBadges = [
-    { id: 1, name: 'First Message', icon: '💬', earned: true },
-    { id: 2, name: 'Challenge Master', icon: '🏆', earned: true },
-    { id: 3, name: 'Team Player', icon: '🤝', earned: false },
-    { id: 4, name: 'Code Wizard', icon: '🧙‍♂️', earned: true },
+  const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadProfile();
+    loadBadges();
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    setUserProfile(data);
+  };
+
+  const loadBadges = async () => {
+    if (!user) return;
+    
+    // Get real badges from user_achievements
+    const { data } = await supabase
+      .from('user_achievements')
+      .select('*')
+      .eq('user_id', user.id);
+    
+    setBadges(data || []);
+  };
+
+  const earnedBadges = membership.badges || badges;
+  const displayBadges = earnedBadges.length > 0 ? earnedBadges : [
+    { id: 'welcome', achievement_id: 'welcome', title: 'Welcome', icon: '👋', earned: true },
+    { id: 'explorer', achievement_id: 'explorer', title: 'Explorer', icon: '🗺️', earned: false },
+    { id: 'builder', achievement_id: 'builder', title: 'Builder', icon: '🔨', earned: false },
+    { id: 'master', achievement_id: 'master', title: 'Master', icon: '🏆', earned: false },
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="p-6 space-y-6">
+      {/* Bio Section */}
+      {userProfile?.bio && (
+        <Card className="shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              About Me
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <p className="text-foreground">{userProfile.bio}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card className="shadow-xl">
         <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
           <CardTitle className="flex items-center gap-2">
@@ -50,7 +102,7 @@ export function ProfileCustomization({ membership }: ProfileCustomizationProps) 
                 <Target className="w-8 h-8 text-yellow-500" />
                 <div>
                   <div className="text-sm text-muted-foreground">Badges Earned</div>
-                  <div className="text-2xl font-bold">{sampleBadges.filter(b => b.earned).length}</div>
+                  <div className="text-2xl font-bold">{earnedBadges.length}</div>
                 </div>
               </div>
             </div>
@@ -67,27 +119,31 @@ export function ProfileCustomization({ membership }: ProfileCustomizationProps) 
         </CardHeader>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-4">
-            {sampleBadges.map((badge) => (
-              <div
-                key={badge.id}
-                className={`p-4 rounded-lg border-2 text-center transition-all ${
-                  badge.earned
-                    ? 'bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 shadow-lg'
-                    : 'bg-muted/50 border-muted opacity-50 grayscale'
-                }`}
-              >
-                <div className="text-4xl mb-2">{badge.icon}</div>
-                <div className="text-sm font-semibold">{badge.name}</div>
-                {badge.earned && (
-                  <Badge variant="secondary" className="mt-2 text-xs">
-                    Unlocked!
-                  </Badge>
-                )}
-              </div>
-            ))}
+            {displayBadges.map((badge: any) => {
+              const isEarned = badge.earned !== false;
+              return (
+                <div
+                  key={badge.id || badge.achievement_id}
+                  className={`p-4 rounded-lg border-2 text-center transition-all ${
+                    isEarned
+                      ? 'bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30 shadow-lg'
+                      : 'bg-muted/50 border-muted opacity-50 grayscale'
+                  }`}
+                >
+                  <div className="text-4xl mb-2">{badge.icon || '🏅'}</div>
+                  <div className="text-sm font-semibold">{badge.title || badge.name}</div>
+                  {isEarned && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      Unlocked!
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
