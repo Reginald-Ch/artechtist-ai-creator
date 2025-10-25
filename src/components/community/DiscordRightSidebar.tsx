@@ -79,7 +79,7 @@ export function DiscordRightSidebar({ userProfile, membership }: DiscordRightSid
                     <Crown className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                <h3 className="font-bold text-lg mt-3 text-white">
+                <h3 className="font-bold text-lg mt-3 text-foreground">
                   {userProfile?.first_name || 'Young Techie'}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
@@ -95,7 +95,7 @@ export function DiscordRightSidebar({ userProfile, membership }: DiscordRightSid
               {/* Level Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
-                  <span className="text-white/60">Level {currentLevel} Progress</span>
+                  <span className="text-muted-foreground">Level {currentLevel} Progress</span>
                   <span className="font-bold text-primary">{currentXP.toLocaleString()} / {xpForNextLevel.toLocaleString()} XP</span>
                 </div>
                 <Progress value={progressPercent} className="h-2.5 bg-slate-800">
@@ -104,14 +104,14 @@ export function DiscordRightSidebar({ userProfile, membership }: DiscordRightSid
                     style={{ width: `${progressPercent}%` }}
                   />
                 </Progress>
-                <p className="text-xs text-white/60 text-center">
+                <p className="text-xs text-muted-foreground text-center">
                   {xpNeeded.toLocaleString()} XP to Level {currentLevel + 1}! 🚀
                 </p>
               </div>
 
               {/* Badges */}
               <div>
-                <h4 className="text-xs font-semibold text-white/60 uppercase mb-2">My Badges</h4>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">My Badges</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {badges.map((badge) => (
                     <div
@@ -127,7 +127,7 @@ export function DiscordRightSidebar({ userProfile, membership }: DiscordRightSid
 
               {/* Interests */}
               <div>
-                <h4 className="text-xs font-semibold text-white/60 uppercase mb-2">My Interests</h4>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">My Interests</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {interests.map((interest) => (
                     <Badge 
@@ -179,12 +179,12 @@ export function DiscordRightSidebar({ userProfile, membership }: DiscordRightSid
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate text-white">
+                      <p className="text-sm font-semibold truncate text-foreground">
                         {member.profiles?.first_name || 'User'}
                       </p>
                       <div className="flex items-center gap-1 text-xs">
                         <Zap className="w-3 h-3 text-primary" />
-                        <span className="text-white/60">{member.xp_points?.toLocaleString() || 0} XP</span>
+                        <span className="text-muted-foreground">{member.xp_points?.toLocaleString() || 0} XP</span>
                       </div>
                     </div>
                     
