@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { CoomWelcome } from '@/components/community/CoomWelcome';
-import { ProfileSetup } from '@/components/community/ProfileSetup';
-import { TribeSelection } from '@/components/community/TribeSelection';
-import { CommunityDashboard } from '@/components/community/CommunityDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { TribeSelection } from '@/components/community/TribeSelection';
+import { DiscordChannelSidebar } from '@/components/community/DiscordChannelSidebar';
+import { DiscordChatArea } from '@/components/community/DiscordChatArea';
+import { DiscordRightSidebar } from '@/components/community/DiscordRightSidebar';
 
 export default function Community() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
-  const [showTribeSelection, setShowTribeSelection] = useState(false);
-  const [userTribe, setUserTribe] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [membership, setMembership] = useState<any>(null);
+  const [activeChannel, setActiveChannel] = useState('pythonpals');
+  const [showTribeSelection, setShowTribeSelection] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -25,86 +23,88 @@ export default function Community() {
       return;
     }
 
-    checkUserTribe();
+    loadUserData();
   }, [user]);
 
-  const checkUserTribe = async () => {
+  const loadUserData = async () => {
     try {
-      const { data, error } = await supabase
+      // Load profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      setUserProfile(profileData);
+
+      // Load tribe membership
+      const { data: membershipData } = await supabase
         .from('tribe_memberships')
         .select('*, tribes(*)')
         .eq('user_id', user?.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error checking tribe:', error);
-      }
-
-      if (data) {
-        setUserTribe(data);
-        setShowWelcome(false);
-        setShowProfileSetup(false);
+      if (membershipData) {
+        setMembership(membershipData);
         setShowTribeSelection(false);
       } else {
-        // New user - show welcome flow
-        setShowWelcome(true);
+        setShowTribeSelection(true);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error loading user data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleWelcomeComplete = () => {
-    setShowWelcome(false);
-    setShowProfileSetup(true);
-  };
-
-  const handleProfileComplete = () => {
-    setShowProfileSetup(false);
-    setShowTribeSelection(true);
-  };
-
-  const handleTribeSelected = async (tribe: any) => {
-    await checkUserTribe();
+  const handleTribeSelected = () => {
+    setShowTribeSelection(false);
+    loadUserData();
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <LoadingSpinner />
       </div>
     );
-  }
-
-  if (showWelcome) {
-    return <CoomWelcome onComplete={handleWelcomeComplete} />;
-  }
-
-  if (showProfileSetup) {
-    return <ProfileSetup onComplete={handleProfileComplete} />;
   }
 
   if (showTribeSelection) {
     return <TribeSelection onTribeSelected={handleTribeSelected} />;
   }
 
+  const channelNames: Record<string, string> = {
+    'pythonpals': 'PythonPals',
+    'aiexplorers': 'AIExplorers',
+    'techwizards': 'TechWizards',
+    'roboticsridge': 'RoboticsRidge',
+    'scratchstars': 'ScratchStars',
+    'study-lounge': 'Study Lounge',
+    'project-collab': 'Project Collab',
+    'mentor-help': 'Mentor Help',
+  };
+
   return (
-    <div className="relative min-h-screen">
-      {/* Back to Dashboard Button */}
-      <div className="absolute top-4 left-4 z-50">
-        <Button
-          onClick={() => navigate('/dashboard')}
-          variant="outline"
-          className="gap-2 bg-background/95 backdrop-blur-sm hover:bg-accent"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Button>
-      </div>
-      
-      <CommunityDashboard userTribe={userTribe} />
+    <div className="flex h-screen w-full overflow-hidden bg-slate-950">
+      {/* Left Sidebar - Channels */}
+      <DiscordChannelSidebar
+        activeChannel={activeChannel}
+        onChannelChange={setActiveChannel}
+        userProfile={userProfile}
+      />
+
+      {/* Center - Chat Area */}
+      <DiscordChatArea
+        channelId={activeChannel}
+        channelName={channelNames[activeChannel] || 'General'}
+      />
+
+      {/* Right Sidebar - Profile & Leaderboard */}
+      <DiscordRightSidebar
+        userProfile={userProfile}
+        membership={membership}
+      />
     </div>
   );
 }
