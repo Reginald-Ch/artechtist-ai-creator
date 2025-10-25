@@ -96,8 +96,8 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      {/* Left Sidebar - Discord Style */}
+    <div className="min-h-screen flex w-full bg-gradient-to-br from-background via-card to-background">
+      {/* Left Sidebar - Discord Style Enhanced */}
       <div className="w-60 bg-card border-r border-border/40 flex flex-col">
         {/* Tribe Header */}
         <div className="h-14 border-b border-border/40 px-4 flex items-center justify-between bg-muted/30">
@@ -143,23 +143,31 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
               </span>
             </div>
             
-            {channels.map((channel) => (
-              <button
-                key={channel.id}
-                onClick={() => setActiveView(channel.id)}
-                className={`
-                  w-full flex items-center gap-2 px-2 py-1.5 rounded
-                  transition-colors group
-                  ${activeView === channel.id 
-                    ? 'bg-accent text-foreground' 
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
-                  }
-                `}
-              >
-                <Hash className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm font-medium truncate">{channel.name}</span>
-              </button>
-            ))}
+            {channels.map((channel) => {
+              const Icon = channel.icon;
+              return (
+                <div key={channel.id} className="relative group">
+                  <button
+                    onClick={() => setActiveView(channel.id)}
+                    className={`
+                      w-full flex items-center gap-2 px-2 py-1.5 rounded transition-all
+                      ${activeView === channel.id 
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-primary' 
+                        : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:border-l-2 hover:border-primary/50'
+                      }
+                    `}
+                  >
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${activeView === channel.id ? 'text-primary' : ''}`} />
+                    <span className="text-sm truncate">{channel.name}</span>
+                  </button>
+                  {/* Tooltip */}
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-3 py-2 bg-popover border border-border rounded-md shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                    <p className="text-xs font-medium">{channel.name}</p>
+                    <p className="text-xs text-muted-foreground">{channel.description}</p>
+                  </div>
+                </div>
+              );
+            })}
 
             <Separator className="my-2" />
 
