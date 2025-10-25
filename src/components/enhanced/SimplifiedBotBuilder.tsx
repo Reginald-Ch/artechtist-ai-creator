@@ -57,6 +57,10 @@ import { FirstTimeBotWizard } from "./FirstTimeBotWizard";
 import { useAvatarPersistence } from "@/hooks/useAvatarPersistence";
 import { useLanguage } from '@/contexts/LanguageContext';
 
+const nodeTypes = {
+  intent: IntentNode,
+};
+
 
 // Removed duplicate nodeTypes definition
 
