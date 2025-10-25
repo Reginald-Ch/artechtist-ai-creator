@@ -351,6 +351,8 @@ export type Database = {
           created_at: string | null
           id: string
           is_moderated: boolean | null
+          is_pinned: boolean | null
+          parent_id: string | null
           reactions: Json | null
           user_id: string
         }
@@ -359,6 +361,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_moderated?: boolean | null
+          is_pinned?: boolean | null
+          parent_id?: string | null
           reactions?: Json | null
           user_id: string
         }
@@ -367,10 +371,20 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_moderated?: boolean | null
+          is_pinned?: boolean | null
+          parent_id?: string | null
           reactions?: Json | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_chat_messages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "global_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_progress: {
         Row: {
