@@ -42,14 +42,28 @@ export function DiscordChatArea({ channelId, channelName }: DiscordChatAreaProps
 
   const loadMessages = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from('global_chat_messages')
-        .select('*, profiles(first_name, avatar_seed)')
+        .select('*')
         .order('created_at', { ascending: true })
         .limit(50);
 
       if (error) throw error;
-      setMessages(data as any || []);
+
+      // Fetch profiles separately
+      const userIds = [...new Set(messagesData?.map(m => m.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, avatar_seed')
+        .in('user_id', userIds);
+
+      // Merge messages with profiles
+      const messagesWithProfiles = messagesData?.map(msg => ({
+        ...msg,
+        profiles: profilesData?.find(p => p.user_id === msg.user_id)
+      }));
+
+      setMessages(messagesWithProfiles as any || []);
       scrollToBottom();
     } catch (error) {
       console.error('Error loading messages:', error);
@@ -161,8 +175,8 @@ export function DiscordChatArea({ channelId, channelName }: DiscordChatAreaProps
       <div className="h-14 border-b border-border/40 px-6 flex items-center gap-3 bg-gradient-to-r from-primary/5 to-transparent">
         <Hash className="w-5 h-5 text-primary" />
         <div>
-          <h1 className="text-lg font-bold text-foreground">{channelName}</h1>
-          <p className="text-xs text-muted-foreground">Join the conversation!</p>
+          <h1 className="text-lg font-bold text-white">{channelName}</h1>
+          <p className="text-xs text-white/70">Join the conversation!</p>
         </div>
       </div>
 
@@ -192,16 +206,16 @@ export function DiscordChatArea({ channelId, channelName }: DiscordChatAreaProps
                   <div className="flex-1 min-w-0">
                     {showAvatar && (
                       <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-semibold text-foreground">
+                        <span className="font-semibold text-white">
                           {message.profiles?.first_name || 'Unknown User'}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-white/50">
                           {formatTime(message.created_at)}
                         </span>
                       </div>
                     )}
                     
-                    <p className="text-sm text-foreground/90 break-words">{message.content}</p>
+                    <p className="text-sm text-white/90 break-words">{message.content}</p>
                     
                     {/* Reactions */}
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -278,7 +292,7 @@ export function DiscordChatArea({ channelId, channelName }: DiscordChatAreaProps
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2 px-1">
+          <p className="text-xs text-white/60 mt-2 px-1">
             💡 Tip: Earn XP by chatting, helping others, and completing challenges!
           </p>
         </div>

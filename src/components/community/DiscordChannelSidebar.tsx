@@ -41,7 +41,7 @@ export function DiscordChannelSidebar({ activeChannel, onChannelChange, userProf
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/50">
           <span className="text-xl">✨</span>
         </div>
-        <h2 className="font-bold text-foreground">Me AI</h2>
+        <h2 className="font-bold text-white">Me AI</h2>
       </div>
 
       {/* Live Challenge Banner */}
@@ -80,8 +80,8 @@ export function DiscordChannelSidebar({ activeChannel, onChannelChange, userProf
                   `}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Hash className={`w-4 h-4 flex-shrink-0 ${activeChannel === channel.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className="text-sm font-medium truncate">{channel.name}</span>
+                    <Hash className={`w-4 h-4 flex-shrink-0 ${activeChannel === channel.id ? 'text-primary' : 'text-white/50'}`} />
+                    <span className={`text-sm font-medium truncate ${activeChannel === channel.id ? 'text-white' : 'text-white/80'}`}>{channel.name}</span>
                   </div>
                   <Badge variant="secondary" className="ml-2 text-xs px-1.5 py-0">
                     {channel.activeUsers}
@@ -107,8 +107,8 @@ export function DiscordChannelSidebar({ activeChannel, onChannelChange, userProf
                   className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-accent/50 text-foreground/80 hover:text-foreground transition-all"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <Volume2 className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                    <span className="text-sm font-medium truncate">{channel.name}</span>
+                    <Volume2 className="w-4 h-4 flex-shrink-0 text-white/50" />
+                    <span className="text-sm font-medium truncate text-white/80">{channel.name}</span>
                   </div>
                   <Badge 
                     variant="outline" 
@@ -133,13 +133,13 @@ export function DiscordChannelSidebar({ activeChannel, onChannelChange, userProf
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">
+            <p className="text-sm font-bold text-white truncate">
               {userProfile?.first_name || 'Young Techie'}
             </p>
             <div className="flex items-center gap-1 text-xs">
               <span className="text-primary font-semibold">Level 5</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-accent-foreground">1,250 XP</span>
+              <span className="text-white/40">•</span>
+              <span className="text-white/70">1,250 XP</span>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
