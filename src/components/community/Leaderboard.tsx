@@ -53,9 +53,9 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
   };
 
   const getPodiumColor = (index: number) => {
-    if (index === 0) return 'from-amber-500/20 to-yellow-500/20';
-    if (index === 1) return 'from-slate-400/20 to-slate-300/20';
-    if (index === 2) return 'from-orange-600/20 to-orange-500/20';
+    if (index === 0) return 'from-primary/20 to-secondary/20';
+    if (index === 1) return 'from-muted to-muted/50';
+    if (index === 2) return 'from-secondary/20 to-accent/20';
     return '';
   };
 
@@ -71,14 +71,14 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
       />
 
       {/* Header */}
-      <div className="p-6 border-b border-border/40 bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-orange-500/10">
+      <div className="p-6 border-b border-border/40 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
               <Trophy className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-foreground bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Leaderboard
               </h2>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -123,9 +123,9 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
                 group relative overflow-hidden rounded-xl p-4 
                 ${index < 3 
                   ? `bg-gradient-to-r ${getPodiumColor(index)} border-2 ${
-                      index === 0 ? 'border-amber-500/50' : 
-                      index === 1 ? 'border-slate-400/50' : 
-                      'border-orange-600/50'
+                      index === 0 ? 'border-primary/50' : 
+                      index === 1 ? 'border-muted-foreground/30' : 
+                      'border-secondary/50'
                     }` 
                   : 'bg-card hover:bg-accent/50 border border-border/40'
                 }
@@ -138,9 +138,9 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
                   {index < 3 ? (
                     <div className={`
                       w-12 h-12 rounded-full flex items-center justify-center
-                      ${index === 0 ? 'bg-gradient-to-br from-amber-500 to-yellow-500' :
-                        index === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-300' :
-                        'bg-gradient-to-br from-orange-600 to-orange-500'}
+                      ${index === 0 ? 'bg-gradient-to-br from-primary to-secondary' :
+                        index === 1 ? 'bg-gradient-to-br from-muted-foreground/60 to-muted-foreground/40' :
+                        'bg-gradient-to-br from-secondary to-accent'}
                     `}>
                       {getRankIcon(index)}
                     </div>
@@ -198,8 +198,8 @@ export function Leaderboard({ tribeId }: LeaderboardProps) {
                 {/* XP Points */}
                 <div className="flex-shrink-0 text-right">
                   <div className="flex items-center gap-1 text-xl font-bold">
-                    <Zap className={`w-5 h-5 ${index < 3 ? 'text-amber-500' : 'text-primary'}`} />
-                    <span className={index < 3 ? 'text-amber-500' : 'text-primary'}>
+                    <Zap className={`w-5 h-5 ${index < 3 ? 'text-secondary' : 'text-primary'}`} />
+                    <span className={index < 3 ? 'text-secondary' : 'text-primary'}>
                       {user.xp_points || 0}
                     </span>
                   </div>

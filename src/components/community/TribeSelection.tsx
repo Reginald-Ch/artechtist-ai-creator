@@ -119,8 +119,8 @@ export function TribeSelection({ onTribeSelected }: TribeSelectionProps) {
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ scale: 1.05, y: -10 }}
               >
-                <Card className="h-full border-2 hover:border-primary/50 transition-all duration-300 shadow-lg hover:shadow-2xl">
-                  <CardHeader className={`bg-gradient-to-br ${tribe.color} text-white rounded-t-lg`}>
+                <Card className="h-full border-2 border-primary/20 hover:border-primary transition-all duration-300 shadow-lg hover:shadow-2xl">
+                  <CardHeader className="bg-gradient-to-br from-primary via-secondary to-accent text-white rounded-t-lg">
                     <div className="flex items-center justify-between">
                       <span className="text-6xl">{tribe.emoji}</span>
                       <Badge variant="secondary" className="bg-white/20 backdrop-blur">

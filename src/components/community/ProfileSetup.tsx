@@ -15,12 +15,12 @@ interface ProfileSetupProps {
 }
 
 const avatarStyles = [
-  { seed: 'felix', color: 'from-blue-500 to-cyan-500' },
-  { seed: 'aneka', color: 'from-purple-500 to-pink-500' },
-  { seed: 'luna', color: 'from-green-500 to-emerald-500' },
-  { seed: 'max', color: 'from-orange-500 to-red-500' },
-  { seed: 'riley', color: 'from-yellow-500 to-amber-500' },
-  { seed: 'charlie', color: 'from-indigo-500 to-blue-500' },
+  { seed: 'felix', color: 'from-primary to-primary/70' },
+  { seed: 'aneka', color: 'from-secondary to-secondary/70' },
+  { seed: 'luna', color: 'from-accent to-accent/70' },
+  { seed: 'max', color: 'from-primary via-secondary to-accent' },
+  { seed: 'riley', color: 'from-secondary to-primary' },
+  { seed: 'charlie', color: 'from-accent to-primary' },
 ];
 
 export function ProfileSetup({ onComplete }: ProfileSetupProps) {

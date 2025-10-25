@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { MessageSquare, Trophy, Target, User, BookOpen, Hash, Bell, Settings, Zap, Crown, Medal, LogOut, Users } from 'lucide-react';
 import { TribeChatRoom } from './TribeChatRoom';
+import { DirectMessages } from './DirectMessages';
 import { Leaderboard } from './Leaderboard';
 import { ChallengeZone } from './ChallengeZone';
 import { ProfileCustomization } from './ProfileCustomization';
@@ -56,6 +57,7 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
   const channels = [
     { id: 'general', name: 'global-chat', icon: Users, type: 'text', description: 'Everyone across all tribes!' },
     { id: 'tribe-chat', name: `${userTribe.tribe?.name.toLowerCase().replace(/\s+/g, '-')}`, icon: Hash, type: 'text', description: 'Your tribe channel' },
+    { id: 'dm', name: 'direct-messages', icon: MessageSquare, type: 'text', description: 'Private conversations' },
     { id: 'projects', name: 'project-showcase', icon: BookOpen, type: 'text', description: 'Share your creations' },
     { id: 'leaderboard', name: 'hall-of-fame', icon: Trophy, type: 'text', description: 'Top innovators' },
     { id: 'challenges', name: 'quest-board', icon: Target, type: 'text', description: 'Epic quests await' },
@@ -232,6 +234,7 @@ export function CommunityDashboard({ userTribe }: CommunityDashboardProps) {
         <div className="flex-1 overflow-hidden">
           {activeView === 'general' && <TribeChatRoom tribeId="general" isGeneral={true} />}
           {activeView === 'tribe-chat' && <TribeChatRoom tribeId={userTribe.tribe_id} />}
+          {activeView === 'dm' && <DirectMessages />}
           {activeView === 'leaderboard' && <Leaderboard tribeId={userTribe.tribe_id} />}
           {activeView === 'challenges' && <ChallengeZone tribeId={userTribe.tribe_id} />}
           {activeView === 'profile' && <ProfileCustomization membership={userTribe} />}

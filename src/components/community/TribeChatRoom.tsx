@@ -114,11 +114,19 @@ export function TribeChatRoom({ tribeId, isGeneral = false }: TribeChatRoomProps
           schema: 'public',
           table: tableName
         },
-        (payload) => {
-          // Update message in state (for reactions)
-          setMessages(prev => prev.map(m => 
-            m.id === payload.new.id ? { ...m, ...payload.new } : m
-          ));
+        async (payload) => {
+          // Fetch full message data with profile for reactions
+          const { data } = await supabase
+            .from(tableName)
+            .select('*, profiles(first_name, avatar_seed, avatar_color)')
+            .eq('id', payload.new.id)
+            .single();
+          
+          if (data) {
+            setMessages(prev => prev.map(m => 
+              m.id === data.id ? data as any : m
+            ));
+          }
         }
       )
       .on('presence', { event: 'sync' }, () => {
